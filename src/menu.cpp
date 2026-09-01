@@ -320,7 +320,7 @@ void init_debug(void)
 {
   int i;
   
-  free(user_path);
+  free((void *)user_path);
   user_path = NULL;
 
   user.environment.in_battle = 0;
@@ -427,13 +427,13 @@ int load_game(int i)
     char path[BUFSIZ];
 
     sprintf(path, "%s/%s", USERS_DIR, user_entries[i].name);
-    free(user_path);
+    free((void *)user_path);
     user_path = strdup(path);
 
     if (load_user()) {
       /* 失敗 */
       emit_error("Can't load user.dat!");
-      free(user_path);
+      free((void *)user_path);
       user_path = NULL;
       goto failure;
     } else

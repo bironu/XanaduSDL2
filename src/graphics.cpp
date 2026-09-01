@@ -37,8 +37,8 @@ pixel_t find_nearest_color(unsigned red, unsigned green, unsigned blue)
   unsigned long pixel = 0;
   int i;
   for (i = 0; i < 256; i++) {
-    unsigned error = abs(colors[i].red - red) + abs(colors[i].green - green)
-      + abs(colors[i].blue - blue);
+    unsigned error = abs((int)(colors[i].red - red)) + abs((int)(colors[i].green - green))
+      + abs((int)(colors[i].blue - blue));
     if (error == 0) {
       pixel = colors[i].pixel;
       break;

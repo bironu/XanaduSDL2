@@ -78,7 +78,7 @@ static image_t *tmpl_load(const char *filename)
       pixels[i] = find_nearest_color(R, G, B);
     }
     flip += H * bmpinfo.biWidth / 2;
-    data = img->data;
+    data = (unsigned char *)img->data;
     while (H-- > 0) {
       flip -= bmpinfo.biWidth / 2;
       for (i = 0; i < bmpinfo.biWidth / 2; i++) {
@@ -106,7 +106,7 @@ static image_t *tmpl_load(const char *filename)
       goto done;
     }
     flip += bmpinfo.biWidth * H;
-    data = img->data;
+    data = (unsigned char *)img->data;
     while (H-- > 0) {
       flip -= bmpinfo.biWidth;
       for (i = 0; i < bmpinfo.biWidth; i++) {
