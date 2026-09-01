@@ -1,0 +1,11 @@
+◎ファイルリスト
+
+README   TXT    説明文
+AKEY     CFG    キー名設定ファイル
+AKEY     EXE    プログラム本体
+CHW      EXE    補助プログラム
+
+    ==    サンプルスクリプト  ==
+AKEY000  TXT    ワードパッドの操作  ※既に時代にそぐわなくなっているかも、、
+AKEY001  TXT    About me
+AKEY002  TXT    Akey 終了

@@ -1,0 +1,122 @@
+#-----------------------------------------------------------------------------
+# 書式:
+#   行頭の '#' はコメント行を指定します。
+#   シンボル ':' [ファイル名] <改行 または EOF>
+#
+# シンボル(0..9A..Z_)は大文字・小文字を「区別します」。
+# シンボル・ファイル名は共に長さは自由ですが、空白を認識しません。
+# ただし一行の長さの上限は 500 文字程度です。
+#-----------------------------------------------------------------------------
+# 現在定義されているシンボル:
+#
+# USER_HIT_DAGGER	ユーザーヒット(短剣)
+# USER_HIT_SWORD	ユーザーヒット(長剣)
+# USER_HIT_SPEAR	ユーザーヒット(槍)
+# USER_HIT_AXE		ユーザーヒット(斧)
+# USER_DAMAGED		ユーザーダメージ
+# USER_TRAPPED		おっと！(モンスターの魔法ヒット)
+# USER_DEAD		ユーザーデッド
+# MAGIC_HIT		魔法ヒット
+# MAGIC_FAILED		魔法失敗
+# MONSTER_DEAD		モンスターデッド
+# BOSS_HIT		ボスヒット
+# BOSS_DEAD		ボスデッド
+# BOSS_BREATH		ボスブレス
+# OPEN_BOX		宝箱を開ける
+# TREASURE		お宝出現
+# GET			お宝ゲット
+# GET_POISON		うげ毒だ！
+# USE_ELIXER		霊薬を飲む
+# LOST_KEY		ロストキー
+#
+# DEFAULT_CAST		魔法を唱える(デフォルト)
+# CAST_NEEDLE		魔法ごとの効果音
+#  :			
+# CAST_DEATH
+#
+# DEFAULT_USE		道具を使う(デフォルト)
+# USE_SPECTACLES	道具ごとの効果音
+#  :
+# USE_BOTTLE
+# USE_SILVER_ROSE	(シナリオ2)
+#  :
+# USE_CROSS
+#
+# OPENING0		オープニング1(ボヨン1)
+# OPENING1		オープニング0(カキン)
+# OPENING2		オープニング2(ボヨン2)
+
+# ユーザーヒット(魔法がアイテムにもヒット)
+USER_HIT_DAGGER:	attack.wav
+USER_HIT_SWORD:		attack.wav
+USER_HIT_SPEAR:		attack.wav
+USER_HIT_AXE:		attack.wav
+
+# ユーザーダメージ
+USER_DAMAGED:		attack.wav
+USER_TRAPPED:		trapped.wav
+USER_DEAD:		
+
+# 魔法(ユーザーによる)
+MAGIC_HIT:		magic.wav
+MAGIC_FAILED:		failed.wav
+
+# モンスター
+MONSTER_DEAD:		dead.wav
+
+# ボス
+BOSS_HIT:		boss_hit.wav
+BOSS_DEAD:		boss_die.wav
+BOSS_BREATH:		breath.wav
+
+# さまざま
+OPEN_BOX:		open_box.wav
+TREASURE:		treasure.wav
+GET:			get.wav
+GET_POISON:		poison.wav
+USE_ELIXER:		elixer.wav
+LOST_KEY:		lost_key.wav
+
+# 魔法
+DEFAULT_CAST:		
+CAST_NEEDLE:		
+CAST_MITTAR:		
+CAST_DELUGE:		
+CAST_FIRE:		
+CAST_THUNDER:		
+CAST_POISON:		
+CAST_CORROSION:	
+CAST_TILTE:		
+CAST_DEATH:		
+
+# 道具
+DEFAULT_USE:		invoke.wav
+USE_SPECTACLES:		
+USE_RED_POSION:		
+USE_LAMP:		
+USE_BLACK_ONYX:		
+USE_FIRE_CRYSTAL:	
+USE_MATTOCK:		
+USE_HOURGLASS:		
+USE_WINGED_BOOTS:	
+USE_MANTLE:		
+USE_DEMONS_RING:	
+USE_BALANCE:		
+USE_PENDANT:		
+USE_CANDLE:		
+USE_RUBY:		
+USE_BROWN_POTION:	
+USE_MIRROR:		
+USE_BOTTLE:		
+
+# シナリオ2
+USE_SILVER_ROSE:	
+USE_KEY:		
+USE_ACID:		
+USE_LADDER:		
+USE_CROSS:		
+
+# オープニング
+OPENING0:		opening0.wav
+OPENING1:		opening1.wav
+OPENING2:		opening2.wav

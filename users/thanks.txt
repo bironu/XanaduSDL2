@@ -1,0 +1,134 @@
+#
+# 隠し名前リスト
+# *** あるいはあなたはこのファイルを読むべきではありません ***
+#
+# ファイル書式:
+# 隠し名前を持つキャラクターは、空行と空行との間にある
+# タグで始まる行の並びによって定義されます。
+# 最初のタグで始まる行のタグは Name: でなければなりません。
+# # で始まる行全体は空行として扱われます。
+#
+# データ形式:
+# 文字列	"(二重引用符)で囲まれた英数字・記号・空白の最大14個の並び。
+# 数値		数字の並び。
+# 文字列*数値	持ち物の数を指定するときに使う形式。
+#
+# タグの種類: 指定しないエントリはデフォルトのままです。
+# タグ		形式		意味
+# ----------------------------------------------
+# Name:		文字列		名前
+# HP:		0-6553500	ヒットポイント
+# Gold:		0-6553500	お金
+# Food:		0-6553500	食料
+# STR:		0-255		強さ
+# INT:		0-255		知識
+# WIS:		0-255		賢さ
+# DEX:		0-255		器用さ
+# AGL:		0-255		敏捷さ
+# CHR:		0-255		魅力
+# MGR:		0-255		魔法抵抗力
+# KRM:		0-255		カルマ
+# ELX:		0-255		霊薬
+# KEY:		0-255		鍵
+# CRN:		0-255		王冠
+# Weapon:	文字列		装備している武器
+# Scroll:	文字列		装備している魔法
+# Armor:	文字列		装備している鎧
+# Shield:	文字列		装備している盾
+# Item:		文字列		装備している道具
+# Inventory: 文字列*0-255, ...	所持品
+#
+# デフォルトキャラクター:
+# HP:		1500
+# Gold:		3500
+# Food:		 100
+# STR..CRN:	   0
+# Weapon:	"Dagger"
+# Scroll:	"Needle"
+# Armor:	"Cloth"
+# Shield:	"Gloves"
+# Item:		"Spectacles"
+# Inventory:	"Spectacles"*10, "Red Potion"*1
+#
+# シナリオ間で異なるアイテム名の扱い:
+# 例えば、
+# Weapon: "Morning-Star"
+# だと、シナリオ1にしか適用されません。
+# どちらのシナリオにも持っていきたい場合は、両方書いてください。
+# Weapon: "Morning-Star"
+# Weapon: "Heavy-Spear"
+# とか
+# Inventory: "Balance"*10, "Silver Rose"*10
+#
+
+# デバッグモード用キャラクター: デバッグモードで使うキャラクタを設定できます。
+Name:	"Debugger"
+Weapon:	"Dragon Slayer"
+Scroll: "Death"
+Armor:	"Battle-Suits"
+Shield:	"+7LargeShield"
+Item:   "Bottle", "Cross"
+
+#
+# 以下、オリジナル版 Xanadu に関わりの深い人々(敬称略)
+#
+
+# 日本ファルコム: オリジナル版 Xanadu の開発・販売元、著作権者
+Name:	"Falcom"
+
+# 木屋善夫:
+Name:	"@Yoshio.Kiya@"
+Gold:	6000000
+Weapon:	"Dragon Slayer"
+Armor:	"Battle-Suits"
+Shield:	"+7LargeShield"
+
+#
+# 以下、クローン版 Xanadu に関わりの深い人々(敬称略)
+#
+
+# ＺＵＧ: Mantle の効果がモンスターをすり抜けることを発見しました
+Name:	"ZUG"
+
+# ＰＩ．: 解析の神様として有名な方です
+Name:	"PI."
+
+# ぴか☆ちょう: レベル3のWarrionを発見しました
+Name:	"Pika-Chou"
+
+# 樹: 音楽が鳴ることを祈っています
+Name:	"Itsuki"
+
+# 相澤: コマンドセーブはできましたか？
+Name:	"Aizawa"
+
+# やまだ: レベル5の Monik が魔法を使うことを発見しました
+Name:	"Yamada"
+
+# 矢沢: 多くのデバッグ情報を整理しました(稀覯本の持ち主としても知られています)
+Name:	"Yazawa"
+
+# 所長ＡＳＴ: Xanadu に関する研究所の所長をしておられます。人々に情報交換の場を与えてくれました
+Name:	"AST"
+Weapon: "Morning-Star"
+
+# ＦＡＭ柳瀬: 開発の初期の頃から実に多くのことに尽力しました
+Name:	"FAM.Yanase"
+ELX:	0
+Inventory: "Spectacles"*0, "Brown Potion"*10, "Ladder"*10
+
+# FACTORIAN!: シナリオ2の音楽ばかりでなく、効果音も提供してくれました。
+Name:	"FACTORIAN!"
+ELX:	5
+
+# 森田伸哉: クローン版のプログラムを打ち込み、人々に多くのバグをもたらしました
+Name:	"Morita.Shinya"
+Gold:	0
+STR:	50
+INT:	40
+WIS:	40
+DEX:	20
+AGL:	40
+CHR:	100
+MGR:	10
+Inventory: "Mantle"*1

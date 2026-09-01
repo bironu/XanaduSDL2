@@ -1,0 +1,156 @@
+#-----------------------------------------------------------------------------
+# 書式:
+#   行頭の '#' はコメント行を指定します。
+#   シンボル ':' [ファイル名] <改行 または EOF>
+#
+# シンボル(0..9A..Z_)は大文字・小文字を区別しません。
+# シンボル・ファイル名は共に長さは自由ですが、空白を認識しません。
+# ただし一行の長さの上限は 500 文字程度です。
+#-----------------------------------------------------------------------------
+# 意味:
+# ファイルの各行のコロンの前にあるシンボルのことを「宣言」と呼びます。
+# このファイルで宣言したシンボルに対してファイル名を指定しない場合、
+# そのシンボルに関連付けられたゲーム中の場面では BGM はありません。
+# 一方、宣言を省略したシンボル(ファイルに現れないシンボル)は、
+# そのときの BGM を引き続き鳴らします(すなわち、何の影響も与えません)。
+# (ただし、タワーは省略すると対応するフィールドの BGM になります)。
+#
+#-----------------------------------------------------------------------------
+# プレフィックスを付けるシンボル:
+# 	XA1_		シナリオ1
+# 	XA2_		シナリオ2
+#
+# MAIN			メインテーマ(エンディングメッセージ時)
+# OPENING		オープニング
+# ENDING		エンディング(エンディングメッセージ終了後)
+#
+# DEFAULT_FIELD		フィールド
+# DEFAULT_TOWER		タワー
+# DEFAULT_BOSS		ボス
+#
+# FIELD1..FIELD11	フィールド1..11
+# TOWER1..TOWER11	タワー1..11
+# BOSS1..BOSS16		ボス1..16
+#
+# XA1_BOSS1:		Kraken Giant
+# XA1_BOSS2:		Grell Giant
+# XA1_BOSS3:		Karttikeya
+# XA1_BOSS4:		Silver Dragon
+# XA1_BOSS5:		Big Kranken
+# XA1_BOSS6:		King Dragon
+#
+# XA2_BOSS1:		Marivoux
+# XA2_BOSS2:		Peluton
+# XA2_BOSS3:		Great Kraken
+# XA2_BOSS4:		Zschokke
+# XA2_BOSS5:		White Dragon
+# XA2_BOSS6:		Borges
+# XA2_BOSS7:		Red Dragon
+# XA2_BOSS8:		Guin
+# XA2_BOSS9:		Hydra
+# XA2_BOSS10:		Buzzati
+# XA2_BOSS11:		Boiardo
+# XA2_BOSS12:		King Dragon
+#
+#-----------------------------------------------------------------------------
+# シナリオ間で共通のシンボル:
+# TRAINING_GROUND	訓練場
+# DEFAULT_SHOP		ショップ
+# WEAPON		武器屋
+# SCROLL		巻物屋
+# ARMORY		鎧屋
+# SHIELD		盾屋
+# ITEM			道具屋
+# GUILDS		鍵屋
+# FOODS			食料屋
+# INN			宿屋
+# HEALERS		病院
+# TEMPLE		寺院
+# START_MENU		スタートメニュー
+#
+#-----------------------------------------------------------------------------
+# その他のシンボル:
+# XA2_HEALERS		シナリオ2の病院
+# XA2_TEMPLE		シナリオ2の寺院
+#
+
+# シナリオ1
+
+XA1_MAIN:		xanadu.mid
+XA1_OPENING:		
+XA1_ENDING:		xana2/xana2_sh.mid
+
+XA1_DEFAULT_FIELD:	xanadu.mid
+#XA1_FIELD1:
+#XA1_FIELD2:
+#XA1_FIELD3:
+#XA1_FIELD4:
+#XA1_FIELD5:
+#XA1_FIELD6:
+#XA1_FIELD7:
+#XA1_FIELD8:
+#XA1_FIELD9:
+#XA1_FIELD10:
+
+XA1_DEFAULT_BOSS:
+#XA1_BOSS1:
+#XA1_BOSS2:
+#XA1_BOSS3:
+#XA1_BOSS4:
+#XA1_BOSS5:
+#XA1_BOSS6:
+
+# シナリオ2
+
+XA2_MAIN:		
+XA2_OPENING:		xa2opening.mid
+XA2_ENDING:		
+
+XA2_FIELD1:		xana2/xana2_01.mid
+XA2_FIELD2:		xana2/xana2_02.mid
+XA2_FIELD3:		xana2/xana2_03.mid
+XA2_FIELD4:		xana2/xana2_04.mid
+XA2_FIELD5:		xana2/xana2_05.mid
+XA2_FIELD6:		xana2/xana2_06.mid
+XA2_FIELD7:		xana2/xana2_07.mid
+XA2_FIELD8:		xana2/xana2_08.mid
+XA2_FIELD9:		xana2/xana2_09.mid
+XA2_FIELD10:		xana2/xana2_10.mid
+XA2_FIELD11:		xana2/xana2_11.mid
+
+XA2_DEFAULT_BOSS:
+#XA2_BOSS1:
+#XA2_BOSS2:
+#XA2_BOSS3:
+#XA2_BOSS4:
+#XA2_BOSS5:
+#XA2_BOSS6:
+#XA2_BOSS7:
+#XA2_BOSS8:
+#XA2_BOSS9:
+#XA2_BOSS10:
+#XA2_BOSS11:
+#XA2_BOSS12:
+
+XA2_HEALERS:		xana2/xana2_he.mid
+XA2_TEMPLE:		xana2/xana2_te.mid
+
+# トレーニンググラウンド
+#TRAINING_GROUND:	
+
+# ショップ
+DEFAULT_SHOP:		xana2/xana2_sh.mid
+#WEAPON:
+#SCROLL:
+#ARMORY:
+#SHIELD:
+#ITEM:
+#GUILDS:
+#FOODS:
+#INN:
+#HEALERS:
+#TEMPLE:
+
+# スタートメニュー(消音)
+#START_MENU:		gminit.mid
+START_MENU:

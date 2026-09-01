@@ -1,0 +1,59 @@
+\#--------------------------------------------------
+\#  ワードパッドを起動し、文章を書きます
+\#--------------------------------------------------
+\D02
+\wr
+\D02
+"C:\\Program Files\\Accessories\\Wordpad.exe"\n
+\D05
+This directory contains the version 2.8.0 release of the GNU C\n
+compiler.  It includes all of the support for compiling C++ and\n
+Objective C, including a run-time library for Objective C.\n
+\n
+\#--------------------------------------------------
+\#    フォントの大きさを変えます  
+\#--------------------------------------------------
+
+\#  Altを押しながら'o'を押して、'f'
+\Ado\Au
+f
+\#  Altを押しながら's'を押して、'24'(フォントサイズ) で、tabキー を押しEnter
+\Ads\Au
+24\09
+\n
+
+\#  で、通常の文字入力
+
+The GNU C compiler is free software.  See the file COPYING for copying\n
+permission.\n
+\n
+See the file gcc.texi (together with other files that it includes) for\n
+installation and porting information.  The file INSTALL contains a\n
+copy of the installation information, as plain ASCII.\n
+
+\# ファンクションキーを押してヘルプを表示します。
+\F01
+\D07
+\Ad\09\Au
+\n--------------------------\n
+Date  \@DATE(y/m/d)\n
+Date  \@DATE(mdy)\n
+Time \@TIME(h:m:s)\n
+Time \@TIME([h-m])\n
+Akey.exe Sample \n\09by Miki Yamaura\n
+   e-Mail yamaura@mva.biglobe.ne.jp\n
+          Thank you! :-)\n
+\n
+            ---   The End   ---
+\#  とまる
+\D00 「はい」を、押すと、スクリプトを続行します。「いいえ」を押すと、中断します。
+\Ad\F04\Au
+\D01
+n
+\D01
+\Ad\09\Au
+\D01
+\Ad\F04\Au
+\#--------------------------------------------------
+\#    -- end --
+\#--------------------------------------------------

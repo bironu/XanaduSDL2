@@ -1,0 +1,1436 @@
+#--------------------------------
+#0
+      ABC Shop
+
+
+ A:1000-Food  100GP
+
+ B:Spectacles 100GP
+
+ C:Red-Potion 200GP
+
+ D:Lamp       300GP
+
+ E:Key        100GP
+
+ F:Candle     500GP
+$
+    100      10 "Food"
+    100       1 "Spectacles"
+    200       1 "Red Potion"
+    300       1 "Lamp"
+    100       1 "Key"
+    500       1 "Candle"
+
+#--------------------------------
+#1
+   Barnard's Shop
+
+
+A:Dagger       300GP
+
+B:Short-Sword  500GP
+
+C:Cloth        100GP
+
+D:LeatherArmor 500GP
+
+E:Padded-Mail 1000GP
+
+F:Gloves       100GP
+
+G:Small-Shield 400GP
+$
+    300       1 "Dagger"
+    500       1 "Short-Sword"
+    100       1 "Cloth"
+    500       1 "Leather-Armor"
+   1000       1 "Padded-Mail"
+    100       1 "Gloves"
+    400       1 "Small-Shield"
+
+#--------------------------------
+#2
+    Makki's Shop
+
+
+ A:Red-Potion
+           200-Gold
+
+
+ B:Lamp
+           300-Gold
+$
+    200       1 "Red Potion"
+    300       1 "Lamp"
+
+#--------------------------------
+#3
+      Steven's
+
+
+ A:Red-Potion
+              300GP
+
+ B:Lamp
+              400GP
+
+ C:1000-Food
+              100GP
+
+ D:10000-Food 
+             1000GP
+$
+    300       1 "Red Potion"
+    400       1 "Lamp"
+    100      10 "Food"
+   1000     100 "Food"
+
+#--------------------------------
+#4
+      No sinner
+  will ever travel
+      that road.
+
+ Give strsngth to
+hand that are tired
+ and to nees that
+   trembie with
+     weakness.
+
+Tell everyone who is
+    discouraged,
+'BE strong and don't
+     be afraid!
+  God is coming to
+punish your enemies'
+
+        Ol-Dlearke
+$
+
+#--------------------------------
+#5
+     Jim's Shop
+
+A:Dagger       400GP
+
+B:Short-Sword  600GP
+
+C:Cloth        100GP
+
+D:Leather-Armor
+               600GP
+
+E:Padded-Mail 1200GP
+
+F:Gloves       100GP
+
+G:Small-Shield 500GP
+
+H:Key          200GP
+$
+    400       1 "Dagger"
+    600       1 "Short-Sword"
+    100       1 "Cloth"
+    600       1 "Leather-Armor"
+   1200       1 "Padded-Mail"
+    100       1 "Gloves"
+    500       1 "Small-Shield"
+    200       1 "Key"
+
+#--------------------------------
+#6
+  Ele's food Shop
+
+
+ A:1000-Food
+           100-Gold
+
+
+ B:10000-Food
+          1000-Gold
+
+
+ C:100000-Food
+         10000-Gold
+$
+    100      10 "Food"
+   1000     100 "Food"
+  10000    1000 "Food"
+
+#--------------------------------
+#7
+    Bob's Shiled
+
+
+ A:Small-Shield
+           500-Gold
+
+ B:+1 Small-Shield
+          2800-Gold
+
+
+
+ Some of the towers
+
+seem to be connected
+
+together underground
+$
+    500       1 "Small-Shield"
+   2800       1 "+1SmallShield"
+
+#--------------------------------
+#8
+       Falcom
+
+
+A:Scroll of Needle
+               100GP
+
+B:Scroll of
+   Deg-Needle  500GP
+
+C:Scroll of
+       Mittar 1000GP
+
+D:Scroll of Death
+            500000GP
+$
+    100       1 "Needle"
+    500       1 "Deg-Needle"
+   1000       1 "Mittar"
+ 500000       1 "Death"
+
+#--------------------------------
+#9
+      Nekhbet
+
+ A:Leather-Armor
+           500-Gold
+
+ B:Padded-Mail
+          1000-Gold
+
+ C:Small-Shield
+           400-Gold
+
+ D:+1 Small-Shield
+          2500-Gold
+
+ E:+2 Small-Shield
+          5000-Gold
+$
+    500       1 "Leather-Armor"
+   1000       1 "Padded-Mail"
+    400       1 "Small-Shield"
+   2500       1 "+1SmallShield"
+   5000       1 "+2SmallShield"
+
+#--------------------------------
+#10
+     Jyo's Shop
+
+
+ A:Elixir
+         50000-Gold
+
+
+ B:Demons-Ring
+         50000-Gold
+
+
+ C:Mirror
+         10000-Gold
+
+ D:Deg-Tilte Spell
+        400000-Gold
+$
+  50000       1 "Elixir"
+  50000       1 "Demons Ring"
+  10000       1 "Mirror"
+ 400000       1 "Deg-Tilte"
+
+#--------------------------------
+#11
+     Kelly's Shop
+
+
+ A:Vorpal-Weapon
+        500000-Gold
+
+
+ B:+7 Large-Shield
+        350000-Gold
+
+
+ C:+2 Reflex
+        300000-Gold
+$
+ 500000       1 "Vorpal-Weapon"
+ 350000       1 "+7LargeShield"
+ 300000       1 "+2 Reflex"
+
+#--------------------------------
+#12
+      ABC Shop
+
+
+ A:Spectacles 100GP
+
+ B:Lamp       300GP
+
+ C:Key        200GP
+
+ D:Candle     500GP
+$
+    100       1 "Spectacles"
+    300       1 "Lamp"
+    200       1 "Key"
+    500       1 "Candle"
+
+#--------------------------------
+#13
+     Messalina's
+      Magic Shop
+
+
+A:Fire Spell
+           2000-Gold
+
+B:Deg-Mittar Spell
+           5000-Gold
+
+C:Poison Spell
+          10000-Gold
+
+
+   Acid will melt
+   through walls.
+$
+   2000       1 "Fire"
+   5000       1 "Deg-Mittar"
+  10000       1 "Poison"
+
+#--------------------------------
+#14
+Huxiey's Weapon Shop
+
+A:Long-Sword  2500GP
+
+B:Battle-Axe  5200GP
+
+C:Broad-Sword 7800GP
+
+D:Scale-Armor 5200GP
+
+E:Chain-Mail  7500GP
+
+F:Splint-mail 8500GP
+
+G:+2 Small-Shield
+              5200GP
+
+H:+3 Small-Shield
+             10000GP
+$
+   2500       1 "Long-Sword"
+   5200       1 "Battle-Axe"
+   7800       1 "Broad-Sword"
+   5200       1 "Scale-Armor"
+   7500       1 "Chain-Mail"
+   8500       1 "Sprint-Mail"
+   5200       1 "+2SmallShield"
+  10000       1 "+3SmallShield"
+
+#--------------------------------
+#15
+ Codex of Jeremiah
+
+Xanadu and its citie
+s are destoroyed;its
+finest young men hav
+e been slaughtered.
+I am the King,the Lo
+ad Almighty,and I ha
+ve spoken.Xanadu's d
+oom is coming soon.
+'Mourn for that nati
+on,you that live nea
+r by,all of you that
+ know its fame.
+Say,'Its powerful ru
+le has been broken;
+its glory and might
+ are no more.'
+$
+
+#--------------------------------
+#16
+      CODEX of
+    KALL=PLEARKE
+
+The Lord's power and
+glory can be soon in
+    the distance.
+Fire and smoke show
+his anger.He speaks,
+and his words burn
+     like fire.
+He sends the wind in
+front of him like a
+ flood that carries
+  everything away.
+It sweeps nations to
+destruction and puts
+   an end to their
+     evil plans.
+$
+
+#--------------------------------
+#17
+      ABC Shop
+
+
+A:1000-Food    100GP
+
+B:Red-Potion   300GP
+
+C:Lamp         400GP
+
+D:Key          200GP
+
+E:Candle       600GP
+$
+    100      10 "Food"
+    300       1 "Red Potion"
+    400       1 "Lamp"
+    200       1 "Key"
+    600       1 "Candle"
+
+#--------------------------------
+#18
+ Nye Brothers Shop
+
+
+A:Small-Shield
+            500-Gold
+
+B:+1 Small-Shield
+           1500-Gold
+
+C:+2 Small-Shield
+           2500-Gold
+$
+    500       1 "Small-Shield"
+   1500       1 "+1SmallShield"
+   2500       1 "+2SmallShield"
+
+#--------------------------------
+#19
+ Sabsu's Weapon Shop
+
+
+ A:Spear     1000GP
+
+
+ B:Hand-Axe  1500GP
+
+
+
+As you enter further
+ into the maze,you
+ will be challenged
+ by more and more
+ powerful enemies.
+$
+   1000       1 "Spear"
+   1500       1 "Hand-Axe"
+
+#--------------------------------
+#20
+ J&J Furniture Shop
+
+
+ A:Hourglass
+         80000-Gold
+
+ B:Mattock
+         10000-Gold
+
+ C:Key
+           500-Gold
+
+
+  -- These tool
+       are handy --
+$
+  80000       1 "Hourglass"
+  10000       1 "Mattock"
+    500       1 "Key"
+
+#--------------------------------
+#21
+       Nannar
+
+
+ A:Mittar Spell
+           1000-Gold
+
+ B:Deluge Spell
+           2000-Gold
+
+ C:Deg-Mittar Spell
+           5000-Gold
+
+ D:Winged-Boots
+          80000-Gold
+$
+   1000       1 "Mittar"
+   2000       1 "Deluge"
+   5000       1 "Deg-Mittar"
+  80000       1 "Winged-boots"
+
+#--------------------------------
+#22
+ Shay's Armor Shop
+
+
+ A:Studded-Mail
+           600-Gold
+
+ B:Ring-Mail
+           800-Gold
+
+ C:Scale-Armor
+          1700-Gold
+$
+    600       1 "Studded-Mail"
+    800       1 "Ring-Mail"
+   1700       1 "Scale-Armor"
+
+#--------------------------------
+#23
+      ABC Shop
+
+
+ A:1000-Food  100GP
+
+ B:Red-Potion 300GP
+
+ C:Lamp       400GP
+
+ D:Key        200GP
+
+ E:Candle     500GP
+$
+    100      10 "Food"
+    300       1 "Red Potion"
+    400       1 "Lamp"
+    200       1 "Key"
+    500       1 "Candle"
+
+#--------------------------------
+#24
+    Nero's Shop
+
+A:Short-Sword  600GP
+B:Spear       1200GP
+C:Hand-Axe    1600GP
+D:Leather Armor
+               600GP
+E:Padded-Mail 1100GP
+F:Studded-Mail
+              2100GP
+G:Ring-Mail   3100GP
+H:Small-Shield
+               500GP
+I:Large-Shield
+              1100GP
+J:+1 Small-Shield
+              2600GP
+$
+    600       1 "Short-Sword"
+   1200       1 "Spear"
+   1600       1 "Hand-Axe"
+    600       1 "Leather-Armor"
+   1100       1 "Padded-Mail"
+   2100       1 "Studded-Mail"
+   3100       1 "Ring-Mail"
+    500       1 "Small-Shield"
+   1100       1 "Large-Shield"
+   2600       1 "+1SmallShield"
+
+#--------------------------------
+#25
+     Noah's Shop
+
+
+A:1000-Food    100GP
+
+B:Spectacles   100GP
+
+C:Red-Potion   300GP
+
+D:Key          300GP
+
+E:Candle       500GP
+$
+    100      10 "Food"
+    100       1 "Spectacles"
+    300       1 "Red Potion"
+    300       1 "Key"
+    500       1 "Candle"
+
+#--------------------------------
+#26
+ Scott's Magic Shop
+
+
+A:Deg-Needle Spell
+               500GP
+
+B:Mittar Spell
+              1100GP
+
+C:Deluge Spell
+              2200GP
+
+D:Fire Spell
+              2200GP
+$
+    500       1 "Deg-Needle"
+   1100       1 "Mittar"
+   2200       1 "Deluge"
+   2200       1 "Fire"
+
+#--------------------------------
+#27
+     Salammdo's
+     Magic Shop
+
+
+A:Fire        3000GP
+
+B:Thunder     7000GP
+
+C:Red-Potion  1000GP
+
+D:Lamp         700GP
+
+E:Candle      1000GP
+
+F:Spectacles   300GP
+
+G:Key         1500GP
+$
+   3000       1 "Fire"
+   7000       1 "Thunder"
+   1000       1 "Red Potion"
+    700       1 "Lamp"
+   1000       1 "Candle"
+    300       1 "Spectacles"
+   1500       1 "Key"
+
+#--------------------------------
+#28
+     Isabel's
+
+
+ A:Hand-Axe
+          1500-Gold
+
+ B:Long-Sword
+          2700-Gold
+
+ C:Battle-Axe
+          5900-Gold
+$
+   1500       1 "Hand-Axe"
+   2700       1 "Long-Sword"
+   5900       1 "Battle-Axe"
+
+#--------------------------------
+#29
+     Macdonald's
+      Food Shop
+
+
+A:1000-Food    100GP
+
+B:2000-Food    200GP
+
+C:3000-Food    300GP
+
+D:4000-Food    400GP
+
+E:5000-Food    500GP
+
+F:6000-Food    600GP
+$
+    100      10 "Food"
+    200      20 "Food"
+    300      30 "Food"
+    400      40 "Food"
+    500      50 "Food"
+    600      60 "Food"
+
+#--------------------------------
+#30
+      ABC Shop
+
+
+ A:1000-Food  100GP
+
+ B:10000-Food
+             1000GP
+
+ C:Red-Potion 500GP
+
+ D:Lamp       500GP
+
+ E:Key        400GP
+$
+    100      10 "Food"
+   1000     100 "Food"
+    500       1 "Red Potion"
+    500       1 "Lamp"
+    400       1 "Key"
+
+#--------------------------------
+#31
+     Anastasia
+
+
+  One damage will
+ increase with the
+number of items one
+is carrying as one
+   comes upon a
+    stalagmite.
+$
+
+#--------------------------------
+#32
+       York's
+
+A:Ring-Mail
+           1800-Gold
+
+B:Scale-Armor
+           2800-Gold
+
+C:Chain-Mail
+           6000-Gold
+
+D:+1 Small-Shield
+           3800-Gold
+
+E:+1 Large-Shield
+           6000-Gold
+
+F:+2 Large-Shield
+           8000-Gold
+$
+   1800       1 "Ring-Mail"
+   2800       1 "Scale-Armor"
+   6000       1 "Chain-Mail"
+   3800       1 "+1SmallShield"
+   6000       1 "+1LargeShield"
+   8000       1 "+2LargeShield"
+
+#--------------------------------
+#33
+      Drexara
+
+
+  Be watching for
+
+   Quasar Soft's
+
+     new type
+
+   'Interactive
+
+    Simulation'
+
+       game.
+
+   ... KOZ ...
+$
+
+#--------------------------------
+#34
+ Neuokuot Food Shop
+
+
+A:  5000-Food
+            500-Gold
+
+B:  8000-Food
+            800-Gold
+
+C: 10000-Food
+           1000-Gold
+
+D:100000-Food
+          10000-Gold
+$
+    500      50 "Food"
+    800      80 "Food"
+   1000     100 "Food"
+  10000    1000 "Food"
+
+#--------------------------------
+#35
+    Beal's Weapon
+
+
+A:Heavy-Spear
+          15000-Gold
+
+B:Halberd
+          30000-Gold
+
+C:+2 Battle-Axe
+          70000-Gold
+
+D:+3 Small-Shield
+           4000-Gold
+
+E:+4 Small-Shield
+           7000-Gold
+$
+  15000       1 "Heavy-Spear"
+  30000       1 "Halberd"
+  70000       1 "+2 Battle Axe"
+   4000       1 "+3SmallShield"
+   7000       1 "+4SmallShield"
+
+#--------------------------------
+#36
+     San Juan
+
+
+A:Splint-Mail
+              9000GP
+
+B:Banded-Armor
+             12000GP
+
+C:Half-Plate
+             24000GP
+
+D:+2 Leather
+             60000GP
+
+E:Reflex
+             85000GP
+$
+   9000       1 "Sprint-Mail"
+  12000       1 "Banded-Armor"
+  24000       1 "Half-Plate"
+  60000       1 "+2 Leather"
+  85000       1 "Reflex"
+
+#--------------------------------
+#37
+      Merlin's
+
+
+A:+2 Large-Shield
+             12000GP
+
+B:+3 Small-Shield
+             14000GP
+
+C:+4 Small-Shield
+             20000GP
+$
+  12000       1 "+2LargeShield"
+  14000       1 "+3SmallShield"
+  20000       1 "+4SmallShield"
+
+#--------------------------------
+#38
+      Mancy's
+
+
+A:Poison Spell
+          12000-Gold
+
+B:Deg-Deluge Spell
+          14000-Gold
+
+C:Deg-Thunder Spell
+          28000-Gold
+$
+  12000       1 "Poison"
+  14000       1 "Deg-Deluge"
+  28000       1 "Deg-Thunder"
+
+#--------------------------------
+#39
+      Romancia
+
+
+Long, long time ago
+  in distant past.
+   There were two
+kingdoms in a vast
+   northern land.
+The kingdom called
+'Romancia' while the
+   younger brother
+ruled the kingdom
+  called 'Azorba'.
+The two ruled their
+ lands in a time of
+     peace and
+    contentment.
+$
+
+#--------------------------------
+#40
+   REVELATION to
+    FUL-GRAHAM
+He said to me,'Do no
+t keep the prophetic
+words of this book a
+secret,because the t
+ime is near when all
+this will happen.
+whoever is evil must
+go on being filthy;w
+hoever is holy must
+go on doing good,and
+whoever is holy must
+go on being holy.'
+I will bring my rewa
+rds with me, to give
+to each on according
+to what he has done.
+$
+
+#--------------------------------
+#41
+     San Jorge
+
+
+ A:Battle-Axe
+             5000GP
+
+
+ B:Broad-Sword
+             7800GP
+
+
+ C:Heavy-Spear
+            12000GP
+
+ D:Lance
+            15000GP
+$
+   5000       1 "Battle-Axe"
+   7800       1 "Broad-Sword"
+  12000       1 "Heavy-Spear"
+  15000       1 "Lance"
+
+#--------------------------------
+#42
+      Bekla's
+
+
+ A:+2 Large-Shield
+            10000GP
+
+
+ B:+3 Large-Shield
+            15000GP
+
+
+
+By using the silver
+rose, one can turn
+the items that one
+is facing into
+stone.
+$
+  10000       1 "+2LargeShield"
+  15000       1 "+3LargeShield"
+
+#--------------------------------
+#43
+      Perla's
+
+
+ A:Chain-Mail
+            7800GP
+
+ B:Splint-Mail
+            8000GP
+
+ C:Banded-Armor
+           10000GP
+$
+   7800       1 "Chain-Mail"
+   8000       1 "Sprint-Mail"
+  10000       1 "Banded-Armor"
+
+#--------------------------------
+#44
+     Tendre's
+
+
+A:Red-Potion  1000GP
+
+B:Lamp         800GP
+
+C:Candle       900GP
+
+D:Spectacles   300GP
+$
+   1000       1 "Red Potion"
+    800       1 "Lamp"
+    900       1 "Candle"
+    300       1 "Spectacles"
+
+#--------------------------------
+#45
+      Macond's
+
+
+A:Deg-Mittar Spell
+              7000GP
+
+B:Thunder Spell
+              7000GP
+
+C:Deg-Fire Spell
+             12000GP
+
+D:Corrosion Spell
+             28000GP
+$
+   7000       1 "Deg-Mittar"
+   7000       1 "Thunder"
+  12000       1 "Deg-Fire"
+  28000       1 "Corrosion"
+
+#--------------------------------
+#46
+       CODEX
+         of
+     CHRONZCIES
+
+On the top of a barr
+en hill raise the ba
+ttle flag!Shout to t
+he soldiers and rais
+e your arm as the si
+bnal for them to att
+ack the gates of the
+Proud city. The Lord
+has called out his P
+roud and confident s
+oldiers to fight a h
+oly war and punish t
+hose he is angry eit
+h.
+$
+
+#--------------------------------
+#47
+     Mendoya's
+
+
+A:Giant-Slayer
+             75000GP
+
+
+B:Disrupt-Mace
+            300000GP
+
+
+C:Vorpal-Weapon
+            500000GP
+$
+  75000       1 "Giant-Slayer"
+ 300000       1 "Disrupt-Mace"
+ 500000       1 "Vorpal-Weapon"
+
+#--------------------------------
+#48
+     Victoria's
+
+
+ A:Red-Potion
+             2500GP
+$
+   2500       1 "Red Potion"
+
+#--------------------------------
+#49
+      Zenobia
+
+
+It is said that the
+most powerful shield
+  can be purchased
+     at Kelly's
+$
+
+#--------------------------------
+#50
+      Selene
+
+
+
+ Buy cheap,
+
+         sell high.
+$
+
+#--------------------------------
+#51
+     Basilisk
+
+
+Those without
+   a cross shall
+    fail this quest.
+$
+
+#--------------------------------
+#52
+      Marineve
+
+
+ A:Half-Plate
+         21000-Gold
+
+ B:Full-Plate
+         42000-Gold
+
+ C:+2 Leather
+         53000-Gold
+
+ D:+2 Full-Plate
+        160000-Gold
+$
+  21000       1 "Half-Plate"
+  42000       1 "Full-Plate"
+  53000       1 "+2 Leather"
+ 160000       1 "+2 Full-Plate"
+
+#--------------------------------
+#53
+      Cristal
+
+ A:+4Small-Shield
+         17000-Gold
+
+ B:+4Large-Shield
+         26000-Gold
+
+ C:+6Large-Shield
+        120000-Gold
+
+ I have heard that
+   this world is
+ actually composed
+  of two seperate
+  parallel world.
+   A secret path
+ connects the two.
+$
+  17000       1 "+4SmallShield"
+  26000       1 "+4LargeShield"
+ 120000       1 "+6LargeShield"
+
+#--------------------------------
+#54
+       Coral
+
+
+ A:Half-Plate
+         21000-Gold
+
+ B:Full-Plate
+         42000-Gold
+
+ C:+2 Leather
+         53000-Gold
+
+ D:+2 Full-Plate
+        160000-Gold
+$
+  21000       1 "Half-Plate"
+  42000       1 "Full-Plate"
+  53000       1 "+2 Leather"
+ 160000       1 "+2 Full-Plate"
+
+#--------------------------------
+#55
+       Villa
+
+
+ A:+4 Small-Shield
+         17000-Gold
+
+ B:+4 Large-Shield
+         26000-Gold
+
+ C:+6 Large-Shield
+        120000-Gold
+
+
+It is rumoured that
+ rare potions are
+   sold at Jyo's.
+$
+  17000       1 "+4SmallShield"
+  26000       1 "+4LargeShield"
+ 120000       1 "+6LargeShield"
+
+#--------------------------------
+#56
+     Concordia
+
+
+Some say that within
+ this keep lies an 
+  important item.
+
+Rumours say the cave
+   above leads to
+  a large pyramid.
+The entrance to the
+  pyramid is on the
+   lower right of
+    the pyramid.
+$
+
+#--------------------------------
+#57
+   THE REVELATION
+Michael andhis angel
+s fought against the
+Dragon,who fought ba
+ck with his angels;b
+ut the Dragon was de
+feated,and he and hi
+s angels were not al
+lowed to stay in hav
+en any longer.The hu
+ge Dragon was thrown
+out-that ancient ser
+pent,called the
+Galsis;that deci
+ved the whole world.
+He was thrown down t
+o earth,and all his
+  angels with him.
+$
+
+#--------------------------------
+#58
+      Nelson's
+
+
+A:1000-Food    100GP
+
+B:10000-Food  1000GP
+
+C:Red-Potion  2000GP
+
+D:Lamp        1000GP
+
+E:Key          900GP
+$
+    100      10 "Food"
+   1000     100 "Food"
+   2000       1 "Red Potion"
+   1000       1 "Lamp"
+    900       1 "Key"
+
+#--------------------------------
+#59
+      Francisco
+
+ A:+3 Small-Shield
+         12000-Gold
+
+ B:+3 Large-Shield
+         17000-Gold
+
+ C:+4 Large-Shield
+         27000-Gold
+
+ D:Half-Plate
+         22000-Gold
+
+ E:Full-Plate
+         44000-Gold
+
+ F:+2 Ring-Mail
+        120000-Gold
+$
+  12000       1 "+3SmallShield"
+  17000       1 "+3LargeShield"
+  27000       1 "+4LargeShield"
+  22000       1 "Half-Plate"
+  44000       1 "Full-Plate"
+ 120000       1 "+2 Ring-Mail"
+
+#--------------------------------
+#60
+      Felix's
+
+
+ A:Giant-Slayer
+         75000-Gold
+
+ B:+2 Battle-Axe
+         50000-Gold
+
+ C:Halberd
+         25000-Gold
+
+ D:Lance
+         12000-Gold
+$
+  75000       1 "Giant-Slayer"
+  50000       1 "+2 Battle Axe"
+  25000       1 "Halberd"
+  12000       1 "Lance"
+
+#--------------------------------
+#61
+      Arcos's
+
+
+A:Scroll of Poison
+             10000GP
+
+B:Scroll of
+  Deg-Deluge 10000GP
+
+C:Scroll of
+    Deg-Fire 10000GP
+
+D:Scroll of
+   Corrosion 25000GP
+$
+  10000       1 "Poison"
+  10000       1 "Deg-Deluge"
+  10000       1 "Deg-Fire"
+  25000       1 "Corrosion"
+
+#--------------------------------
+#62
+      Maria's
+
+
+ A:1000-Food
+           100-Gold
+
+ B:10000-Food
+           990-Gold
+
+ C:100000-Food
+          9800-Gold
+$
+    100      10 "Food"
+    900     100 "Food"
+   9800    1000 "Food"
+
+#--------------------------------
+#63
+ Letter to Fighter
+He said to me,'write
+this,because these w
+ords are true and ca
+n be trusted.'And he
+said,'It is done! I
+am the first and the
+last,the beginning
+and the end.To anyon
+e who is thirsty I
+will give the right
+to drink from the
+spring of the water
+of life without payi
+ng for it.Whoever wi
+ns the victory will
+receive this from me
+:He will be my son.
+$
+
+#--------------------------------
+#64
+   LAMENTATIONS
+The pain!I can't bea
+t the pain!My heart!
+My heart is beating
+wildly!I can't keep
+quiet;I hear the
+trumpet and the shou
+ts of battle.One dis
+aster follows anothe
+r;the whole country
+is left in ruins.Sud
+denly our tets are
+destroyed;their curt
+ains are torn to pie
+ces.How long must I
+see the battle ragin
+g and hear the blast
+s of Trumpets?
+$
+
+#--------------------------------
+#65
+  In the beginning,
+
+  when God created
+
+    the unvierse,
+
+   the earth was
+
+    formless and
+
+     desolate.
+$
+
+#--------------------------------
+#66
+  Solomon's Prayer
+
+Then in the presence
+   of the people
+ Solomon went and
+ stood in front of
+the altar, where he
+raised his arms and
+prayed 'Load God of
+Israel,there is no
+ god like you in
+   heaven .....'
+$
+
+#--------------------------------
+#67
+   Huram's task
+
+
+ King Solomon sent
+  for a man named
+ Huram,a craftsman
+living in the city
+ of Trye, who was
+ skilledin bronze
+     work...
+$
+

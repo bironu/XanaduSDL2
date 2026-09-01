@@ -1,0 +1,100 @@
+#-----------------------------------------------------------------------------
+# 書式:
+#   行頭の '#' はコメント行を指定します。
+#   シンボル ':' [ファイル名] <改行 または EOF>
+#
+# シンボル(0..9A..Z_)は大文字・小文字を区別しません。
+# シンボル・ファイル名は共に長さは自由ですが、空白を認識しません。
+# ただし一行の長さの上限は 500 文字程度です。
+#-----------------------------------------------------------------------------
+# 現在定義されているシンボル:
+#
+# USER_HIT_DAGGER	ユーザーヒット(短剣)
+# USER_HIT_SWORD	ユーザーヒット(長剣)
+# USER_HIT_SPEAR	ユーザーヒット(槍)
+# USER_HIT_AXE		ユーザーヒット(斧)
+# BOSS_HIT		ボスヒット
+# BOSS_BREATH		ボスブレス
+# MAGIC_HIT		魔法ヒット
+# DAMAGED		ユーザーダメージ
+# USER_DEAD		ユーザーデッド
+# BOSS_DEAD		ボスデッド
+# MONSTER_DEAD		モンスターデッド
+# OPEN_LOCKED		扉を開ける
+# OPEN_BOX		宝箱を開ける
+# TREASURE		お宝出現
+# GET			お宝ゲット
+# GET_POISON		うげ毒だ！
+# USE_ELIXER		霊薬を飲む
+# LOST_KEY		ロストキー
+# CAST_NEEDLE		魔法を唱える(針金)
+# CAST_MITTAR		魔法を唱える(爆弾)
+# CAST_DELUGE		魔法を唱える(洪水)
+# CAST_FIRE		魔法を唱える(火炎)
+# CAST_THUNDER		魔法を唱える(雷撃)
+# CAST_POISON		魔法を唱える(毒液)
+# CAST_CORROSION	魔法を唱える(腐食)
+# CAST_TILTE		魔法を唱える(分解)
+# CAST_DEATH		魔法を唱える(デス)
+# USE_ITEM_A..USE_ITEM_Q
+#			アイテム使用(A..Q)
+# OPENING1		オープニング1(ボヨン)
+# OPENING2		オープニング2(カキーン)
+
+# 通常バトル
+USER_HIT_DAGGER:	se02.wav
+USER_HIT_SWORD:		se02.wav
+USER_HIT_SPEAR:		se02.wav
+USER_HIT_AXE:		se02.wav
+
+# ボスバトル
+BOSS_HIT:		se51.wav
+BOSS_BREATH:		se56.wav
+
+MAGIC_HIT:		se12.wav
+
+DAMAGED:		se01.wav
+
+USER_DEAD:		
+BOSS_DEAD:		se57.wav
+MONSTER_DEAD:		se03.wav
+
+OPEN_LOCKED:		se09.wav
+OPEN_BOX:		se04.wav
+TREASURE:		se05.wav
+GET:			se06.wav
+GET_POISON:		se27.wav
+USE_ELIXER:		se38.wav
+LOST_KEY:		se21.wav
+
+CAST_NEEDLE:		se40.wav
+CAST_MITTAR:		se45.wav
+CAST_DELUGE:		se43.wav
+CAST_FIRE:		se42.wav
+CAST_THUNDER:		se41.wav
+CAST_POISON:		se46.wav
+CAST_CORROSION:		se44.wav
+CAST_TILTE:		se49.wav
+CAST_DEATH:		se47.wav
+
+USE_ITEM_A:		se10.wav
+USE_ITEM_B:		se25.wav
+USE_ITEM_C:		se19.wav
+USE_ITEM_D:		se22.wav
+USE_ITEM_E:		se23.wav
+USE_ITEM_F:		se24.wav
+USE_ITEM_G:		se29.wav
+USE_ITEM_H:		se31.wav
+USE_ITEM_I:		se32.wav
+USE_ITEM_J:		se33.wav
+USE_ITEM_K:		se36.wav
+USE_ITEM_L:		se37.wav
+USE_ITEM_M:		se28.wav
+USE_ITEM_N:		se34.wav
+USE_ITEM_O:		se26.wav
+USE_ITEM_P:		se20.wav
+USE_ITEM_Q:		se35.wav
+
+# オープニング
+OPENING1:		se58.wav
+OPENING2:		se59.wav
