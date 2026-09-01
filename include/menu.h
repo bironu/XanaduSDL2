@@ -1,4 +1,4 @@
-#ifndef memu_H
+#ifndef menu_H
 #define menu_H
 
 /* コンテキスト保護関数 */

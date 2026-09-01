@@ -6,7 +6,7 @@
 #include <dir.h>
 #endif
 
-#ifdef __FreeBSD__
+#ifndef __BORLANDC__
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -30,7 +30,7 @@ int make_user_dir(void)
   mkdir(path);
   
   /* ユーザーディレクトリ */
-  free(user_path);
+  free((void *)user_path);
   user_path = strdup(path);
 
   /* 階層データファイルをコピー */
@@ -211,6 +211,7 @@ static void parse_tags(FILE *fp)
       }
     }
   done:
+    ;
   }
 }
 

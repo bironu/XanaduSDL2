@@ -1,7 +1,7 @@
 #ifndef bitmap_H
 #define bitmap_H
 
-#ifdef __FreeBSD__
+#ifndef _WIN32
 
 #ifdef __GNUC__
 #define PACKED __attribute__((packed))
@@ -40,6 +40,6 @@ typedef struct {
 
 #include <windows.h>
 
-#endif /* FreeBSD */
+#endif /* _WIN32 */
 
 #endif /* bitmap_H */
