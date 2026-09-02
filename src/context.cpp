@@ -92,7 +92,7 @@ void switch_context(int context_id)
   auto current = app.getCurrentScene();
 
   if (context_id == CONTEXT_RESUME) {
-    /* Application::run()がスタックの一つ前のSceneを自動的に復元する */
+    // Application::run()がスタックの一つ前のSceneを自動的に復元する
     if (current) {
       current->finish();
     }
@@ -107,8 +107,8 @@ void switch_context(int context_id)
 
 void extend_context(int context_id)
 {
-  /* finish()しないことで、Application::run()が現在のSceneをonSuspend()経由で
-     スタックへ積んでから新しいSceneへ進む */
+  // finish()しないことで、Application::run()が現在のSceneをonSuspend()経由で
+  // スタックへ積んでから新しいSceneへ進む
   Application::instance().registerNextSceneFunc(create_scene_func(context_id));
 }
 
@@ -117,7 +117,7 @@ void resume_context(void)
   switch_context(CONTEXT_RESUME);
 }
 
-/* 初期状態に戻す */
+// 初期状態に戻す
 void reset_context(void)
 {
   user_hidden = 0;

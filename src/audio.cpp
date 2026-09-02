@@ -6,7 +6,7 @@
 se_data_t se_data;
 bgm_data_t bgm_data;
 
-/* デフォルトの BGM */
+// デフォルトの BGM
 static char *default_field_bgm[2];
 static char *default_tower_bgm[2];
 static char *default_boss_bgm[2];
@@ -14,21 +14,21 @@ static char *default_boss_bgm[2];
 static void set_bgm_data(const char *symbol, const char *filename);
 static void set_se_data(const char *symbol, const char *filename);
 
-/* 行を分割(0: 解析できた、1: 解析できなかった) */
+// 行を分割(0: 解析できた、1: 解析できなかった)
 static int parse_line(char *p, char **symbol, char **filename)
 {
-  /* コメント行？ */
+  // コメント行？
   if (*p == '#')
     return 1;
 
-  /* 空白を読み飛ばす */
+  // 空白を読み飛ばす
   while (isspace(*p)) p++;
 
-  /* シンボルを区切る */
+  // シンボルを区切る
   *symbol = p;
   while (isdigit(*p) || isalpha(*p) || *p == '_') p++;
 
-  /* コロンでない？ */
+  // コロンでない？
   if (*p != ':') {
     return 1;
   } else {
@@ -36,7 +36,7 @@ static int parse_line(char *p, char **symbol, char **filename)
   }
   while (isspace(*p)) p++;
 
-  /* ファイル名を区切る */
+  // ファイル名を区切る
   *filename = p;
   while (*p != '\0' && !isspace(*p)) p++;
   *p = '\0';
@@ -57,40 +57,40 @@ int init_bgm(void)
   while (fgets(buf, sizeof(buf), fp) != NULL) {
     char *symbol, *filename;
 
-    /* 行を分解 */
+    // 行を分解
     if (parse_line(buf, &symbol, &filename) == 0) {
       set_bgm_data(symbol, filename);
     }
   }
   fclose(fp);
 
-  /* このフェイズが終了した後は、文字列を破棄するのは危険 */
+  // このフェイズが終了した後は、文字列を破棄するのは危険
   for (scenario = 0; scenario < 2; scenario++) {
     dungeon_bgm_t *dungeon_bgm = &bgm_data.dungeon[scenario];
 
     for (i = 0; i < MAX_DUNGEON_LEVEL; i++) {
-      /* デフォルトの指定を反映する */
+      // デフォルトの指定を反映する
       if (dungeon_bgm->field[i] == NULL) {
         dungeon_bgm->field[i] = default_field_bgm[scenario];
       }
       if (dungeon_bgm->tower[i] == NULL) {
         dungeon_bgm->tower[i] = default_tower_bgm[scenario];
       }
-      /* 未指定のタワーの音楽をそのフィールド(もしあれば)と同じにする */
+      // 未指定のタワーの音楽をそのフィールド(もしあれば)と同じにする
       if (dungeon_bgm->field[i] != NULL &&
           dungeon_bgm->tower[i] == NULL) {
         dungeon_bgm->tower[i] = dungeon_bgm->field[i];
       }
     }
 
-    /* ボスステージ */
+    // ボスステージ
     for (i = 0; i < 16; i++) {
       if (dungeon_bgm->boss[i] == NULL) {
         dungeon_bgm->boss[i] = default_boss_bgm[scenario];
       }
     }
   }
-  /* ショップ */
+  // ショップ
   for (i = 0; i < 32; i++) {
     if (bgm_data.shop[i] == NULL) {
       bgm_data.shop[i] = bgm_data.default_shop;
@@ -113,7 +113,7 @@ int init_se(void)
   while (fgets(buf, sizeof(buf), fp) != NULL) {
     char *symbol, *filename;
 
-    /* 行を分解 */
+    // 行を分解
     if (parse_line(buf, &symbol, &filename) == 0) {
       set_se_data(symbol, filename);
     }
@@ -123,10 +123,10 @@ int init_se(void)
   return 0;
 }
 
-/* BGM データを登録 */
+// BGM データを登録
 void set_bgm_data(const char *symbol, const char *filename)
 {
-  /* シンボル照合表 */
+  // シンボル照合表
   static struct {
     const char *	symbol;
     char **		value;
@@ -154,7 +154,7 @@ void set_bgm_data(const char *symbol, const char *filename)
   char **default_boss;
   int i, scenario = 0;
 
-  /* シンボル表を照会する */
+  // シンボル表を照会する
   for (i = 0; i < number_of(symbol_table); i++) {
     if (stricmp(symbol, symbol_table[i].symbol) == 0) {
       free(*symbol_table[i].value);
@@ -200,7 +200,7 @@ void set_bgm_data(const char *symbol, const char *filename)
     free(*default_tower);
     *default_tower = strdup(filename);
   }
-  /* フィールド？ */
+  // フィールド？
   else if (strnicmp(symbol, "FIELD", 5) == 0) {
     int n = atoi(symbol + 5);
     if (1 <= n && n <= MAX_DUNGEON_LEVEL) {
@@ -209,7 +209,7 @@ void set_bgm_data(const char *symbol, const char *filename)
       dungeon_bgm->field[n] = strdup(filename);
     }
   }
-  /* タワー？ */
+  // タワー？
   else if (strnicmp(symbol, "TOWER", 5) == 0) {
     int n = atoi(symbol + 5);
     if (1 <= n && n <= MAX_DUNGEON_LEVEL) {
@@ -218,7 +218,7 @@ void set_bgm_data(const char *symbol, const char *filename)
       dungeon_bgm->tower[n] = strdup(filename);
     }
   }
-  /* ボス？ */
+  // ボス？
   else if (strnicmp(symbol, "BOSS", 4) == 0) {
     int n = atoi(symbol + 4);
     if (1 <= n && n <= 16) {
@@ -229,10 +229,10 @@ void set_bgm_data(const char *symbol, const char *filename)
   }
 }
 
-/* SE データを登録 */
+// SE データを登録
 void set_se_data(const char *symbol, const char *filename)
 {
-  /* シンボル照合表 */
+  // シンボル照合表
   static struct {
     const char *	symbol;
     char **		value;
@@ -294,7 +294,7 @@ void set_se_data(const char *symbol, const char *filename)
   int i;
 
   if (!filename || filename[0] == '\0') {
-    /* 空文字列では上書きしない */
+    // 空文字列では上書きしない
   }
   else if (stricmp(symbol, "DEFAULT_CAST") == 0) {
     for (i = 0; i < number_of(se_data.cast); i++) {

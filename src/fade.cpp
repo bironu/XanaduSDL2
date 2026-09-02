@@ -57,7 +57,7 @@ void fade_loop(void)
   if (fade_image && fade_step < 11) {
     fade_apply(fade_clip, fade_x, fade_y, fade_source ? fade_source : fade_image, fade_step);
     fade_step++;
-    /* We assumed fade_clip as clip_overall anyway. */
+    // We assumed fade_clip as clip_overall anyway.
     update_region(fade_x, fade_y, fade_image->getWidth(), fade_image->getHeight());
   } else {
     resume_context();

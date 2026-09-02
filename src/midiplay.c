@@ -22,13 +22,13 @@ typedef struct {
 
 #define midi_error_why(err)
 
-#define MAX_TRACK		32	/* トラック数の上限 */
-#define FILE_BUFFER_SIZE	0x10000	/* ファイルバッファサイズ */
-#define EVENT_BUFFER_SIZE	0x10000	/* イベントバッファサイズ */
-#define STORAGE_SIZE		0x40000 /* メモリ領域のサイズ */
+#define MAX_TRACK		32	// トラック数の上限
+#define FILE_BUFFER_SIZE	0x10000	// ファイルバッファサイズ
+#define EVENT_BUFFER_SIZE	0x10000	// イベントバッファサイズ
+#define STORAGE_SIZE		0x40000 // メモリ領域のサイズ
 #define MAX_MIDI_SEGMENT	32
 
-/* バイトオーダーの変換 */
+// バイトオーダーの変換
 #define midi_byte_order16(n)	(((((n) >>  8) & 0xff) <<  0) | \
                                  ((((n) >>  0) & 0xff) <<  8))
 #define midi_byte_order32(n)	(((((n) >> 24) & 0xff) <<  0) | \
@@ -36,65 +36,65 @@ typedef struct {
                                  ((((n) >>  8) & 0xff) << 16) | \
                                  ((((n) >>  0) & 0xff) << 24))
 
-/* ファイルヘッダー情報 */
+// ファイルヘッダー情報
 #pragma option -a1
 typedef struct {
-  unsigned char		magic[4];	/* 4D 54 68 64 */
-  unsigned		header_size;	/* ヘッダーサイズ */
-  unsigned short	format;		/* フォーマット */
-  unsigned short	num_tracks;	/* トラック数 */
-  unsigned short	timebase;	/* タイムベース */
+  unsigned char		magic[4];	// 4D 54 68 64
+  unsigned		header_size;	// ヘッダーサイズ
+  unsigned short	format;		// フォーマット
+  unsigned short	num_tracks;	// トラック数
+  unsigned short	timebase;	// タイムベース
 } PACKED midi_file_header_t;
 
-/* トラックヘッダー情報 */
+// トラックヘッダー情報
 typedef struct {
-  unsigned char		magic[4];	/* 4D 54 72 6B */
-  unsigned		track_size;	/* トラックサイズ */
+  unsigned char		magic[4];	// 4D 54 72 6B
+  unsigned		track_size;	// トラックサイズ
 } PACKED midi_track_header_t;
 #pragma option -a
 
-/* トラック情報 */
+// トラック情報
 typedef struct {
-  unsigned		delta_time;	/* デルタ時間 */
-  unsigned char *	current;	/* トラックの現在位置 */
-  unsigned char *	top;		/* トラックの先頭 */
-  unsigned char *	end;		/* トラックの終端 */
-  unsigned char		last_stat;	/* 直前のステータスバイト */
+  unsigned		delta_time;	// デルタ時間
+  unsigned char *	current;	// トラックの現在位置
+  unsigned char *	top;		// トラックの先頭
+  unsigned char *	end;		// トラックの終端
+  unsigned char		last_stat;	// 直前のステータスバイト
 } midi_track_t;
 
-/* 小節情報 */
+// 小節情報
 typedef struct midi_measure {
   struct midi_measure *	next;
   int			number;
   short			pitch_bends[16];
-  int			size;		/* イベントバッファのサイズ */
-  char			events[1];	/* イベントバッファ */
+  int			size;		// イベントバッファのサイズ
+  char			events[1];	// イベントバッファ
 } midi_measure_t;
 
-/* MIDI情報 */
-static unsigned		midi_timebase;	/* タイムベース */
-static unsigned		midi_tempo;	/* テンポ */
-static HMIDISTRM	midi_device;	/* MIDIストリームデバイス */
-static int		midi_speed;	/* 速さ: 1)速い 0)普通 -1)遅い */
+// MIDI情報
+static unsigned		midi_timebase;	// タイムベース
+static unsigned		midi_tempo;	// テンポ
+static HMIDISTRM	midi_device;	// MIDIストリームデバイス
+static int		midi_speed;	// 速さ: 1)速い 0)普通 -1)遅い
 static int		midi_num_measures;
-static midi_measure_t *	midi_measures;	/* 小節リスト */
+static midi_measure_t *	midi_measures;	// 小節リスト
 static midi_measure_t *	midi_current_measure;
-static midi_measure_t *	midi_loop_at;	/* ループ再開位置 */
+static midi_measure_t *	midi_loop_at;	// ループ再開位置
 static MIDIHDR		midi_mh[MAX_MIDI_SEGMENT];
 static int		midi_mh_used;
 static int		midi_random_pitch_bend;
 static short		midi_current_pitch_bends[16];
 
-/* オプション */
+// オプション
 static int option_debug;
 
-/* イベントバッファ */
+// イベントバッファ
 static char buffer[EVENT_BUFFER_SIZE];
 static char *buffer_top;
 #define buffer_left()	(&buffer[EVENT_BUFFER_SIZE] - buffer_top)
 #define buffer_init()	(buffer_top = buffer)
 
-/* メモリ領域 */
+// メモリ領域
 static char storage[STORAGE_SIZE];
 static char *storage_top;
 #define storage_left()	(&storage[STORAGE_SIZE] - storage_top)
@@ -118,14 +118,14 @@ int midi_load(const char *filename)
     return 1;
   }
   
-  /* ファイルヘッダーの読み込み */
+  // ファイルヘッダーの読み込み
   if (fread(&file_info, sizeof(file_info), 1, fp) != 1 ||
       memcmp(file_info.magic, "MThd", 4) != 0) {
     error = 1;
     goto done;
   }
 
-  /* バイトオーダーの変換 */
+  // バイトオーダーの変換
   file_info.header_size = midi_byte_order32(file_info.header_size);
   file_info.format      = midi_byte_order16(file_info.format);
   file_info.num_tracks  = midi_byte_order16(file_info.num_tracks);
@@ -141,7 +141,7 @@ int midi_load(const char *filename)
   for (n = 0; n < file_info.num_tracks; n++) {
     int size;
     
-    /* トラックヘッダーの読み込み */
+    // トラックヘッダーの読み込み
     if (fread(&track_info, sizeof(track_info), 1, fp) != 1 ||
         memcmp(track_info.magic, "MTrk", 4) != 0) {
       error = 1;
@@ -150,17 +150,17 @@ int midi_load(const char *filename)
 
     track_info.track_size = midi_byte_order32(track_info.track_size);
 
-    /* バッファオーバーラン？ */
+    // バッファオーバーラン？
     if (track_data + FILE_BUFFER_SIZE - buf < (int)track_info.track_size)
       break;
 
-    /* MIDI イベントの読み込み */
+    // MIDI イベントの読み込み
     if (fread(buf, track_info.track_size, 1, fp) != 1) {
       error = 1;
       goto done;
     }
 
-    /* トラックデータへの書き込み */
+    // トラックデータへの書き込み
     track[n].delta_time = 0;
     track[n].current    = buf;
     track[n].top        = buf;
@@ -171,10 +171,10 @@ int midi_load(const char *filename)
   }
 
   midi_timebase = file_info.timebase;
-  midi_tempo = 10000; /* デフォルトテンポ */
-  midi_random_pitch_bend = -1 /*0*/; /* 回復する */
+  midi_tempo = 10000; // デフォルトテンポ
+  midi_random_pitch_bend = -1 /*0*/; // 回復する
   midi_num_measures = 0;
-  midi_loop_at = NULL; /* ループ再開位置 */
+  midi_loop_at = NULL; // ループ再開位置
   
   midi_measures = midi_serialize(track, n);
 
@@ -194,7 +194,7 @@ done:
   return error;
 }
 
-/* 数値の読み込み */
+// 数値の読み込み
 static unsigned midi_read_number(unsigned char **p_array)
 {
   unsigned char q;
@@ -240,12 +240,12 @@ static short buffer_pitch_bends[16];
 static int buffer_loop_at;
 static int buffer_measure_time;
 
-/* バッファ管理最悪 */
+// バッファ管理最悪
 static midi_measure_t *flush_buffer(void)
 {
   int size = buffer_top - buffer;
 
-  /* バッファクリア */
+  // バッファクリア
   buffer_top = buffer;
   
   if (size == 0 || size > storage_left()) {
@@ -266,7 +266,7 @@ static midi_measure_t *flush_buffer(void)
   }
 }
 
-/* 複数のトラックデータを小節ごとのストリームに凝縮する */
+// 複数のトラックデータを小節ごとのストリームに凝縮する
 midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
 {
   int i;
@@ -275,7 +275,7 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
   unsigned measure_time = 0;
   midi_measure_t *mm, **mp = &mm;
 
-  /* メモリ領域とバッファの初期化 */
+  // メモリ領域とバッファの初期化
   storage_init();
   buffer_init();
 
@@ -285,7 +285,7 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
   memset(buffer_pitch_bends, 0, sizeof(buffer_pitch_bends));
   memset(midi_current_pitch_bends, 0, sizeof(midi_current_pitch_bends));
 
-  /* 最初のイベントのデルタ時間を読み込む */
+  // 最初のイベントのデルタ時間を読み込む
   for (i = 0; i < num_tracks; i++) {
     track_time[i] = track[i].delta_time = midi_read_number(&track[i].current);
   }
@@ -294,7 +294,7 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
     unsigned min_time = ~0;
     unsigned delta_time;
     
-    /* もっとも早い次のトラックを調べる */
+    // もっとも早い次のトラックを調べる
     for (i = 0; i < num_tracks; i++) {
       if (track_time[i] < min_time) {
         min_time = track_time[i];
@@ -305,11 +305,11 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
 
     delta_time = min_time - now;
     
-    /* 直前の小節は終了した？ */
+    // 直前の小節は終了した？
     if (min_time >= measure_time + buffer_measure_time) {
       measure_time += buffer_measure_time;
 
-      /* 次の小節までの遅延を追加する */
+      // 次の小節までの遅延を追加する
       if (delta_time >= measure_time - now) {
         delta_time -= measure_time - now;
         midi_push_nop(measure_time - now);
@@ -328,13 +328,13 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
 
     for (i = 0; i < num_tracks; i++) {
       if (track_time[i] == min_time) {
-        /* メッセージをプッシュ */
+        // メッセージをプッシュ
         midi_push_event(&track[i], delta_time);
         delta_time = 0;
 
-        /* そのトラックは終了した？ */
+        // そのトラックは終了した？
         if (!track[i].current) {
-          track_time[i] = ~0; /* 番兵 */
+          track_time[i] = ~0; // 番兵
         } else {
           track[i].delta_time = midi_read_number(&track[i].current);
           track_time[i] += track[i].delta_time;
@@ -343,22 +343,22 @@ midi_measure_t *midi_serialize(midi_track_t *track, int num_tracks)
     }
   }
 
-  /* 最後のバッファをフラッシュ */
+  // 最後のバッファをフラッシュ
   *mp = flush_buffer();
   if (mm) {
     memcpy(mm->pitch_bends, midi_current_pitch_bends, sizeof(mm->pitch_bends));
   }
 
-  /* リストの先頭を返す */
+  // リストの先頭を返す
   return mm;
 }
 
-/* MIDIメッセージ読み込みをイベントに変換してバッファに送る */
+// MIDIメッセージ読み込みをイベントに変換してバッファに送る
 void midi_push_event(midi_track_t *t, unsigned delta_time)
 {
   unsigned char stat;
   
-  /* ランニングモード？ */
+  // ランニングモード？
   stat = *t->current < 0x80 ? t->last_stat : *t->current++;
   t->last_stat = stat;
   
@@ -407,7 +407,7 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
       MIDIEVENT *me;
       unsigned char *buf;
 
-      /* シス%F%`%(%/%9%/%k!<%7%V!) */
+      // シス%F%`%(%/%9%/%k!<%7%V!)
       if (stat == 0xf0) {
         size = midi_read_number(&t->current) + 1;
         
@@ -419,7 +419,7 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
           for (n = 1; n < size; n++) {
             *buf++ = *t->current++;
           }
-          /* 4 バイト境界にパディング */
+          // 4 バイト境界にパディング
           switch (size % 4) {
           case 1: *buf++ = 0;
           case 2: *buf++ = 0;
@@ -430,7 +430,7 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
           me->dwEvent = MEVT_F_LONG | (size & 0xffffff);
         }
       }
-      /* メタイベント？ */
+      // メタイベント？
       else if (stat == 0xff) {
         unsigned char code;
         
@@ -452,7 +452,7 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
           goto skip;
           
         case 0x2f:
-          t->current = NULL; /* 終了 */
+          t->current = NULL; // 終了
           return;
 
         case 0x51:
@@ -462,7 +462,7 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
             for (n = 0; n < size; n++) {
               tempo += (tempo << 8) + *t->current++;
             }
-            /* 同じテンポの連続する指定は無視する */
+            // 同じテンポの連続する指定は無視する
             if (midi_tempo != tempo) {
               midi_tempo = tempo;
               
@@ -479,10 +479,10 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
 
         case 0x58:
           if (size == 4) {
-            int nn = *t->current++; /* 拍子記号の分子 */
-            int dd = *t->current++; /* 拍子記号の分母 = 2^dd */
-            int cc = *t->current++; /* MIDIクロック/メトロノームカウント */
-            int bb = *t->current++; /* 32分音符/4分音符中 */
+            int nn = *t->current++; // 拍子記号の分子
+            int dd = *t->current++; // 拍子記号の分母 = 2^dd
+            int cc = *t->current++; // MIDIクロック/メトロノームカウント
+            int bb = *t->current++; // 32分音符/4分音符中
 
             buffer_measure_time = 4 * midi_timebase * nn / (1 << dd);
 
@@ -502,11 +502,11 @@ void midi_push_event(midi_track_t *t, unsigned delta_time)
             printf("measure #%d: Unknown sequencer event, set the loop position here.\n", midi_num_measures + 1);
           }
           buffer_loop_at = 1;
-          /* through */
+          // through
           
         default:
         skip:
-          t->current += size; /* スキップ */
+          t->current += size; // スキップ
           break;
         }
       }
@@ -577,14 +577,14 @@ static int midi_play(const char *filename)
   midi_set_tempo(midi_tempo);
   midi_set_timebase(midi_timebase);
   
-  midi_speed = 0; /* 通常の速さ */
+  midi_speed = 0; // 通常の速さ
   midi_current_measure = midi_measures;
 
   for (i = 0; i < 16; i++) {
     midi_current_pitch_bends[i] = 0;
   }
 
-  /* MIDIHDR配列全体をゼロクリア */
+  // MIDIHDR配列全体をゼロクリア
   memset(midi_mh, 0, sizeof(midi_mh));
   midi_mh_used = 0;
 
@@ -615,7 +615,7 @@ static int midi_close(void)
     HMIDISTRM device = midi_device;
     int i;
     
-    /* コールバック関数が処理されないようにデバイスハンドルを無効化する */
+    // コールバック関数が処理されないようにデバイスハンドルを無効化する
     midi_device = 0;
     
     midiStreamStop(device);
@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
   while (fgets(buf, sizeof(buf), stdin)) {
     char *p;
 
-    /* 改行文字を除去 */
+    // 改行文字を除去
     for (p = buf; *p != '\0' && *p != '\n'; p++);
     *p = '\0';
 
@@ -701,7 +701,7 @@ int main(int argc, char *argv[])
 
 #define random_integer(n) (rand() % (n))
 
-/* ランダムなピッチベンドイベントからなる小節を生成する */
+// ランダムなピッチベンドイベントからなる小節を生成する
 midi_measure_t *random_pitch_bend(midi_measure_t *next)
 {
   static char buf[sizeof(midi_measure_t) + 4 * sizeof(MIDIEVENT)];
@@ -772,19 +772,19 @@ midi_proc(HMIDIOUT __device, UINT msg, DWORD client_data,
     {
       int error, i;
 
-      /* 次の小節を演奏する */
+      // 次の小節を演奏する
       midi_current_measure = midi_current_measure->next;
       if (!midi_current_measure) {
         midi_current_measure = midi_loop_at;
       }
-      /* へろへろ？ */
+      // へろへろ？
       if (midi_random_pitch_bend > 0) {
         static unsigned counter;
         if (counter++ % 2 == 0) {
           midi_current_measure = random_pitch_bend(midi_current_measure);
         }
       } else if (midi_random_pitch_bend < 0) {
-        /* 回復 */
+        // 回復
         midi_random_pitch_bend = 0;        
         midi_current_measure = restore_pitch_bend(midi_current_measure);
       }
@@ -802,11 +802,11 @@ midi_proc(HMIDIOUT __device, UINT msg, DWORD client_data,
     
   case MOM_POSITIONCB:
     {
-      /* コールバックイベントを発生させたイベントの位置を特定 */
+      // コールバックイベントを発生させたイベントの位置を特定
       MIDIHDR   *mh = (MIDIHDR *)param1;
       MIDIEVENT *me = (MIDIEVENT *)(mh->lpData + mh->dwOffset);
 
-      /* それはテンポの指定に決まっている */
+      // それはテンポの指定に決まっている
       midi_tempo = me->dwEvent & 0x00FFFFFF;
 
              if (midi_speed < 0) {
@@ -821,7 +821,7 @@ midi_proc(HMIDIOUT __device, UINT msg, DWORD client_data,
   }
 }
 #else
-/* サイズを返す */
+// サイズを返す
 int print_midi_event(MIDIEVENT *me, unsigned now)
 {
   int i;
@@ -920,4 +920,4 @@ int main(int argc, char *argv[])
   }
   return 0;
 }
-#endif /* MIDIDUMP */
+#endif // MIDIDUMP

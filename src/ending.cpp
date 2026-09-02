@@ -4,13 +4,13 @@
 
 #define ENDING_INTERVAL		80
 
-#define KANJI_WIDTH		23	/* 漢字フォントの幅 */
-#define KANJI_HEIGHT		23	/* 漢字フォントの高さ */
+#define KANJI_WIDTH		23	// 漢字フォントの幅
+#define KANJI_HEIGHT		23	// 漢字フォントの高さ
 
-#define KANJI_PAGE_COL		16	/* 漢字フォントの列数 */
-#define KANJI_PAGE_ROW		24	/* 漢字フォントの行数 */
+#define KANJI_PAGE_COL		16	// 漢字フォントの列数
+#define KANJI_PAGE_ROW		24	// 漢字フォントの行数
 
-static std::shared_ptr<SDL_::Image> kanji[KANJI_PAGE_ROW][KANJI_PAGE_COL];
+static SDL_::SubImage kanji[KANJI_PAGE_ROW][KANJI_PAGE_COL];
 static std::shared_ptr<SDL_::Image> kanji_base;
 static std::shared_ptr<SDL_::Image> msg;
 static int msg_y;
@@ -26,7 +26,7 @@ static int draw_kanji_text(std::shared_ptr<SDL_::Image> img, int x, int y, int *
 
 int init_ending(void)
 {
-  /* 初期化はinit()で行う */
+  // 初期化はinit()で行う
   return CONTEXT_ENDING;
 }
 
@@ -41,24 +41,24 @@ static int init(void)
   sprintf(path, IMAGE_DIR "/%s", !in_scenario2() ?
           "xa1/ending/message.txt" : "xa2/ending/message.txt");
 
-  /* エンディングメッセージの読み込み */
+  // エンディングメッセージの読み込み
   if (load_kanji_code(path)) {
     return 1;
   }
 
-  /* 漢字フォントの読み込み */
+  // 漢字フォントの読み込み
   kanji_base = load_image(IMAGE_DIR "/picture/kanji.bmp");
   if (!kanji_base) {
     return 1;
   }
   for (i = 0; i < KANJI_PAGE_ROW; i++) {
     for (j = 0; j < KANJI_PAGE_COL; j++) {
-      kanji[i][j] = std::make_shared<SDL_::Image>(
-          kanji_base, Rect(j * KANJI_WIDTH, i * KANJI_HEIGHT, KANJI_WIDTH, KANJI_HEIGHT));
+      kanji[i][j] = SDL_::SubImage{
+          kanji_base, Rect(j * KANJI_WIDTH, i * KANJI_HEIGHT, KANJI_WIDTH, KANJI_HEIGHT)};
     }
   }
 
-  /* メッセージ用のオフスクリーンバッファ */
+  // メッセージ用のオフスクリーンバッファ
   msg = create_image(clip_endingroll->getWidth(),
                      clip_endingroll->getHeight() + KANJI_HEIGHT);
   if (!msg) {
@@ -80,7 +80,7 @@ static void restore_context(void)
 
   visual_image = nullptr;
 
-  /* バックグラウンドイメージを復元 */
+  // バックグラウンドイメージを復元
   load_background(IMAGE_DIR "/user/frame.bmp");
   update(rect_overall);
 
@@ -96,7 +96,7 @@ void ending_enter(void)
     }
 
     if (!in_scenario2()) {
-      /* スクリーンのコピーを作成 */
+      // スクリーンのコピーを作成
       visual_image = create_image(clip_overall->getWidth(), clip_overall->getHeight());
       if (!visual_image) {
         restore_context();
@@ -105,7 +105,7 @@ void ending_enter(void)
       fill_image(clip_overall, 0, 0, clip_overall->getWidth(), clip_overall->getHeight(),
                  SDL_::Color::BLACK);
 
-      /* セピア色? */
+      // セピア色?
       extend_context(init_fade(clip_overall, 0, 0, visual_image, 0xff7f00));
     } else {
       visual_image = load_image(IMAGE_DIR "/xa2/ending/background.bmp");
@@ -115,7 +115,7 @@ void ending_enter(void)
       extend_context(init_fade(clip_overall, 0, 0, visual_image, 0xffffff));
     }
   } else {
-    /* もう一度スクリーンをコピー */
+    // もう一度スクリーンをコピー
     visual_image = create_image(clip_overall->getWidth(), clip_overall->getHeight());
     if (!visual_image) {
       restore_context();
@@ -142,31 +142,29 @@ void ending_loop(void)
 
   msg_y += 1;
 
-  /* 新しい行が完全に現れた? */
+  // 新しい行が完全に現れた?
   if (msg_y > KANJI_HEIGHT) {
     scroll_image(msg, -msg_y);
     msg_y = 0;
     if (kanji_code_top < kanji_code_end) {
       int n;
 
-      /* 最下行に描画 */
+      // 最下行に描画
       n = draw_kanji_text(msg, 0, msg->getHeight() - KANJI_HEIGHT, kanji_code_top);
       kanji_code_top += n;
     } else {
       msg_rest_rows++;
 
-      /* 最後の行がスクリーンから見えなくなった? */
+      // 最後の行がスクリーンから見えなくなった?
       if (msg_rest_rows > msg->getHeight() / KANJI_HEIGHT) {
         wait_forever();
       }
     }
   }
 
-  auto clip_visual = std::make_shared<SDL_::Image>(
-      visual_image, Rect(rect_endingroll.x, rect_endingroll.y,
-                          rect_endingroll.width, rect_endingroll.height));
-
-  draw_image(clip_endingroll, 0, 0, clip_visual);
+  draw_image(clip_endingroll, 0, 0,
+             SDL_::SubImage{visual_image, Rect(rect_endingroll.x, rect_endingroll.y,
+                                                rect_endingroll.width, rect_endingroll.height)});
   draw_sprite(clip_endingroll, 0, -msg_y, msg);
 
   update(rect_endingroll);
@@ -208,7 +206,7 @@ int load_kanji_code(const char *filename)
     if (fscanf(fp, "%d ", kanji_code_end) != 1)
       break;
   }
-  *kanji_code_end = -1; /* 終わりを示す */
+  *kanji_code_end = -1; // 終わりを示す
 
   fclose(fp);
   return 0;

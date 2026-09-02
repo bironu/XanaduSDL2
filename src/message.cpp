@@ -11,17 +11,17 @@
 
 void (*thunk_key_event)(int c);
 
-/* メッセージ画面の現在の行 */
+// メッセージ画面の現在の行
 static int current_line;
 
 void display_message(const char *s, SDL_::Color pixel)
 {
   int n_rows;
 
-  /* メッセージビューに表示できる行数 */
+  // メッセージビューに表示できる行数
   n_rows = rect_message.height / 16;
   while (*s) {
-    /* 一番下の行を超えている？ */
+    // 一番下の行を超えている？
     if (current_line >= n_rows) {
       scroll_image(clip_message, -16);
       current_line = n_rows - 1;
@@ -52,14 +52,14 @@ void flush_message(void)
   update(rect_message);
 }
 
-/* メッセージビューを介したキー入力 */
+// メッセージビューを介したキー入力
 
 #define MAX_BUFFER 14
 
-static char enter_buffer[MAX_BUFFER];	/* 入力文字列バッファ */
-static int enter_n_characters;		/* 入力文字の数 */
-static void message_key(int vkey);	/* キー入力イベント */
-static void (*thunk_consumer)(char *s);	/* 入力文字列を受け取る関数 */
+static char enter_buffer[MAX_BUFFER];	// 入力文字列バッファ
+static int enter_n_characters;		// 入力文字の数
+static void message_key(int vkey);	// キー入力イベント
+static void (*thunk_consumer)(char *s);	// 入力文字列を受け取る関数
 
 int init_enter_buffer(int context_id, void (*consumer)(char *s))
 {
@@ -71,7 +71,7 @@ int init_enter_buffer(int context_id, void (*consumer)(char *s))
   memset(enter_buffer, 0, sizeof(enter_buffer));
     
   if (context_id != CONTEXT_ENTER_CHARACTER) {
-    /* 一番下の行を超えている？ */
+    // 一番下の行を超えている？
     if (current_line >= n_rows) {
       scroll_image(clip_message, -16);
       current_line = n_rows - 1;
@@ -85,7 +85,7 @@ static void call_consumer(int last_key)
   if (current_context_id() != CONTEXT_ENTER_CHARACTER) {
     current_line++;
   }
-  /* 末尾に終端符を付与してサンクに送る */
+  // 末尾に終端符を付与してサンクに送る
   enter_buffer[enter_n_characters] = '\0';
   if (thunk_consumer) {
     (*thunk_consumer)(enter_buffer);
@@ -119,7 +119,7 @@ void message_key(int c)
 {
   switch (current_context_id()) {
   case CONTEXT_ENTER_NUMBER:
-    /* 数値 */
+    // 数値
     if (c == '\r' || c == '\n') {
       call_consumer(c);
     } else
@@ -134,7 +134,7 @@ void message_key(int c)
     break;
 
   case CONTEXT_ENTER_STRING:
-    /* 文字列 */
+    // 文字列
     if (c == '\r' || c == '\n') {
       call_consumer(c);
     } else

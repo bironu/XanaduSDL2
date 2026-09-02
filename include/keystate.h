@@ -3,7 +3,7 @@
 
 #ifdef __WIN32__
 
-/* 非同期キー入力 */
+// 非同期キー入力
 #define get_keystate(vkey)	(GetAsyncKeyState(vkey) < 0)
 
 #define VK_RETURN	0x0D
@@ -58,4 +58,4 @@ extern int keystate_vector[256];
 
 #endif
 
-#endif /* keystate_H */
+#endif // keystate_H

@@ -11,6 +11,10 @@
 namespace SDL_
 {
 class Window;
+namespace Mix_
+{
+class Audio;
+}
 }
 
 class Resources;
@@ -34,6 +38,7 @@ public:
 	bool isTtf() const { return is_ttf_; }
 	bool isImage() const { return is_image_; }
 	bool isMixer() const { return is_mixer_; }
+	SDL_::Mix_::Audio &getAudio() { return *audio_; }
 	int run(Resources &, TaskManager &manager);
 	void clearResumeStack();
 
@@ -61,6 +66,7 @@ private:
 	const bool is_ttf_;
 	const bool is_image_;
 	const bool is_mixer_;
+	std::unique_ptr<SDL_::Mix_::Audio> audio_;
 	std::shared_ptr<Scene> currentScene_;
 	std::stack<FuncCreateScene> stackFuncResumeScene_;
 	std::vector<std::shared_ptr<SDL_::Window>> listWindow_;

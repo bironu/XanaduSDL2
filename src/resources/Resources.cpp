@@ -1,12 +1,14 @@
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
 #include "resources/StringId.h"
+#include "resources/SoundFontId.h"
 #include "sdl/SDLImage.h"
 #include "sdl/SDLJoystick.h"
 #include <SDL2/SDL_events.h>
 #include <cstring>
 
 #define IMAGE_ROOT "../bmp/"
+#define AUDIO_ROOT "../audio/"
 
 Resources::Resources()
 	: windowWidth_()
@@ -50,6 +52,16 @@ const char *Resources::getFontFileName() const
 {
 //	return (*luaString_)["font_name"].get<const char *>();
 	return "../font/ipag.ttf";
+}
+
+const char *Resources::getSoundFontFileName(const SoundFontId &id) const
+{
+	switch (id) {
+	case SoundFontId::hi_def:
+		return AUDIO_ROOT "HiDef.sf2";
+	default:
+		return "";
+	}
 }
 
 void Resources::addJoyDevice(const SDL_JoyDeviceEvent &jdevice)

@@ -3,8 +3,8 @@
 #include "status.h"
 #include "animation.h"
 
-#define STATE_SWOON		0	/* 昏倒 */
-#define STATE_GRAVE		1	/* 埋葬 */
+#define STATE_SWOON		0	// 昏倒
+#define STATE_GRAVE		1	// 埋葬
 
 #define STATE_EXIT		-1
 
@@ -23,7 +23,7 @@ int init_user_dead(int x, int y, void (*update_background)(void))
   thunk_update_background = update_background;
   user_revived = 0;
 
-  /* ユーザーを表示しない */
+  // ユーザーを表示しない
   user_hidden = 1;
 
   return CONTEXT_USER_DEAD;
@@ -36,11 +36,11 @@ void user_dead_enter(void)
     {
       static animation_frame_t swoon_frames[8];
       int i, n;
-      extern const int battle_frame_user[10]; /* battle.c */
+      extern const int battle_frame_user[10]; // battle.c
       
       user_dead_state = STATE_GRAVE;
 
-      /* 昏倒フレームを作成 */
+      // 昏倒フレームを作成
       for (i = 0, n = user.dir; i < 8; i++) {
         switch (n) {
         case 6: case 3: case 9: n = 8; break;
@@ -53,7 +53,7 @@ void user_dead_enter(void)
         swoon_frames[i].y = user_y;
       }
       
-      /* 昏倒シーン */
+      // 昏倒シーン
       extend_context(init_animation(clip_main, swoon_frames, 8,
                                     thunk_update_background));
     }
@@ -63,11 +63,11 @@ void user_dead_enter(void)
     {
       user_dead_state = STATE_EXIT;
 
-      /* 墓標を表示 */
+      // 墓標を表示
       (*thunk_update_background)();
       draw_sprite(clip_main, user_x, user_y, frame_specials[SPECIAL_GRAVE]);
 
-      /* 霊薬を持っている？ */
+      // 霊薬を持っている？
       if (user.status.ELX > 0) {
         user_revived = 1;
         emit_message("Hit to use Elixer");
@@ -80,12 +80,12 @@ void user_dead_enter(void)
     break;
     
   default:
-    /* ユーザーは復活した？ */
+    // ユーザーは復活した？
     if (user_revived) {
       user.status.HP = user.status.max_HP;
       user.status.ELX--;
 
-      /* SE */
+      // SE
       se_load(SE_SOMEWHAT1, se_data.use_elixer);
       se_play(SE_SOMEWHAT1);
 
@@ -103,6 +103,6 @@ void user_dead_leave(void)
 
 void restore_context(void)
 {
-  user_hidden = 0; /* ユーザーをまた見えるようにする */
+  user_hidden = 0; // ユーザーをまた見えるようにする
   resume_context();
 }

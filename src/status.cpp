@@ -1,7 +1,7 @@
 #include "xanadu.h"
 #include "status.h"
 
-#define MAX_STATUS_LINE		17	/* ステータス画面の行数 */
+#define MAX_STATUS_LINE		17	// ステータス画面の行数
 
 #define status_draw_string(row, col, s, pixel) \
   (draw_text(clip_status, (col) * 16, (row) * 16, (s), (pixel)))
@@ -25,7 +25,7 @@ void status_refresh(int in_battle)
   status_draw_text(4, 0, "Gold", SDL_::Color::RED);
   status_update_gold();
 
-  /* 戦闘中？ */
+  // 戦闘中？
   if (in_battle) {
     status_erase_line(6);
   } else {
@@ -95,7 +95,7 @@ void status_draw_text(int row, int col, const char *s, SDL_::Color pixel)
   draw_text(clip_status, col * 16, row * 16, s, pixel);
 }
 
-/* 品物のリストを表示する */
+// 品物のリストを表示する
 void status_list_goods(int goods_type, unsigned display_bits)
 {
   const goods_t *gd;
@@ -118,7 +118,7 @@ void status_list_goods(int goods_type, unsigned display_bits)
   }
 }
 
-/* ユーザーの在庫リストを表示する */
+// ユーザーの在庫リストを表示する
 void status_user_goods(int goods_type)
 {
   unsigned bits = 0u;
@@ -141,7 +141,7 @@ void status_user_goods(int goods_type)
   status_draw_string(row, col, buf, color);	\
 }
 
-/* ユーザーのステータスを表示する */
+// ユーザーのステータスを表示する
 void status_user_status(void)
 {
   char buf[BUFSIZ];
@@ -197,7 +197,7 @@ void status_user_status(void)
     status_draw_short(15, 3.5, user.status.KEY, SDL_::Color::WHITE);
     status_draw_short(16, 3.5, user.status.ELX, SDL_::Color::WHITE);
   } else {
-    /* scenario 2 */
+    // scenario 2
     status_draw_string(15, 0.5, "ELX", SDL_::Color::RED);
     status_draw_short(15, 3.5, user.status.ELX, SDL_::Color::WHITE);
   }

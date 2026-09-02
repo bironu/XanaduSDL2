@@ -4,81 +4,81 @@
 #include "animation.h"
 #include "ending.h"
 
-#define STEP_USER_X		8	/* ユーザーの進む速さ(水平方向) */
-#define STEP_USER_Y		8	/* ユーザーの進む速さ(垂直方向) */
-#define STEP_BOSS_X		4	/* ボスの進む速さ(水平方向) */
-#define STEP_BOSS_Y		8	/* ボスの進む速さ(垂直方向) */
-#define STEP_MAGIC		16	/* 魔法の進む速さ */
+#define STEP_USER_X		8	// ユーザーの進む速さ(水平方向)
+#define STEP_USER_Y		8	// ユーザーの進む速さ(垂直方向)
+#define STEP_BOSS_X		4	// ボスの進む速さ(水平方向)
+#define STEP_BOSS_Y		8	// ボスの進む速さ(垂直方向)
+#define STEP_MAGIC		16	// 魔法の進む速さ
 
-#define BOSS_INTERVAL		80	/* インターバル */
-#define BOSS_LOOP_WAIT		20	/* ループウエイト */
+#define BOSS_INTERVAL		80	// インターバル
+#define BOSS_LOOP_WAIT		20	// ループウエイト
 
 #define WIDESCREEN_WIDTH	608
 #define WIDESCREEN_HEIGHT	240
 
-#define FRAME_BOSS		7	/* ボスイメージのフレーム数 */
-#define FRAME_BOSS_DEAD		6	/* ボス(やっつけられ図) */
+#define FRAME_BOSS		7	// ボスイメージのフレーム数
+#define FRAME_BOSS_DEAD		6	// ボス(やっつけられ図)
 
-/* ボスはどちら向き？ */
+// ボスはどちら向き？
 #define boss_frame_left(n)	((n) < 3)
 #define boss_frame_rite(n)	(!boss_frame_left(n))
 
-/* ブレス状態遷移 */
-#define BREATH_NO_BREATH	0	/* ブレスはない */
-#define BREATH_FILLING_UP	1	/* 充満している */
-#define BREATH_WARMING_UP	2	/* 準備している */
-#define BREATH_BREATHING	3	/* 吐いている */
+// ブレス状態遷移
+#define BREATH_NO_BREATH	0	// ブレスはない
+#define BREATH_FILLING_UP	1	// 充満している
+#define BREATH_WARMING_UP	2	// 準備している
+#define BREATH_BREATHING	3	// 吐いている
 
 #define breath_fill_up_interval()	(random_integer(16) + 8)
 #define breath_warm_up_interval()	4
 #define breath_breathe_interval()	18
 
-/* 効果音 */
+// 効果音
 #define SE_BOSS_HIT		SE_SOMEWHAT1
 #define SE_BOSS_BREATH		SE_SOMEWHAT2
 
-/* ボスのステータスに関する情報を保持する構造体 */
+// ボスのステータスに関する情報を保持する構造体
 typedef struct {
-  char		name[16];		/* 名前 */
-  int		HP;			/* ヒットポイント */
-  int		STR;			/* 攻撃力 */
-  int		DEF;			/* 防御力 */
-  int		MGR;			/* 魔法防御力 */
-  int		fighter_EXP;		/* 武器経験値 */
-  int		wizard_EXP;		/* 魔法経験値 */
+  char		name[16];		// 名前
+  int		HP;			// ヒットポイント
+  int		STR;			// 攻撃力
+  int		DEF;			// 防御力
+  int		MGR;			// 魔法防御力
+  int		fighter_EXP;		// 武器経験値
+  int		wizard_EXP;		// 魔法経験値
 } boss_status_t;
 
-/* ボスデータを保持する構造体 */
+// ボスデータを保持する構造体
 typedef struct {
-  char *	image_filename;		/* イメージファイル */
-  int		can_breathe;		/* ブレスを吐く？ */
-  boss_status_t	status;			/* ステータス */
+  char *	image_filename;		// イメージファイル
+  int		can_breathe;		// ブレスを吐く？
+  boss_status_t	status;			// ステータス
 } boss_data_t;
 
-/* 活動中のボスに関する情報を保持する構造体 */
+// 活動中のボスに関する情報を保持する構造体
 typedef struct {
-  int		x;			/* 水平座標 */
-  int		y;			/* 垂直座標 */
-  int		frame;			/* フレーム */
-  boss_status_t	status;			/* ステータス */
+  int		x;			// 水平座標
+  int		y;			// 垂直座標
+  int		frame;			// フレーム
+  boss_status_t	status;			// ステータス
 } boss_t;
 
-static std::shared_ptr<SDL_::Image>	frame_boss[FRAME_BOSS];
-static std::shared_ptr<SDL_::Image>	frame_breath[2];	/* ブレスイメージ */
-static boss_t	boss;			/* ボス情報 */
-static point_t	*damaged_boss;		/* ボスのダメージを受けた場所 */
-static point_t	*damaged_user;		/* ユーザーのダメージを受けた場所 */
+static SDL_::SubImage	frame_boss[FRAME_BOSS];
+static SDL_::SubImage	frame_breath[2];	// ブレスイメージ
+static boss_t	boss;			// ボス情報
+static point_t	*damaged_boss;		// ボスのダメージを受けた場所
+static point_t	*damaged_user;		// ユーザーのダメージを受けた場所
 
 static const char *boss_bgm;
 
-/*** これらの定数は field.c/battle.c で定義されている ***/
+// ** これらの定数は field.c/battle.c で定義されている **
 extern const point_t move_table[10];
 extern const int battle_frame_user[10];
 extern const int frame_magic[MAX_SCROLL_TYPE];
 
-/* ボスキャラデータベース */
+// ボスキャラデータベース
 static const boss_data_t boss_data1[] = {
-  /* イメージ		 名前	         耐久力  攻撃力  防御力 魔法抵抗 経験値 */
+  // イメージ		 名前	         耐久力  攻撃力  防御力 魔法抵抗 経験値
   { "boss_0.bmp", 0, { "Kraken Giant",    50000,   7500,   1500,    2500,   250,   150 } },
   { "boss_1.bmp", 0, { "Grell Giant",    100000,  25000,   2500,   12500,   400,   600 } },
   { "boss_2.bmp", 0, { "Karttikeya",     750000, 100000,  20000,   75000,  2000,  2000 } },
@@ -87,9 +87,9 @@ static const boss_data_t boss_data1[] = {
   { "boss_4.bmp", 1, { "King Dragon",   5000000, 700000, 500000, 1000000,     0,     0 } }
 };
 
-/* scenario 2 */
+// scenario 2
 static const boss_data_t boss_data2[] = {
-  /* イメージ		 名前	      耐久力  攻撃力  防御力 魔法抵抗 経験値 */
+  // イメージ		 名前	      耐久力  攻撃力  防御力 魔法抵抗 経験値
   { "boss_0.bmp", 0, { "Marivoux",        60000,   2500,    700,    2000,   800,   300 } },
   { "boss_1.bmp", 0, { "Peluton",        150000,   5000,   1500,    3500,   800,   300 } },
   { "boss_2.bmp", 0, { "Great Kraken",   450000,   7500,   2500,    5250,  4500,  1500 } },
@@ -104,55 +104,55 @@ static const boss_data_t boss_data2[] = {
   { "boss_b.bmp", 1, { "King Dragon",   5000000, 700000, 500000, 1000000,     0,     0 } }
 };
 
-/* 描画関連 */
+// 描画関連
 static void update_background(void);
 static int init_boss_data(int boss_id);
 
-/* メインループ */
+// メインループ
 static void boss_loop(void);
 static int boss_gravitate(void);
 
-/* 最終ボス関連 */
-static int boss_final_battle; /* 最終ボス？ */
+// 最終ボス関連
+static int boss_final_battle; // 最終ボス？
 
-/* ブレス関連 */
-static int breath_state; /* ブレス状態 */
-static int breath_timer; /* ブレス時間 */
+// ブレス関連
+static int breath_state; // ブレス状態
+static int breath_timer; // ブレス時間
 static int boss_breathe(void);
 
-/* 勝利・敗北ループ */
-static int boss_loop_counter; /* 勝利ループカウンタ */
-static int boss_user_ascend; /* ユーザー昇天 */
+// 勝利・敗北ループ
+static int boss_loop_counter; // 勝利ループカウンタ
+static int boss_user_ascend; // ユーザー昇天
 static void boss_win_loop(void);
 static void boss_loose_loop(void);
 
-/* 移動関連 */
+// 移動関連
 static int user_jump;
 static int boss_move_user(int dir);
 static int boss_move_boss(void);
 static int boss_hit_test(int user_x, int user_y, int boss_x, int boss_y);
 
-/* 攻撃関連 */
+// 攻撃関連
 static void boss_attack_boss(void);
 static void boss_attack_user(void);
 
-/* 魔法関連 */
+// 魔法関連
 static magic_t user_magic;
-static int magic_attacked; /* 魔法がボスを攻撃 */
+static int magic_attacked; // 魔法がボスを攻撃
 static void boss_cast_spell(int scroll_id, int INT, int x, int y, int dir);
 static int boss_move_magic(void);
 static void magic_attack_boss(void);
 static void magic_damage_effect(void);
-/*static void boss_move_user_magic(int dir);*/
+// static void boss_move_user_magic(int dir);
 
-/* 回復関連 */
+// 回復関連
 static void boss_healing(void);
 
-/* ステータス */
+// ステータス
 static void update_user_HP(SDL_::Color);
 static void update_boss_HP(SDL_::Color);
 
-/* 以前のコンテキストを復元 */
+// 以前のコンテキストを復元
 static int old_user_dir;
 static int old_user_x;
 static int old_user_y;
@@ -162,51 +162,51 @@ static void restore_context(int won);
 
 int init_boss(int boss_id)
 {
-  /* ユーザー情報をバックアップ */
+  // ユーザー情報をバックアップ
   old_user_dir = user.dir;
   old_user_x = user.x;
   old_user_y = user.y;
   old_user_frame = user.frame;
   old_user_STR = user.status.STR;
 
-  /* ボスデータの初期化 */
+  // ボスデータの初期化
   if (init_boss_data(boss_id) != 0) {
-    /* 致命的エラー */
+    // 致命的エラー
     emit_error("Can't load boss stage!");
     return 0;
   }
   
   if (boss_final_battle) {
-    /* 最終ボスなのに最終兵器ではなかったりカルマがある？ */
+    // 最終ボスなのに最終兵器ではなかったりカルマがある？
     if (user.equipment[GOODS_WEAPON] != MAX_GOODS - 1 ||
         user.status.KRM != 0) {
       user.status.STR = 0;
     }
-    /* scenario 2: 特殊なアイテムを所持していない？ */
+    // scenario 2: 特殊なアイテムを所持していない？
     if (in_scenario2() && user.equipment[GOODS_MAGIC_ITEM] != MAX_GOODS - 1) {
       user.status.STR = 0;
       boss.status.HP = 0;
     }
   }
 
-  /* 背景を読み込む */
+  // 背景を読み込む
   load_background(IMAGE_DIR "/user/boss_st.bmp");
   
-  /* ボスの位置を画面の右端にセット */
+  // ボスの位置を画面の右端にセット
   boss.x = rect_shrine.width  - SQUARE_BOSS - 40 * 2;
   boss.y = rect_shrine.height - SQUARE_BOSS;
   boss.frame = 0;
   
-  /* ユーザーを画面の左端にセット */
+  // ユーザーを画面の左端にセット
   user.x = 0;
   user.y = rect_shrine.height - 40;
   user.dir = 2;
   user.frame = battle_frame_user[user.dir];
 
-  /* ユーザーの魔法をリセット */
+  // ユーザーの魔法をリセット
   user_magic.lifetime = -1;
   
-  /* 変数の初期化 */
+  // 変数の初期化
   damaged_boss = NULL;
   damaged_user = NULL;
   magic_attacked = 0;
@@ -214,11 +214,11 @@ int init_boss(int boss_id)
   boss_loop_counter = BOSS_LOOP_WAIT;
   boss_user_ascend = WIDESCREEN_HEIGHT - 40;
 
-  /* 名前 */
+  // 名前
   draw_text(clip_user_guage, 0, 0, user.status.name, SDL_::Color::RED);
   draw_text(clip_boss_guage, 0, 0, boss.status.name, SDL_::Color::RED);
 
-  /* 効果音の読み込み */
+  // 効果音の読み込み
   se_load(SE_BOSS_HIT, se_data.boss_hit);
   se_load(SE_BOSS_BREATH, se_data.boss_breath);
 
@@ -247,26 +247,26 @@ int init_boss_data(int boss_id)
   if (boss_id < 0 || n_bosses <= boss_id) {
     return 1;
   }
-  /* BGM の設定 */
+  // BGM の設定
   boss_bgm = bgm_data.dungeon[user.environment.scenario].boss[boss_id];
     
-  /* データベースの最後のエントリ？ */
+  // データベースの最後のエントリ？
   boss_final_battle = boss_id == n_bosses - 1;
 
-  /* ボスデータをセット */
+  // ボスデータをセット
   boss.status = boss_data[boss_id].status;
   
-  /* ボスイメージ */
+  // ボスイメージ
   sprintf(path, IMAGE_DIR "/%s/%s", subdir, boss_data[boss_id].image_filename);
   boss_base = load_image(path);
   for (i = 0; i < FRAME_BOSS; i++) {
-    frame_boss[i] = std::make_shared<SDL_::Image>(boss_base, Rect(i * 120, 0, 120, 120));
+    frame_boss[i] = SDL_::SubImage{boss_base, Rect(i * 120, 0, 120, 120)};
   }
 
-  /* ブレス状態 */
+  // ブレス状態
   breath_state = BREATH_NO_BREATH;
 
-  /* ブレスを吐く？ */
+  // ブレスを吐く？
   if (boss_data[boss_id].can_breathe) {
     static std::shared_ptr<SDL_::Image> breath_base;
     int i;
@@ -278,11 +278,11 @@ int init_boss_data(int boss_id)
       breath_timer = breath_fill_up_interval();
     }
     for (i = 0; i < 2; i++) {
-      frame_breath[i] = std::make_shared<SDL_::Image>(breath_base, Rect(i * 80, 0, 80, 80));
+      frame_breath[i] = SDL_::SubImage{breath_base, Rect(i * 80, 0, 80, 80)};
     }
   }
   
-  /* 神殿イメージの読み込み */
+  // 神殿イメージの読み込み
   sprintf(path, IMAGE_DIR "/%s/shrine.bmp", subdir);
   visual_image = load_image(path);
   
@@ -291,49 +291,49 @@ int init_boss_data(int boss_id)
 
 void restore_context(int won)
 {
-  /* 最終ボスに勝ったとき以外は表示しない */
+  // 最終ボスに勝ったとき以外は表示しない
   if (!boss_final_battle || !won) {
-    /* バックグラウンドイメージを復元 */
+    // バックグラウンドイメージを復元
     load_background(IMAGE_DIR "/user/frame.bmp");
     update(rect_shrine);
   }
   
   if (won) {
-    /* ユーザー情報を復元する */
+    // ユーザー情報を復元する
     user.dir = old_user_dir;
     user.x = old_user_x;
     user.y = old_user_y;
     user.frame = old_user_frame;
     user.status.STR = old_user_STR;
 
-    /* 経験値を加算 */
+    // 経験値を加算
     user.status.fighter.EXP += boss.status.fighter_EXP;
     user.status.wizard.EXP += boss.status.wizard_EXP;
 
-    /* 最終ボス？ */
+    // 最終ボス？
     if (boss_final_battle) {
-      /* エンディング */
+      // エンディング
       switch_context(init_ending());
     } else {
-      /* コンテキストの復元 */
+      // コンテキストの復元
       resume_context();
     }
   } else {
-    /* リスタート */
+    // リスタート
     reset_context();
   }
 }
 
 void boss_enter(void)
 {
-  /* 背景を描画 */
+  // 背景を描画
   update_background();
     
-  /* ヒットポイント */
+  // ヒットポイント
   update_user_HP(SDL_::Color::WHITE);
   update_boss_HP(SDL_::Color::WHITE);
   
-  /* BGM */
+  // BGM
   bgm_play(boss_bgm);
 
   set_timer(BOSS_INTERVAL, boss_loop);
@@ -352,7 +352,7 @@ void update_background(void)
     draw_image(clip_shrine, 0, 0, visual_image);
   }
   
-  /* ユーザーの描画 */
+  // ユーザーの描画
   if (user.status.HP >= 0) {
     draw_sprite(clip_shrine, user.x, user.y, frame_user[user.frame]);
   } else {
@@ -360,7 +360,7 @@ void update_background(void)
   }
 
   if (user.status.HP >= 0) {
-    /* ブレス中？ */
+    // ブレス中？
     if (breath_state == BREATH_BREATHING && breath_timer % 4 < 2) {
       int y = boss.y + SQUARE_BOSS - SQUARE_BREATH;
       int x = boss.x;
@@ -376,28 +376,28 @@ void update_background(void)
     }
   }
   
-  /* ボスの描画 */
+  // ボスの描画
   draw_sprite(clip_shrine, boss.x, boss.y, frame_boss[boss.frame]);
   
-  /* 魔法の描画 */
+  // 魔法の描画
   if (user_magic.lifetime >= 0) {
     draw_sprite(clip_shrine, user_magic.x, user_magic.y,
                 frame_magics[user_magic.frame]);
   }
   
-  /* ユーザーのダメージの個所を反転 */
+  // ユーザーのダメージの個所を反転
   if (damaged_user) {
     point_t *p = damaged_user;
     inverse_image(clip_shrine, p->x, p->y, mask_damaged);
   }
 
-  /* ボスのダメージの個所を反転 */
+  // ボスのダメージの個所を反転
   if (damaged_boss) {
     point_t *p = damaged_boss;
     inverse_image(clip_shrine, p->x, p->y, mask_damaged);
   }
 
-  /* 魔法による効果 */
+  // 魔法による効果
   if (magic_attacked) {
     magic_damage_effect();
   }
@@ -405,12 +405,12 @@ void update_background(void)
   update(rect_shrine);
 }
 
-/* メインループ */
+// メインループ
 void boss_loop(void)
 {
   int update = 0;
 
-  /* ボスを攻撃した？ */
+  // ボスを攻撃した？
   if (damaged_boss) {
     damaged_boss = NULL;
     update |= 1;
@@ -431,7 +431,7 @@ void boss_loop(void)
     int key9 = (key8 && key6) || get_keystate(VK_PRIOR);
     
     if (get_keystate(VK_SPACE)) {
-      /* 跳躍力を無効に */
+      // 跳躍力を無効に
       user_jump = -1;
       
       if (user_magic.lifetime < 0) {
@@ -472,13 +472,13 @@ void boss_loop(void)
       goto done;
   }
 
-  /* 前のターンでユーザーを攻撃した？ */
+  // 前のターンでユーザーを攻撃した？
   if (damaged_user != NULL) {
     damaged_user = NULL;
     update |= 1;
     update_user_HP(SDL_::Color::WHITE);
   }
-  /* ブレス準備中でない？ */
+  // ブレス準備中でない？
   else if (breath_state != BREATH_WARMING_UP) {
     update |= boss_move_boss();
     if (damaged_user != NULL) {
@@ -489,23 +489,23 @@ void boss_loop(void)
   update |= boss_move_magic();
   
 done:  
-  /* 重力 */
+  // 重力
   update |= boss_gravitate();
 
-  /* ブレス */
+  // ブレス
   update |= boss_breathe();
 
-  /* 更新する？ */
+  // 更新する？
   if (update) {
     update_background();
   }
 
   if (user.status.HP <= 0) {
-    /* ユーザー死亡 */
+    // ユーザー死亡
     set_timer_proc(boss_loose_loop);
   }
   else if (boss.status.HP < 0) {
-    /* ボス死亡 */
+    // ボス死亡
     set_timer_proc(boss_win_loop);
   }
 }
@@ -519,7 +519,7 @@ int boss_gravitate(void)
 
     y = user.y + STEP_USER_Y;
 
-    /* 当たってる？ */
+    // 当たってる？
     if (boss_hit_test(user.x, y, boss.x, boss.y)) {
       user_jump = 0;
     } else {
@@ -527,11 +527,11 @@ int boss_gravitate(void)
     }
     n++;
   }
-#if 0 /* 重力に逆らう */
+#if 0 // 重力に逆らう
   if (boss.y < WIDESCREEN_HEIGHT - 120) {
     y = boss.y + STEP_BOSS_Y;
       
-    /* 当たってる？ */
+    // 当たってる？
     if (boss_hit_test(user.x, user.y, boss.x, y)) {
     } else
       boss.y = y;
@@ -547,12 +547,12 @@ int boss_move_user(int dir)
   int x, y;
 
   if (!get_keystate(VK_SHIFT)) {
-    user.dir = dir; /* 方向を変える */
+    user.dir = dir; // 方向を変える
   }
   dx = move_table[dir].x;
   dy = move_table[dir].y;
 
-  /* 宙に浮いている？ */
+  // 宙に浮いている？
   if (user.y + 40 <  WIDESCREEN_HEIGHT &&
       !boss_hit_test(user.x, user.y + STEP_USER_Y, boss.x, boss.y)) {
     if (user_jump < 0) {
@@ -569,24 +569,24 @@ int boss_move_user(int dir)
   x = user.x + dx * STEP_USER_X;
   y = user.y + dy * STEP_USER_Y;
 
-  /* アウトオブバウンズ？ */
+  // アウトオブバウンズ？
   if (x < 0 || WIDESCREEN_WIDTH  - 40  < x ||
       y < 0 || WIDESCREEN_HEIGHT - 40 < y) {
     user_jump = -1;
     goto done_move;
   }
 
-  /* 当たってる？ */
+  // 当たってる？
   if (boss_hit_test(x, y, boss.x, boss.y)) {
     boss_attack_boss();
     user_jump = -1;
     goto done_move;
   }
   
-  /* 下方向の移動をクリア */
+  // 下方向の移動をクリア
   dy = min(dy, 0);
   
-  /* 移動 */
+  // 移動
   user.x = x;
   user.y = user.y + dy * STEP_USER_Y;
 
@@ -605,14 +605,14 @@ int boss_move_boss(void)
   else if (boss.y >= user.y + 40) dy--;
 
 #if 0
-  /* ブレスを吐くならば、頭上のユーザーを嫌う */
+  // ブレスを吐くならば、頭上のユーザーを嫌う
   if (breath_state != BREATH_NO_BREATH && dy < 0) {
-    dy = 0; /* 飛ばない */
+    dy = 0; // 飛ばない
     if (user.x < (WIDESCREEN_WIDTH + 40) / 2)
       dx++;
     else
       dx--;
-    /* 最終ボス？ */
+    // 最終ボス？
     if (boss_final_battle) {
       dx *= 4;
     }
@@ -626,10 +626,10 @@ int boss_move_boss(void)
   x = boss.x + dx * STEP_BOSS_X;
   y = boss.y + dy * STEP_BOSS_Y;
 
-  /* 当たってる？ */
+  // 当たってる？
   if (boss_hit_test(user.x, user.y, x, y)) {
 #if 0
-    /* ブレスを吐いていない？ */
+    // ブレスを吐いていない？
     if (breath_state != BREATH_WARMING_UP ||
         breath_state != BREATH_BREATHING) {
       boss_attack_user();
@@ -639,13 +639,13 @@ int boss_move_boss(void)
 #endif
     if (boss.y + 120 < WIDESCREEN_HEIGHT &&
         boss.y + 120 > user.y) {
-      /* 重力 */
+      // 重力
       boss.y += STEP_BOSS_Y;
     }
     goto done_move;
   }
   
-  /* アウトオブバウンズ？ */
+  // アウトオブバウンズ？
   boss.x = max(0, min(WIDESCREEN_WIDTH  - 120,  x));
   boss.y = max(0, min(WIDESCREEN_HEIGHT - 120, y));
 
@@ -662,12 +662,12 @@ int boss_hit_test(int user_x, int user_y, int boss_x, int boss_y)
          user_y < boss_y + 120;
 }
 
-/* ユーザーがボスを攻撃 */
+// ユーザーがボスを攻撃
 void boss_attack_boss(void)
 {
   int damage = user_attack_point();
   
-  /* 最終ボス？ */
+  // 最終ボス？
   if (boss_final_battle) {
     damage *= 32;
   }
@@ -676,7 +676,7 @@ void boss_attack_boss(void)
   if (damage > 0) {
     boss.status.HP -= damage;
     
-    /* ボスは死んでない？ */
+    // ボスは死んでない？
     if (boss.status.HP >= 0) {
       static point_t damaged;
       int x = user.x + move_table[user.dir].x * 40;
@@ -689,11 +689,11 @@ void boss_attack_boss(void)
       damaged_boss = &damaged;
     }
     update_boss_HP(SDL_::Color::RED);
-    se_play(SE_BOSS_HIT); /* SE */
+    se_play(SE_BOSS_HIT); // SE
   }
 }
 
-/* ボスがユーザーを攻撃 */
+// ボスがユーザーを攻撃
 void boss_attack_user(void)
 {
   int damage = boss.status.STR - user_defend_point(GUARD_FRONT);
@@ -703,7 +703,7 @@ void boss_attack_user(void)
       
   user.status.HP -= damage;
   
-  /* ユーザーは死んでない？ */
+  // ユーザーは死んでない？
   if (user.status.HP > 0) {
     static point_t damaged;
     
@@ -712,7 +712,7 @@ void boss_attack_user(void)
     damaged_user = &damaged;
   }
   update_user_HP(SDL_::Color::RED);
-  se_play(SE_BOSS_HIT); /* SE */
+  se_play(SE_BOSS_HIT); // SE
 }
 
 static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_::Color pixel)
@@ -720,7 +720,7 @@ static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_:
   char buf[16];
   int i;
 
-  /* 背景を消す */
+  // 背景を消す
   for (i = 0; i < 128; i += 16) {
     draw_image(img, i, 16, pattern_guage);
   }
@@ -756,7 +756,7 @@ void boss_cast_spell(int scroll_id, int INT, int x, int y, int dir)
 
   se_play(SE_CAST_NEEDLE + scroll_type);
 
-  /* 全体魔法？ */
+  // 全体魔法？
   if (scroll_attribute) {
     magic_attack_boss();
   } else {
@@ -794,7 +794,7 @@ int boss_move_magic(void)
 
     if (0 <= x && x < rect_shrine.width  - 16 &&
         0 <= y && y < rect_shrine.height - 16) {
-      /* 当たった？ */
+      // 当たった？
       if (boss.x < x + 16 && x < boss.x + 120  &&
           boss.y < y + 16 && y < boss.y + 120) {
         ma->lifetime = -1;
@@ -805,32 +805,32 @@ int boss_move_magic(void)
         ma->frame = frame_magic[ma->scroll_type] + (ma->frame + 1) % 2;
       }
     } else {
-      /* アウトオブバウンズ */
+      // アウトオブバウンズ
       ma->lifetime = -1;
     }
   }
   return n;
 }
 
-/* 魔法がボスを攻撃 */
+// 魔法がボスを攻撃
 void magic_attack_boss(void)
 {
   int damage = user_magic_point(0) - boss.status.MGR;
   
   if (damage > 0) {
     boss.status.HP -= damage;
-    /* 死んだ？ */
+    // 死んだ？
     if (boss.status.HP < 0) {
       set_timer_proc(boss_win_loop);
     } else {
       magic_attacked = 1;
     }
     update_boss_HP(SDL_::Color::RED);
-    se_play(SE_BOSS_HIT); /* se */
+    se_play(SE_BOSS_HIT); // se
   }
 }
 
-/* 魔法ダメージ */
+// 魔法ダメージ
 void magic_damage_effect(void)
 {
   int i, x, y;
@@ -846,7 +846,7 @@ void magic_damage_effect(void)
   }
 }
 
-/* 回復 */
+// 回復
 void boss_healing(void)
 {
   int magic_item, item_type;
@@ -860,7 +860,7 @@ void boss_healing(void)
     user.inventory[GOODS_MAGIC_ITEM][magic_item].stock--;
     skill = user.inventory[GOODS_MAGIC_ITEM][magic_item].skill;
 
-    /* see use_item.c */
+    // see use_item.c
     point = (user_WIS() * skill / 10000.0) * user.status.max_HP;
     user.status.HP = min(user.status.HP + point, user.status.max_HP);
     
@@ -869,41 +869,41 @@ void boss_healing(void)
   }
 }
 
-/* 勝利ループ */
+// 勝利ループ
 void boss_win_loop(void)
 {
-  /* ダメージ個所を消す */
+  // ダメージ個所を消す
   damaged_boss = damaged_user = NULL;
   
   breath_state = BREATH_NO_BREATH;
 
-  /* ボスが着地するのを待つ */
+  // ボスが着地するのを待つ
   if (boss.y < WIDESCREEN_HEIGHT - 120) {
     boss.y += STEP_BOSS_Y;
     update_background();
   } else {
     boss_loop_counter--;
     
-    /* まだやっつけられ図ではない？ */
+    // まだやっつけられ図ではない？
     if (boss.frame != FRAME_BOSS_DEAD) {
       if (boss_loop_counter < 0) {
-        /* やっつけられ図をしばらく停止する */
+        // やっつけられ図をしばらく停止する
         boss_loop_counter = BOSS_LOOP_WAIT;
         boss.frame = FRAME_BOSS_DEAD;
 
-        se_play(SE_MONSTER_DEAD); /* se */
+        se_play(SE_MONSTER_DEAD); // se
         update_background();
       } else {
         update_background();
         magic_damage_effect();
-        se_play(SE_BOSS_HIT); /* se */
+        se_play(SE_BOSS_HIT); // se
       }
     } else if (boss_loop_counter < 0) {
-      /* 踏み潰した？ */
+      // 踏み潰した？
       if (boss_hit_test(user.x, user.y, boss.x, boss.y)) {
         set_timer_proc(boss_loose_loop);
       } else {
-        /* 帰還する */
+        // 帰還する
         restore_context(1);
       }
     }
@@ -912,14 +912,14 @@ void boss_win_loop(void)
 
 void boss_loose_loop(void)
 {
-  /* ダメージ個所を消す */
+  // ダメージ個所を消す
   if (damaged_boss || damaged_user) {
     damaged_boss = damaged_user = NULL;
     update_background();
   }
 
   if (user.status.HP >= 0) {
-    /* ユーザーのヒットポイントが0になるまで待つ */
+    // ユーザーのヒットポイントが0になるまで待つ
     if (user.status.HP < 1000) {
       user.status.HP = -1;
     } else {
@@ -929,12 +929,12 @@ void boss_loose_loop(void)
   }
   
   if (user.y < rect_shrine.height - 40) {
-    /* ユーザーが落下するまで待つ */
+    // ユーザーが落下するまで待つ
     user.y += STEP_USER_Y;
     update_background();
   } else if (user.status.HP < 0) {
     if ((boss_user_ascend -= STEP_USER_Y) > 0) {
-      /* 昇天中 */
+      // 昇天中
       update_background();
       draw_sprite(clip_shrine, user.x, boss_user_ascend, frame_specials[SPECIAL_HEAVEN]);
       draw_text(clip_shrine, 180, 120, "You are Dead !!", SDL_::Color::RED);
@@ -948,7 +948,7 @@ int boss_breathe(void)
 {
   switch (breath_state) {
   case BREATH_FILLING_UP:
-    /* 接地している？ */
+    // 接地している？
     if (boss.y + 120 == rect_shrine.height && --breath_timer < 0) {
       breath_timer = breath_warm_up_interval();
       breath_state = BREATH_WARMING_UP;
@@ -959,26 +959,26 @@ int boss_breathe(void)
     if (--breath_timer < 0) {
       breath_timer = breath_breathe_interval();
       breath_state = BREATH_BREATHING;
-      se_play(SE_BOSS_BREATH); /* SE */
+      se_play(SE_BOSS_BREATH); // SE
     }
     break;
     
   case BREATH_BREATHING:
-    /* ブレスの有効期間？: update_background() も参照 */
+    // ブレスの有効期間？: update_background() も参照
     if (breath_timer % 4 < 2) {
-      /* 矩形がボスの大きさになるように少しずらす... */
+      // 矩形がボスの大きさになるように少しずらす...
       int y = boss.y + 120 - SQUARE_BREATH;
       int x = boss.x + (boss_frame_left(boss.frame)
                         ? -SQUARE_BREATH
                         : 120 - (120 - SQUARE_BREATH));
-      /* ユーザーに命中？ */
+      // ユーザーに命中？
       if (boss_hit_test(user.x, user.y, x, y)) {
         set_timer_proc(boss_loose_loop);
-        se_play(SE_BOSS_HIT); /* SE */
+        se_play(SE_BOSS_HIT); // SE
         return 0;
       }
     }
-    /* または離陸している？ */
+    // または離陸している？
     if (boss.y + 120 < rect_shrine.height || --breath_timer < 0) {
       breath_timer = breath_fill_up_interval();
       breath_state = BREATH_FILLING_UP;

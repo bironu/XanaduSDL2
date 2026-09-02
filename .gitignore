@@ -69,3 +69,6 @@ Testing/
 
 # Mac file
 .DS_Store
+
+# SoundFont
+audio/HiDef.sf2

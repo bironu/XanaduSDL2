@@ -7,8 +7,14 @@
 #include "sdl/SDLTexture.h"
 #include "sdl/SDLRenderer.h"
 #include "sdl/SDLWindow.h"
+#include "sdl/SDLMixAudio.h"
+#include "sdl/SDLMixChunk.h"
+#include "sdl/SDLMixMusic.h"
+#include "resources/SoundFontId.h"
 #include "app/Application.h"
+#include <array>
 #include <memory>
+#include <string>
 
 // ---- 画面バッファ ----
 // 旧main.c(Windows)/x11/main.cではOS側のウィンドウ用DIB/XImageを確保し、
@@ -42,10 +48,10 @@ const rectangle_t rect_endingroll = {  80,  96, 560, 240 };
 // frame_whitebox/frame_specials/mask_damaged/pattern_guage/pattern_status は
 // 対応するローダが未移植のため、現状は未ロード(nullptr)のまま。
 
-std::shared_ptr<SDL_::Image> frame_user[10];
-std::shared_ptr<SDL_::Image> frame_monsters[N_MONSTERS][4];
+SDL_::SubImage frame_user[10];
+SDL_::SubImage frame_monsters[N_MONSTERS][4];
 std::shared_ptr<SDL_::Image> frame_magics[N_MAGICS * 2];
-std::shared_ptr<SDL_::Image> frame_tiles[N_TILES];
+SDL_::SubImage frame_tiles[N_TILES];
 std::shared_ptr<SDL_::Image> frame_goods[N_GOODS];
 std::shared_ptr<SDL_::Image> frame_brownbox[4];
 std::shared_ptr<SDL_::Image> frame_whitebox[4];
@@ -57,6 +63,69 @@ std::shared_ptr<SDL_::Image> visual_image;
 
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
+
+// se_play/se_loadで使う効果音チャンクのキャッシュ。SE_*の定義値をそのまま
+// インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
+constexpr int SE_CHUNK_COUNT = SE_SOMEWHAT4 + 1;
+std::array<std::shared_ptr<SDL_::Mix_::Chunk>, SE_CHUNK_COUNT> seChunks;
+
+std::shared_ptr<SDL_::Mix_::Chunk> load_se_chunk(const char *filename)
+{
+	if (!filename || filename[0] == '\0') {
+		return nullptr;
+	}
+	auto chunk = std::make_shared<SDL_::Mix_::Chunk>((std::string(AUDIO_DIR "/wave/") + filename).c_str());
+	return chunk->get() ? chunk : nullptr;
+}
+
+// se_load()で明示的にロードされないSE番号は、wave.txtから読み込まれた
+// se_dataのファイル名をそのまま使う
+const char *default_se_filename(int id)
+{
+	switch (id) {
+	case SE_MAGIC_HIT:    return se_data.magic_hit;
+	case SE_MAGIC_FAILED: return se_data.magic_failed;
+	case SE_DAMAGED:      return se_data.damaged;
+	case SE_TRAPPED:      return se_data.trapped;
+	case SE_MONSTER_DEAD: return se_data.monster_dead;
+	case SE_OPEN_BOX:     return se_data.open_box;
+	case SE_TREASURE:     return se_data.treasure;
+	case SE_GET:          return se_data.get;
+	case SE_GET_POISON:   return se_data.get_poison;
+	case SE_LOST_KEY:     return se_data.lost_key;
+	default:
+		if (SE_CAST_NEEDLE <= id && id <= SE_CAST_DEATH) {
+			return se_data.cast[id - SE_CAST_NEEDLE];
+		}
+		return nullptr;
+	}
+}
+
+std::shared_ptr<SDL_::Mix_::Chunk> resolve_se_chunk(int id)
+{
+	if (id < 0 || id >= SE_CHUNK_COUNT) {
+		return nullptr;
+	}
+	if (!seChunks[id]) {
+		seChunks[id] = load_se_chunk(default_se_filename(id));
+	}
+	return seChunks[id];
+}
+
+// 現在再生中(またはロード済み)のBGM。Mix_MusicはSDL_mixer側で同時に
+// 1曲しか再生できないため、チャンクと違いスロット配列ではなく単一の
+// キャッシュで管理する
+std::shared_ptr<SDL_::Mix_::Music> currentMusic;
+std::string currentBgmFilename;
+
+std::shared_ptr<SDL_::Mix_::Music> load_bgm_music(const char *filename)
+{
+	if (!filename || filename[0] == '\0') {
+		return nullptr;
+	}
+	auto music = std::make_shared<SDL_::Mix_::Music>((std::string(AUDIO_DIR "/midi/") + filename).c_str());
+	return music->get() ? music : nullptr;
+}
 }
 
 void initLegacyGraphics(Resources &res)
@@ -74,6 +143,13 @@ void initLegacyGraphics(Resources &res)
 	if (fontAtlas) {
 		legacyFont = std::make_unique<SDL_::BitmapFont>(*fontAtlas);
 	}
+}
+
+void initLegacySound(Resources &res)
+{
+	Application::instance().getAudio().setSoundFonts(res.getSoundFontFileName(SoundFontId::hi_def));
+	init_se();
+	init_bgm();
 }
 
 void presentLegacyFrame()
@@ -149,48 +225,98 @@ void beep(void)
 
 int bgm_enabled(void)
 {
-	return 0;
+	return !user.config.mute;
 }
 
 int se_enabled(void)
 {
-	return 0;
+	return !user.config.mute;
 }
 
-void bgm_play(const char *)
+void bgm_play(const char *filename)
 {
+	if (!filename || filename[0] == '\0') {
+		bgm_stop();
+		return;
+	}
+	// 同じ曲を鳴らし直さない(フィールド再訪等で毎回呼ばれても再生が
+	// 途切れないように)
+	if (currentMusic && currentBgmFilename == filename) {
+		return;
+	}
+	auto music = load_bgm_music(filename);
+	if (!music) {
+		return;
+	}
+	currentMusic = music;
+	currentBgmFilename = filename;
+	Application::instance().getAudio().playMusic(*currentMusic, -1);
+	if (user.config.mute) {
+		// ミュート中でも曲自体はロード・開始しておき、一時停止扱いにする
+		// (bgm_mute()で解除した際にresumeMusic()で復帰できるようにするため)
+		Application::instance().getAudio().pauseMusic();
+	}
 }
 
 void bgm_stop(void)
 {
+	Application::instance().getAudio().stopMusic();
+	currentMusic.reset();
+	currentBgmFilename.clear();
 }
 
 void bgm_pause(void)
 {
+	Application::instance().getAudio().pauseMusic();
 }
 
 void bgm_restart(void)
 {
+	if (currentMusic) {
+		Application::instance().getAudio().playMusic(*currentMusic, -1);
+	}
 }
 
 void bgm_tempo(int)
 {
+	// SDL_mixerのMix_Music APIにはMIDIテンポを変更する機能がないため未対応
 }
 
 void bgm_random(int)
 {
+	// SDL_mixerのMix_Music APIにはMIDIのピッチをランダム化する機能がないため未対応
 }
 
 int bgm_mute(void)
 {
 	user.config.mute = !user.config.mute;
+	if (currentMusic) {
+		if (user.config.mute) {
+			Application::instance().getAudio().pauseMusic();
+		}
+		else {
+			Application::instance().getAudio().resumeMusic();
+		}
+	}
 	return user.config.mute;
 }
 
-void se_play(int)
+void se_play(int id)
 {
+	if (user.config.mute) {
+		return;
+	}
+	auto chunk = resolve_se_chunk(id);
+	if (!chunk) {
+		return;
+	}
+	Application::instance().getAudio().playSound(*chunk, -1, 0);
 }
 
-void se_load(int, const char *)
+void se_load(int id, const char *filename)
 {
+	if (id < 0 || id >= SE_CHUNK_COUNT) {
+		return;
+	}
+	seChunks[id] = load_se_chunk(filename);
 }

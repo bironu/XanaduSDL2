@@ -42,7 +42,29 @@ void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, co
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
-  /* 透過はsrcにロード/複製時点で設定済みのcolorkeyにより実現される */
+  // 透過はsrcにロード/複製時点で設定済みのcolorkeyにより実現される
+  draw_image(dst, x, y, src);
+}
+
+void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
+{
+  if (!dst || !src.sheet) {
+    return;
+  }
+  // draw_image(shared_ptr<Image>版)と同様、常に不透明合成する
+  Uint32 savedKey;
+  const bool hadKey = (SDL_GetColorKey(src.sheet->get(), &savedKey) == 0);
+  if (hadKey) {
+    SDL_SetColorKey(src.sheet->get(), SDL_FALSE, 0);
+  }
+  dst->blit(src.sheet, src.rect, x, y);
+  if (hadKey) {
+    SDL_SetColorKey(src.sheet->get(), SDL_TRUE, savedKey);
+  }
+}
+
+void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
+{
   draw_image(dst, x, y, src);
 }
 

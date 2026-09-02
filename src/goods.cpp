@@ -1,10 +1,10 @@
 #include "goods.h"
 
-/* scenario 1 */
+// scenario 1
 const goods_data_t goods_data1[6] = {
-  /* 武器 */
+  // 武器
   {
-    /* 名前		種類		属性	   価格	     基本攻撃力 */
+    // 名前		種類		属性	   価格	     基本攻撃力
     { "Dagger",		WEAPON_DAGGER,	0,	    300,	      3 },
     { "Short-Sword",	WEAPON_SWORD,	0,	    500,	      5 },
     { "Spear",		WEAPON_SPEAR,	0,	   1000,	     10 },
@@ -24,9 +24,9 @@ const goods_data_t goods_data1[6] = {
     { "Dragon Slayer",	WEAPON_SWORD,	0,	1000000,	    100 },
     { "",		WEAPON_DAGGER,	0,	      0,              0 }
   },
-  /* 魔法 */
+  // 魔法
   {
-    /* 名前		種類		全体	   価格	     基本攻撃力 */
+    // 名前		種類		全体	   価格	     基本攻撃力
     { "Needle",		SCROLL_NEEDLE,     0,	    100,	      2 },
     { "Deg-Needle",	SCROLL_NEEDLE,	   1,	    500,	      2 },
     { "Mittar",		SCROLL_MITTAR,     0,	   1000,	     10 },
@@ -46,9 +46,9 @@ const goods_data_t goods_data1[6] = {
     { "Death",		SCROLL_DEATH,      0,	 500000,	   2500 },
     { "",		SCROLL_NEEDLE,	   0,	      0,	      0 }
   },
-  /* 鎧 */
+  // 鎧
   {
-    /* 名前		種類		属性	   価格	     最大防御力 */
+    // 名前		種類		属性	   価格	     最大防御力
     { "Cloth",		ARMOUR_LEATHER,	0,	    100,	      1 },
     { "Leather-Armor",	ARMOUR_LEATHER,	0,	    500,	      2 },
     { "Padded-Mail",	ARMOUR_LEATHER,	0,	   1000,	      3 },
@@ -68,9 +68,9 @@ const goods_data_t goods_data1[6] = {
     { "Battle-Suits",	ARMOUR_SUITE,	0,	 500000,	   2000 },
     { "",		ARMOUR_LEATHER,	0,	      0,	      0 }
   },
-  /* 盾 */
+  // 盾
   {
-    /* 名前		種類		属性	   価格	     最大防御力 */
+    // 名前		種類		属性	   価格	     最大防御力
     { "Gloves",		SHIELD_GLOVES,	0,	    100,	      1 },
     { "Small-Shield",	SHIELD_SMALL,	0,	    400,	      2 },
     { "Large-Shield",	SHIELD_LARGE,	0,	   1000,	      5 },
@@ -90,9 +90,9 @@ const goods_data_t goods_data1[6] = {
     { "+7LargeShield",	SHIELD_LARGE,	0,	 250000,	   1250 },
     { "",		SHIELD_GLOVES,	0,	      0,	      0 }
   },
-  /* 魔法の道具 */
+  // 魔法の道具
   {
-    /* 名前		種類		     属性	   価格    性能 */
+    // 名前		種類		     属性	   価格    性能
     { "Spectacles",	ITEM_SPECTACLES,	0,	    100,      0 },
     { "Red Potion",	ITEM_RED_POTION,	0,	    100,      0 },
     { "Lamp",		ITEM_LAMP,		0,	    100,      0 },
@@ -112,9 +112,9 @@ const goods_data_t goods_data1[6] = {
     { "Bottle",		ITEM_BOTTLE,		0,	    100,      0 },
     { "",		-1,			0,	      0,      0 }
   },
-  /* その他 */
+  // その他
   {
-    /* 名前		種類		     属性	   価格    性能 */
+    // 名前		種類		     属性	   価格    性能
     { "Crown",		OTHER_CROWN,		0,	      0,      0 },
     { "Key",		OTHER_KEY,		0,	      0,      0 },
     { "Elixir",		OTHER_ELIXIR,		0,	      0,      0 },
@@ -137,37 +137,37 @@ const goods_data_t goods_data1[6] = {
 };
 
 const short index_goods1[256] = {
-  /* 武器 */
+  // 武器
   10, 10, 12, 11, 10, 11, 10, 12, 12, 12, 11, 10, 10, 10, 12, 10, 10,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 魔法 */
+  // 魔法
   13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 鎧 */
+  // 鎧
   14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 盾 */
+  // 盾
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 魔法の道具 */
+  // 魔法の道具
   28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* その他の道具 */
+  // その他の道具
   16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-   8,	/* 金貨 */
-   9,	/* 食料 */
+   8,	// 金貨
+   9,	// 食料
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-/* scenario 2 */
+// scenario 2
 const goods_data_t goods_data2[6] = {
-  /* 武器 */
+  // 武器
   {
-    /* 名前		種類		属性	   価格	     基本攻撃力 */
+    // 名前		種類		属性	   価格	     基本攻撃力
     { "Dagger",		WEAPON_DAGGER,	0,	    300,	      3 },
     { "Short-Sword",	WEAPON_SWORD,	0,	    500,	      5 },
     { "Spear",		WEAPON_SPEAR,	0,	   1000,	     10 },
@@ -187,9 +187,9 @@ const goods_data_t goods_data2[6] = {
     { "Dragon Slayer",	WEAPON_SWORD,	0,	1000000,	    100 },
     { "",		WEAPON_DAGGER,	0,	      0,              0 }
   },
-  /* 魔法 */
+  // 魔法
   {
-    /* 名前		種類		全体	   価格	     基本攻撃力 */
+    // 名前		種類		全体	   価格	     基本攻撃力
     { "Needle",		SCROLL_NEEDLE,     0,	    100,	      2 },
     { "Deg-Needle",	SCROLL_NEEDLE,	   1,	    500,	      2 },
     { "Mittar",		SCROLL_MITTAR,     0,	   1000,	     10 },
@@ -209,9 +209,9 @@ const goods_data_t goods_data2[6] = {
     { "Death",		SCROLL_DEATH,      0,	 500000,	   2500 },
     { "",		SCROLL_NEEDLE,	   0,	      0,	      0 }
   },
-  /* 鎧 */
+  // 鎧
   {
-    /* 名前		種類		属性	   価格	     最大防御力 */
+    // 名前		種類		属性	   価格	     最大防御力
     { "Cloth",		ARMOUR_LEATHER,	0,	    100,	      1 },
     { "Leather-Armor",	ARMOUR_LEATHER,	0,	    500,	      2 },
     { "Padded-Mail",	ARMOUR_LEATHER,	0,	   1000,	      3 },
@@ -231,9 +231,9 @@ const goods_data_t goods_data2[6] = {
     { "Battle-Suits",	ARMOUR_SUITE,	0,	 500000,	   2000 },
     { "",		ARMOUR_LEATHER,	0,	      0,	      0 }
   },
-  /* 盾 */
+  // 盾
   {
-    /* 名前		種類		属性	   価格	     最大防御力 */
+    // 名前		種類		属性	   価格	     最大防御力
     { "Gloves",		SHIELD_GLOVES,	0,	    100,	      1 },
     { "Small-Shield",	SHIELD_SMALL,	0,	    400,	      2 },
     { "Large-Shield",	SHIELD_LARGE,	0,	   1000,	      5 },
@@ -253,9 +253,9 @@ const goods_data_t goods_data2[6] = {
     { "+7LargeShield",	SHIELD_LARGE,	0,	 250000,	   1250 },
     { "",		SHIELD_GLOVES,	0,	      0,	      0 }
   },
-  /* 魔法の道具 */
+  // 魔法の道具
   {
-    /* 名前		種類		     属性	   価格    性能 */
+    // 名前		種類		     属性	   価格    性能
     { "Spectacles",	ITEM_SPECTACLES,	0,	    100,      0 },
     { "Red Potion",	ITEM_RED_POTION,	0,	    100,      0 },
     { "Lamp",		ITEM_LAMP,		0,	    100,      0 },
@@ -275,9 +275,9 @@ const goods_data_t goods_data2[6] = {
     { "Cross",		ITEM_CROSS,		0,	    100,      0 },
     { "",		-1,			0,	      0,      0 }
   },
-  /* その他 */
+  // その他
   {
-    /* 名前		種類		     属性	   価格    性能 */
+    // 名前		種類		     属性	   価格    性能
     { "Crown",		OTHER_CROWN,		0,	      0,      0 },
     { "Potion",		OTHER_POTION2,		0,	      0,      0 },
     { "Elixir",		OTHER_ELIXIR,		0,	      0,      0 },
@@ -300,26 +300,26 @@ const goods_data_t goods_data2[6] = {
 };
 
 const short index_goods2[256] = {
-  /* 武器 */
+  // 武器
   10, 10, 12, 11, 10, 11, 10, 12, 12, 12, 11, 10, 10, 10, 12, 10, 10,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 魔K! */
+  // 魔K!
   13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 鎧 */
+  // 鎧
   14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 盾 */
+  // 盾
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* 魔法の道具 */
+  // 魔法の道具
   28, 46, 30, 31, 32, 33, 34, 35, 36, 37, 47, 17, 40, 48, 49, 43, 50,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-  /* その他の道具 */
+  // その他の道具
   16, 45, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-   8,	/* 金貨 */
-   9,	/* 食料 */
+   8,	// 金貨
+   9,	// 食料
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -329,7 +329,7 @@ const short index_goods2[256] = {
 const short index_whitebox[4] = { 0, 1, 2, 3 };
 const short index_brownbox[4] = { 4, 5, 6, 7 };
 
-/* 品物データベース */
+// 品物データベース
 const goods_data_t *goods_data = goods_data1;
 const short *index_goods = index_goods1;
 

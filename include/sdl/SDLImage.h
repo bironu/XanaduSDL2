@@ -24,7 +24,6 @@ public:
 	}
 	Image(int width, int height);
 	explicit Image(const char * const file);
-	Image(const std::shared_ptr<Image> &source, const Rect &rect);
 	~Image();
 
 	SDL_Surface *get() const { return surface_;}
@@ -61,7 +60,7 @@ public:
 	bool blit(std::shared_ptr<Image> src, Sint16 nXDest, Sint16 nYDest)
 	{
 		Rect dstrect{nXDest, nYDest, 0, 0};
-		return SDL_UpperBlitScaled(src->get(), nullptr, get(), &dstrect) == 0;
+		return SDL_BlitSurface(src->get(), nullptr, get(), &dstrect) == 0;
 	}
 	bool fillRect(const Rect &rect, const Uint32 color)
 	{
@@ -133,6 +132,14 @@ public:
 
 private:
 	SDL_Surface * const surface_;
+};
+
+// 大きなシート画像(sheet)の一部(rect)を指す軽量な参照。スプライトシートの
+// 1コマ分を、都度コピーを作らずにblit(sheet, rect, x, y)で直接描画するために使う
+struct SubImage
+{
+	std::shared_ptr<Image> sheet;
+	Rect rect;
 };
 
 } // SDL_

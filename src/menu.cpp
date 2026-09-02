@@ -22,21 +22,21 @@
 #define MENU_LOAD		2
 #define MENU_DEBUG		3
 #define MENU_BOSS		4
-#define MENU_GAME		5	/* 新しいゲーム */
+#define MENU_GAME		5	// 新しいゲーム
 
 #define reenter()		(menu_enter())
 
 #define MAX_USER_ENTRY		8
 
-/* ディレクトリ中のユーザー情報を保持する構造体 */
+// ディレクトリ中のユーザー情報を保持する構造体
 typedef struct {
-  char		name[16];		/* 名前 */
+  char		name[16];		// 名前
 } user_entry_t;
 
 static user_entry_t user_entries[MAX_USER_ENTRY];
 static int menu_state;
 
-/* ロゴ */
+// ロゴ
 static std::shared_ptr<SDL_::Image> logo_image;
 
 static void menu_draw_text(int row, int col, const char *, SDL_::Color);
@@ -58,11 +58,11 @@ void menu_enter(void)
   SDL_::Color pixel1 = user.environment.scenario == 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
   SDL_::Color pixel2 = user.environment.scenario != 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 
-  bgm_play(bgm_data.start_menu); /* BGM */
+  bgm_play(bgm_data.start_menu); // BGM
 
   fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
   
-  /* ロゴ */
+  // ロゴ
   if (!logo_image) {
     logo_image = load_image(IMAGE_DIR "/picture/logo.bmp");
   }
@@ -187,7 +187,7 @@ void menu_enter(void)
     menu_draw_text( 7,  1, "     S.E:", SDL_::Color::RED);
     menu_draw_text( 7, 10, se_enabled() ? "OK" : "Disable", SDL_::Color::WHITE);
 
-    /*menu_draw_text( 9,  0, "-NOTICE-", SDL_::Color::WHITE);*/
+    // menu_draw_text( 9,  0, "-NOTICE-", SDL_::Color::WHITE);
     menu_draw_text(10,  0, "XANADU WAS ORIGINALLY", SDL_::Color::WHITE);
     menu_draw_text(11,  0, "RELEASED IN 1985", SDL_::Color::WHITE);
     menu_draw_text(12,  0, "BY FALCOM.", SDL_::Color::WHITE);
@@ -299,7 +299,7 @@ void load_menu_key_event(int c)
   case 'A': case 'B': case 'C': case 'D':
   case 'E': case 'F': case 'G': case 'H':
     if (load_game(c - 'A') == 0) {
-      /* ゲームを再開する */
+      // ゲームを再開する
       load_user_image();
       init_level(user.environment.dungeon_level, user_path);
       if (in_tower())
@@ -427,13 +427,13 @@ int load_game(int i)
     user_path = strdup(path);
 
     if (load_user()) {
-      /* 失敗 */
+      // 失敗
       emit_error("Can't load user.dat!");
       free((void *)user_path);
       user_path = NULL;
       goto failure;
     } else
-      return 0; /* 成功 */
+      return 0; // 成功
   }
 failure:
   return 1;
@@ -455,7 +455,7 @@ void boss_menu_key_event(int c)
   case 'J': boss_id =  9; break;
   case 'K': boss_id = 10; break;
   case 'L': boss_id = 11; break;
-  case 'R': menu_state = MENU_GENERIC; reenter(); /* return */
+  case 'R': menu_state = MENU_GENERIC; reenter(); // return
   default: return;
   }
   extend_context(init_boss(boss_id));

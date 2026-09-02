@@ -18,11 +18,13 @@ std::shared_ptr<SDL_::Image> create_image(int width, int height);
 std::shared_ptr<SDL_::Image> load_image(const char *filename);
 
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src);
+void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src);
 void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, const SDL_::Color &color);
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src);
+void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src);
 void scroll_image(std::shared_ptr<SDL_::Image> dst, int dot);
 void inverse_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> mask);
 
 int draw_text(std::shared_ptr<SDL_::Image> dst, int x, int y, const char *s, const SDL_::Color &color);
 
-#endif /* graphics_H */
+#endif // graphics_H

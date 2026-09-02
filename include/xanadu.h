@@ -22,13 +22,13 @@
 #include "pause.h"
 #include "numinous.h"
 
-/* ディレクトリ */
+// ディレクトリ
 #define IMAGE_DIR		"../bmp"
 #define LEVEL_DIR		"../map"
 #define AUDIO_DIR		"../audio"
 #define USERS_DIR		"../users"
 
-/* 擬似乱数 */
+// 擬似乱数
 #define random_integer(n)	(rand() % (n))
 #define random_direction()	(random_integer(10))
 
@@ -44,50 +44,50 @@ typedef struct {
   short		height;
 } rectangle_t;
 
-#define SQUARE_CHARACTER	40	/* キャラクタの幅と高さ */
-#define SQUARE_TILE		40	/* 地形の幅と高さ */
-#define SQUARE_MAGIC		16	/* 魔法の幅と高$5 */
-#define SQUARE_BOSS		120	/* ボスの幅と高さ */
-#define SQUARE_BREATH		80	/* ブレスの幅と高さ */
+#define SQUARE_CHARACTER	40	// キャラクタの幅と高さ
+#define SQUARE_TILE		40	// 地形の幅と高さ
+#define SQUARE_MAGIC		16	// 魔法の幅と高$5
+#define SQUARE_BOSS		120	// ボスの幅と高さ
+#define SQUARE_BREATH		80	// ブレスの幅と高さ
 
-#define N_MONSTERS		8	/* 1レベルあたりのモンスター(種類) */
-#define N_MAGICS		9	/* 魔法の数 */
-#define N_TILES			64	/* 地形タイルの数 */
-#define N_GOODS			64	/* 物品の数 */
-#define N_SPECIALS		4	/* 特殊イメージ */
+#define N_MONSTERS		8	// 1レベルあたりのモンスター(種類)
+#define N_MAGICS		9	// 魔法の数
+#define N_TILES			64	// 地形タイルの数
+#define N_GOODS			64	// 物品の数
+#define N_SPECIALS		4	// 特殊イメージ
 
-#define SPECIAL_DEAD		0	/* 死亡 */
-#define SPECIAL_DISAPPEAR	1	/* 消滅 */
-#define SPECIAL_GRAVE		2	/* 墓標 */
-#define SPECIAL_HEAVEN		3	/* 昇天 */
+#define SPECIAL_DEAD		0	// 死亡
+#define SPECIAL_DISAPPEAR	1	// 消滅
+#define SPECIAL_GRAVE		2	// 墓標
+#define SPECIAL_HEAVEN		3	// 昇天
 
-#define MIN_INTERVAL		50	/* 最小のインターバル(msec) */
-#define MAX_INTERVAL		1000	/* 最大のインターバル(msec) */
+#define MIN_INTERVAL		50	// 最小のインターバル(msec)
+#define MAX_INTERVAL		1000	// 最大のインターバル(msec)
 
-/* イメージ */
-extern std::shared_ptr<SDL_::Image> frame_user[10];
-extern std::shared_ptr<SDL_::Image> frame_monsters[N_MONSTERS][4];
+// イメージ
+extern SDL_::SubImage frame_user[10];
+extern SDL_::SubImage frame_monsters[N_MONSTERS][4];
 extern std::shared_ptr<SDL_::Image> frame_magics[N_MAGICS * 2];
-extern std::shared_ptr<SDL_::Image> frame_tiles[N_TILES];
+extern SDL_::SubImage frame_tiles[N_TILES];
 extern std::shared_ptr<SDL_::Image> frame_goods[N_GOODS];
 extern std::shared_ptr<SDL_::Image> frame_brownbox[4];
 extern std::shared_ptr<SDL_::Image> frame_whitebox[4];
 extern std::shared_ptr<SDL_::Image> frame_specials[N_SPECIALS];
-extern std::shared_ptr<SDL_::Image> mask_damaged;		/* ダメージマスク */
-extern std::shared_ptr<SDL_::Image> pattern_guage;		/* ボス戦のHPゲージ背景 */
-extern std::shared_ptr<SDL_::Image> pattern_status;		/* ステータス領域背景 */
+extern std::shared_ptr<SDL_::Image> mask_damaged;		// ダメージマスク
+extern std::shared_ptr<SDL_::Image> pattern_guage;		// ボス戦のHPゲージ背景
+extern std::shared_ptr<SDL_::Image> pattern_status;		// ステータス領域背景
 
-/* ビジュアル用イメージ */
+// ビジュアル用イメージ
 extern std::shared_ptr<SDL_::Image> visual_image;
 
-/* クリップ領域 */
-extern std::shared_ptr<SDL_::Image> clip_overall;		/* メインウィンドウ全域 */
-extern std::shared_ptr<SDL_::Image> clip_main;		/* メインマップ */
-extern std::shared_ptr<SDL_::Image> clip_message;		/* メッセージ */
-extern std::shared_ptr<SDL_::Image> clip_status;		/* ステータス */
-extern std::shared_ptr<SDL_::Image> clip_shrine;		/* ワイドスクリーン(神殿) */
-extern std::shared_ptr<SDL_::Image> clip_user_guage;	/* 生命力ゲージ(ユーザ) */
-extern std::shared_ptr<SDL_::Image> clip_boss_guage;	/* 生命力ゲージ(ボス) */
+// クリップ領域
+extern std::shared_ptr<SDL_::Image> clip_overall;		// メインウィンドウ全域
+extern std::shared_ptr<SDL_::Image> clip_main;		// メインマップ
+extern std::shared_ptr<SDL_::Image> clip_message;		// メッセージ
+extern std::shared_ptr<SDL_::Image> clip_status;		// ステータス
+extern std::shared_ptr<SDL_::Image> clip_shrine;		// ワイドスクリーン(神殿)
+extern std::shared_ptr<SDL_::Image> clip_user_guage;	// 生命力ゲージ(ユーザ)
+extern std::shared_ptr<SDL_::Image> clip_boss_guage;	// 生命力ゲージ(ボス)
 extern std::shared_ptr<SDL_::Image> clip_endingroll;
 
 extern const rectangle_t rect_overall;
@@ -105,18 +105,18 @@ extern int load_background(const char *filename);
 
 #define update(r) (update_region((r).x, (r).y, (r).width, (r).height))
 
-/* アプリケーションの再スタート */
+// アプリケーションの再スタート
 extern void restart_application(void);
 
-/* タイマー */
+// タイマー
 extern void set_timer(int interval, void (*timer_proc)(void));
 extern void kill_timer(void);
 extern void set_timer_proc(void (*timer_proc)(void));
 
 extern void beep(void);
 
-/* 環境 */
+// 環境
 extern int bgm_enabled(void);
 extern int se_enabled(void);
 
-#endif /* xanadu_H */
+#endif // xanadu_H

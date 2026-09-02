@@ -9,7 +9,7 @@
 
 #define UPDATE_ABORT		-1
 
-#define BATTLE_INTERVAL		70	/* 戦闘時インターバル */
+#define BATTLE_INTERVAL		70	// 戦闘時インターバル
 
 #define monster_time()		(monster_interval)
 #define phantom_time()		20
@@ -21,56 +21,56 @@
 #define STEP_MONSTER		8
 #define STEP_MAGIC		16
 
-/* モンスターの状態 */
-#define MONSTER_ALIVE		0	/* 生きている */
-#define MONSTER_KILLED		1	/* 殺された */
-#define MONSTER_DEAD		3	/* 死んだ */
-#define MONSTER_DISAPPEAR	4	/* 消滅した */
-#define MONSTER_RIP		5	/* 永眠中 */
+// モンスターの状態
+#define MONSTER_ALIVE		0	// 生きている
+#define MONSTER_KILLED		1	// 殺された
+#define MONSTER_DEAD		3	// 死んだ
+#define MONSTER_DISAPPEAR	4	// 消滅した
+#define MONSTER_RIP		5	// 永眠中
 
-/* Deg 系魔法の状態 */
-#define DEG_PHASE_INACTIVE	0	/* 発動していない */
-#define DEG_PHASE_HIT		1	/* ヒット */
-#define DEG_PHASE_DEAD		2	/* 死亡 */
-#define DEG_PHASE_DISAPPEAR	3	/* 消滅 */
+// Deg 系魔法の状態
+#define DEG_PHASE_INACTIVE	0	// 発動していない
+#define DEG_PHASE_HIT		1	// ヒット
+#define DEG_PHASE_DEAD		2	// 死亡
+#define DEG_PHASE_DISAPPEAR	3	// 消滅
 
-/* 熟練度が上がる？ */
+// 熟練度が上がる？
 #define user_get_skillfull()	(random_integer(4) == 0)
 
-/* 熟練度アップ */
+// 熟練度アップ
 #define user_skill_up(t, n)			\
   (user.inventory[t][user.equipment[t]].skill =	\
    min(skill_max[t], user.inventory[t][user.equipment[t]].skill + (n)))
 
-/* 熟練度の最大値 */
+// 熟練度の最大値
 static const int skill_max[5] = { 255, 255, 200, 200, 255 };
 
-/* 誤差: ユーザー: 30/32..38/32、モンスター: 12/16..20/16 */
+// 誤差: ユーザー: 30/32..38/32、モンスター: 12/16..20/16
 #define user_error(p)		(((p) * (random_integer(8) + 30)) / 32)
 #define monster_error(p)	(((p) * (random_integer(8) + 12)) / 16)
 
-/* 戦場の情報 */
+// 戦場の情報
 static member_t member_wall = { MEMBER_UNUSED, 0, 0, 0, 0 };
 static member_t member_lock = { MEMBER_UNUSED, 0, 0, 0, 0 };
 static room_t *battle_room;
 static int battle_map[9][9];
 static void construct_battle_map(void);
 
-/* メインループ */
+// メインループ
 static void battle_loop(void);
 
-/* その他のループ */
-static member_t *user_attack; /* ユーザー「が」攻撃した何か */
-static void *user_damage; /* ユーザー「を」攻撃した何か */
-static int user_deg_phase; /* ユーザーが Deg 系魔法を唱えた？ */
+// その他のループ
+static member_t *user_attack; // ユーザー「が」攻撃した何か
+static void *user_damage; // ユーザー「を」攻撃した何か
+static int user_deg_phase; // ユーザーが Deg 系魔法を唱えた？
 static void battle_loop_attack(void);
 static void battle_loop_magic(void);
 
-/* 描画関連 */
+// 描画関連
 static void update_background(void);
 
-/* 移動関連 */
-static int keystate_SHIFT; /* Shift キーの状態 */
+// 移動関連
+static int keystate_SHIFT; // Shift キーの状態
 static int (*thunk_battle_escape)(int dir);
 static int battle_move_user(int dir);
 static int battle_control_user_magic(int dir);
@@ -78,17 +78,17 @@ static int user_attempt_escape(int dir);
 static int user_attempt_attack(member_t *um);
 static member_t *battle_can_through(int x1, int y1, int x2, int y2);
 
-/* モンスターステータス関連 */
-static std::shared_ptr<SDL_::Image> *battle_monster_image;
+// モンスターステータス関連
+static SDL_::SubImage *battle_monster_image;
 static monster_status_t *monster_status;
-static int monster_interval; /* モンスター行動間隔 */
+static int monster_interval; // モンスター行動間隔
 
-/* モンスター個体情報 */
-static monster_t battle_monsters[MAX_MEMBER]; /* モンスター個体情報 */
-static int battle_max_monsters; /* 合計のモンスター数(固定) */
-static int battle_num_monsters; /* 現在のモンスター数(変動) */
+// モンスター個体情報
+static monster_t battle_monsters[MAX_MEMBER]; // モンスター個体情報
+static int battle_max_monsters; // 合計のモンスター数(固定)
+static int battle_num_monsters; // 現在のモンスター数(変動)
 
-/* モンスター移動関連その1 */
+// モンスター移動関連その1
 static int (*battle_move_monsters)(void);
 static int monsters_move_walker(void);
 static int monsters_move_rooted(void);
@@ -97,68 +97,68 @@ static member_t *monster_can_through(int x1, int y1, int dir);
 static int monster_can_appear(member_t *mm);
 static int monster_capture_user(monster_t *mo);
 
-/* モンスター移動関連その2 */
+// モンスター移動関連その2
 static int (*monster_change_dir)(const monster_t *mo);
-static int monster_sensitive;	/* 敏感さ */
-static int monster_is_caster;	/* 魔法を使用する？ */
+static int monster_sensitive;	// 敏感さ
+static int monster_is_caster;	// 魔法を使用する？
 static int change_dir_chaser(const monster_t *mo);
 static int change_dir_dancer(const monster_t *mo);
 static int change_dir_neutral(const monster_t *mo);
 static int change_dir_escapee(const monster_t *mo);
 
-/* 魔法関連 */
+// 魔法関連
 static magic_t battle_magics[MAX_MEMBER + 1];
 static magic_t *battle_user_magic = &battle_magics[MAX_MEMBER];
-static int killed_user_magic; /* ユーザーの魔法がモンスターを倒した？ */
+static int killed_user_magic; // ユーザーの魔法がモンスターを倒した？
 static int battle_move_magic(void);
 static int magic_attack_monster(member_t *mm, magic_t *ma, int deg);
 static void magic_attack_user(magic_t *ma);
 static void battle_cast_spell(magic_t *ma, int scroll_id, int INT,
   int x, int y, int dir);
 
-/* 攻撃関連 */
+// 攻撃関連
 static int decrement_monster_HP(member_t *mm, int how_many, int by_magic);
 static int decrement_user_HP(int how_many, int no_echo);
 static void battle_monsters_destroyed(void);
 static void battle_attack_monster(member_t *mm);
 static void battle_attack_user(member_t *mm);
 
-/* 宝箱・お宝関連 */
+// 宝箱・お宝関連
 static void battle_get_goods(member_t *gm);
 static void battle_open_box(member_t *um);
 
-/* 部屋の四辺のドアの位置 */
+// 部屋の四辺のドアの位置
 extern const point_t room_door_position[4] = {
   { 4, 8 }, { 0, 4 }, { 8, 4 }, { 4, 0 }
 };
 
 extern const int battle_frame_user[10] = { 8, 0, 8, 2, 0, 6, 2, 0, 6, 2 };
   
-/* これらの定数は field.c に定義されている */
+// これらの定数は field.c に定義されている
 extern const point_t move_table[10];
 extern const int frame_monster[10];
 extern const int frame_magic[MAX_SCROLL_TYPE];
 
-/* unknownA テーブル */
+// unknownA テーブル
 static struct {
   int		(*move_proc)(void);
   int		(*change_dir)(const monster_t *mo);
   int		sensitive;
   int		is_caster;
 } unknownA_table[] = {
-  { monsters_move_walker, change_dir_chaser,   8, 0 },	/*  0: 追跡型 A */
-  { monsters_move_walker, change_dir_chaser,   4, 0 },	/*  1: 追跡型 B */
-  { monsters_move_walker, change_dir_chaser,   1, 0 },	/*  2: 追跡型 C */
-  { monsters_move_walker, change_dir_neutral, 16, 0 },	/*  3: 中立型 A */
-  { monsters_move_walker, change_dir_neutral, 16, 0 },	/*  4: 中立型 B */
-  { monsters_move_walker, change_dir_dancer,   1, 0 },	/*  5: 舞踏型 A */
-  { monsters_move_rooted, change_dir_neutral,  8, 0 },	/*  6: 固定型 */
-  { monsters_move_vision, change_dir_neutral,  8, 1 },	/*  7: ワープ型 */
-  { monsters_move_walker, change_dir_dancer,   1, 1 },	/*  8: 舞踏型 B */
-  { monsters_move_walker, change_dir_chaser,   4, 1 },	/*  9: 追跡型 D */
-  { monsters_move_walker, change_dir_dancer,   1, 1 },	/* 10: 舞踏型 C */
-  { monsters_move_walker, change_dir_escapee,  4, 1 },	/* 11: 逃走型 A */
-  { monsters_move_walker, change_dir_escapee,  4, 0 }	/* 12: 逃走型 B */
+  { monsters_move_walker, change_dir_chaser,   8, 0 },	// 0: 追跡型 A
+  { monsters_move_walker, change_dir_chaser,   4, 0 },	// 1: 追跡型 B
+  { monsters_move_walker, change_dir_chaser,   1, 0 },	// 2: 追跡型 C
+  { monsters_move_walker, change_dir_neutral, 16, 0 },	// 3: 中立型 A
+  { monsters_move_walker, change_dir_neutral, 16, 0 },	// 4: 中立型 B
+  { monsters_move_walker, change_dir_dancer,   1, 0 },	// 5: 舞踏型 A
+  { monsters_move_rooted, change_dir_neutral,  8, 0 },	// 6: 固定型
+  { monsters_move_vision, change_dir_neutral,  8, 1 },	// 7: ワープ型
+  { monsters_move_walker, change_dir_dancer,   1, 1 },	// 8: 舞踏型 B
+  { monsters_move_walker, change_dir_chaser,   4, 1 },	// 9: 追跡型 D
+  { monsters_move_walker, change_dir_dancer,   1, 1 },	// 10: 舞踏型 C
+  { monsters_move_walker, change_dir_escapee,  4, 1 },	// 11: 逃走型 A
+  { monsters_move_walker, change_dir_escapee,  4, 0 }	// 12: 逃走型 B
 };
 
 int init_battle(room_t *room, const battle_t *suspended,
@@ -169,17 +169,17 @@ int init_battle(room_t *room, const battle_t *suspended,
   battle_room = room;
   thunk_battle_escape = thunk_escape;
   
-  /* 変数の初期化 */
+  // 変数の初期化
   user_attack = NULL;
   user_damage = NULL;
   user_deg_phase = DEG_PHASE_INACTIVE;
   killed_user_magic = 0;
 
-  /* モンスター情報 */
+  // モンスター情報
   battle_monster_image = frame_monsters[battle_room->monster_id / 4];
   monster_status = &monster_data[battle_room->monster_id];
 
-  /* 戦闘時の行動パターン */
+  // 戦闘時の行動パターン
   n = monster_status->unknownA;
   if (n < 0 || sizeof(unknownA_table)/sizeof(unknownA_table[0]) <= n) {
     n = 0;
@@ -190,7 +190,7 @@ int init_battle(room_t *room, const battle_t *suspended,
 #if 1
   battle_move_monsters = unknownA_table[n].move_proc;
 #else
-  /* モンスターの移動関数 */
+  // モンスターの移動関数
   if (monster_status->activity & ACTIVITY_TELEPORT) {
     battle_move_monsters = monsters_move_vision;
   }
@@ -203,27 +203,27 @@ int init_battle(room_t *room, const battle_t *suspended,
 #endif
   
 #if 1
-  /* 魔法を唱えられるようにする */
+  // 魔法を唱えられるようにする
   if (monster_status->unknownA == 6 &&
       monster_status->INT > 0 && battle_room->monster_id % MAX_VARIETY > 1) {
     monster_is_caster = 1;
   }
 #endif
   
-  /* モンスターの行動間隔 */
+  // モンスターの行動間隔
   if (monster_status->AGL == 0) {
     monster_interval = 0;
   } else {
     monster_interval = user.status.AGL / monster_status->AGL;
   }
 
-  /* モンスター・魔法情報の初期化 */
+  // モンスター・魔法情報の初期化
   init_battle_monsters(suspended);
 
-  /* 戦場の作成 */
+  // 戦場の作成
   construct_battle_map();
 
-  /* 戦闘中を示すフラグをセット */
+  // 戦闘中を示すフラグをセット
   user.environment.in_battle = battle_num_monsters > 0;
   
   return CONTEXT_BATTLE;
@@ -233,13 +233,13 @@ void construct_battle_map(void)
 {
   int i, *p;
 
-  /* フィールド？ */
+  // フィールド？
   if (!user.environment.in_tower) {
-    /* 床 */
+    // 床
     for (i = 0, p = (int *)battle_map; i < 81; i++, p++)
       *p = i % 2 == 0 ? tile_data.pattern0 : tile_data.pattern1;
 
-    /* 外壁 */
+    // 外壁
     for (i = 0; i < 9; i++) {
       if (battle_room->barrier[0] == BARRIER_WALL)
         battle_map[8][i] = tile_data.bricks;
@@ -251,18 +251,18 @@ void construct_battle_map(void)
         battle_map[0][i] = tile_data.bricks;        
     }
   } else {
-    /* 床 */
+    // 床
     for (i = 0, p = (int *)battle_map; i < 81; i++, p++)
       *p = tile_data.floor;
 
-    /* 外壁 */
+    // 外壁
     for (i = 0; i < 8; i++) {
       battle_map[0    ][i] = tile_data.marble;
       battle_map[i    ][8] = tile_data.marble;
       battle_map[i + 1][0] = tile_data.marble;
       battle_map[8][i + 1] = tile_data.marble;
     }
-    /* 出入り口 */
+    // 出入り口
     for (i = 0; i < 4; i++) {
       int tile;
       int x, y;
@@ -293,7 +293,7 @@ void init_battle_monsters(const battle_t *suspended)
   int i, n;
 
   if (!suspended) {
-    /* モンスターを初期化 */
+    // モンスターを初期化
     for (i = 0, n = 0; i < MAX_MEMBER; i++) {
       member_t *mm = &battle_room->members[i];
     
@@ -306,10 +306,10 @@ void init_battle_monsters(const battle_t *suspended)
         else
           mm->frame = frame_monster[dir];
 
-        /* モンスター識別番号 */
+        // モンスター識別番号
         mm->value = n;
 
-        /* モンスターの個体に関する情報 */
+        // モンスターの個体に関する情報
         mo = &battle_monsters[n];
         mo->member        = mm;
         mo->state         = MONSTER_ALIVE;
@@ -319,34 +319,34 @@ void init_battle_monsters(const battle_t *suspended)
         mo->phantom_timer = phantom_time() + random_integer(8);
         mo->magic         = &battle_magics[n];
 
-        /* 方向の設定 */
+        // 方向の設定
         mo->dir = (*monster_change_dir)(mo);
         n++;
       }
     }
     battle_max_monsters = battle_num_monsters = n;
 
-    /* 魔法を初期化 */
+    // 魔法を初期化
     for (i = 0; i < MAX_MEMBER + 1; i++) {
       battle_magics[i].lifetime = 0;
     }
   } else {
-    /* 保存されている情報を復元 */
+    // 保存されている情報を復元
     battle_max_monsters = suspended->max_monsters;
     battle_num_monsters = 0;
     memcpy(battle_monsters, suspended->monsters, sizeof(battle_monsters));
     memcpy(battle_magics, suspended->magics, sizeof(battle_magics));
 
-    /* 生きているモンスターを構成員情報とリンクする */
+    // 生きているモンスターを構成員情報とリンクする
     for (i = 0; i < MAX_MEMBER; i++) {
       member_t *mm = &battle_room->members[i];
       if (member_monster(mm)) {
         battle_monsters[mm->value].member = mm;
-        battle_num_monsters++; /* 生きているモンスターの数 */
+        battle_num_monsters++; // 生きているモンスターの数
       }
     }
-    /* 死んでいるモンスターの member の内容はゴミであることに注意！ */
-    /* 魔法情報とリンクする */
+    // 死んでいるモンスターの member の内容はゴミであることに注意！
+    // 魔法情報とリンクする
     for (i = 0; i < battle_max_monsters; i++) {
       battle_monsters[i].magic= &battle_magics[i];
     }
@@ -362,12 +362,12 @@ void save_battle_monsters(void)
 
 void battle_enter(void)
 {
-  /* 画面の描画 */
+  // 画面の描画
   update_background();
   status_refresh(in_battle());
 
   if (in_battle()) {
-    /* 戦闘時のステータス画面 */
+    // 戦闘時のステータス画面
     int i;
 
     status_draw_text(7, 0, monster_status->name, SDL_::Color::RED);
@@ -382,10 +382,10 @@ void battle_enter(void)
     for (; i < MAX_MEMBER; i++) {
       status_erase_line(i + STATUS_MONSTER_HP_LINE);
     }
-    bgm_tempo(1); /* テンポを早くする */
+    bgm_tempo(1); // テンポを早くする
   }
 
-  /* タイマーの設定 */
+  // タイマーの設定
   set_timer(BATTLE_INTERVAL, battle_loop);
 }
 
@@ -394,7 +394,7 @@ void battle_leave(void)
   kill_timer();
 }
 
-/* メインループ */
+// メインループ
 void battle_loop(void)
 {
   static int mirror_wait;
@@ -409,25 +409,25 @@ void battle_loop(void)
     interval = BATTLE_INTERVAL;
   }
   
-  /* 時間の経過 */
+  // 時間の経過
   user_time_elapse(interval);
   set_timer(interval, battle_loop);
   
-  /* 死んだ？ */
+  // 死んだ？
   if (user.status.HP < 0) {
     user_damage = NULL;
     extend_context(init_user_dead(user.x, user.y, update_background));
     return;
   }
 
-  /* 前のターンでユーザーは何かを攻撃した？ */
+  // 前のターンでユーザーは何かを攻撃した？
   if (user_attack != NULL) {
     user_attack = NULL;
     update = 1;
     goto do_monster;
   }
   
-  /* 前のターンでユーザーは攻撃された？ */
+  // 前のターンでユーザーは攻撃された？
   if (user_damage != NULL) {
     user_damage = NULL;
     update = 1;
@@ -436,7 +436,7 @@ void battle_loop(void)
   }
   
   if (get_keystate(VK_CONTROL)) {
-    /* Ctrl-S: サウンド */
+    // Ctrl-S: サウンド
     if (get_keystate('S')) {
       if (bgm_mute()) {
         emit_message("Sound Off");
@@ -446,10 +446,10 @@ void battle_loop(void)
       extend_context(init_pause(100, 'S'));
       return;
     }
-    /* Ctrl-Q: 保存 */
+    // Ctrl-Q: 保存
     if (get_keystate('Q')) {
       save_battle_monsters();
-      /* フィールドの場合、戦闘中でなくても戦闘中として保存する */
+      // フィールドの場合、戦闘中でなくても戦闘中として保存する
       user.environment.in_battle = 1;
       save_user();
       user.environment.in_battle = battle_num_monsters > 0;
@@ -457,43 +457,43 @@ void battle_loop(void)
       return;
     }
   } else {
-    /* ENTER: アイテム使用 */
+    // ENTER: アイテム使用
     if (get_keystate(VK_RETURN) &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
       extend_context(init_use_item(update_background, battle_room));
       return;
     }
     
-    /* S: ステータス表示 */
+    // S: ステータス表示
     if (get_keystate('S')) {
       status_user_status();
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, NULL));
       return;
     }
-    /* I: 在庫表示 */ 
+    // I: 在庫表示 
     if (get_keystate('I')) {
       extend_context(init_inventory());
       return;
     }
-    /* E: 装備 */
+    // E: 装備
     if (get_keystate('E') && !in_battle()) {
       extend_context(init_equip());
       return;
     }
   }
   
-  /* Shift キー状態 */
+  // Shift キー状態
   keystate_SHIFT = get_keystate(VK_SHIFT);
   
-  /* CTRL キーが押されている？ */
+  // CTRL キーが押されている？
   if (get_keystate(VK_CONTROL)) {
     move_proc = battle_control_user_magic;
   } else {
     move_proc = battle_move_user;
   }
   
-  /* SPACE: 魔法念唱 */
+  // SPACE: 魔法念唱
   if (get_keystate(VK_SPACE)) {
     if (battle_user_magic->lifetime == 0) {
       battle_cast_spell(battle_user_magic,
@@ -508,22 +508,22 @@ void battle_loop(void)
   else if (get_keystate(VK_RIGHT)) update = move_proc(6);
   else if (get_keystate(VK_UP))    update = move_proc(8);
 
-  /* 中断？ */
+  // 中断？
   if (update < 0) {
     return;
   }
 
-  /* 何か攻撃した？ */
+  // 何か攻撃した？
   if (user_attack != NULL) {
     goto done;
   }
   
 do_monster:
   if (in_battle() && !mirror_wait && !using_hourglass()) {
-    /* モンスターの移動 */
+    // モンスターの移動
     update |= (*battle_move_monsters)();
     
-    /* ユーザーを攻撃した？ */
+    // ユーザーを攻撃した？
     if (user_damage != NULL) {
       update |= 1;
       goto do_magic;
@@ -531,18 +531,18 @@ do_monster:
   }
 
 do_magic:  
-  /* ユーザーの直接攻撃に対して同期を取らなければならない */
+  // ユーザーの直接攻撃に対して同期を取らなければならない
   if (!mirror_wait) {
     update |= battle_move_magic();
   }
   
 done:
-  /* 更新する？ */
+  // 更新する？
   if (update)
     update_background();
 
   if (user_attack != NULL) {
-    /* ダメージ個所を反転 */
+    // ダメージ個所を反転
     inverse_image(clip_main, user_attack->x, user_attack->y, mask_damaged);
     set_timer(BATTLE_INTERVAL, battle_loop_attack);
   }
@@ -556,10 +556,10 @@ void battle_loop_attack(void)
   if (mm->type == MEMBER_BOX || mm->type == MEMBER_GOODS) {
     emit_message("Unlucky!");
     mm->type = MEMBER_UNUSED;
-    set_timer_proc(battle_loop); /* メインループに戻る */
+    set_timer_proc(battle_loop); // メインループに戻る
     update = 1;
   }
-  /* ごくまれに消える瞬間にヒットすることがある */
+  // ごくまれに消える瞬間にヒットすることがある
   else if (member_monster(mm)) {
     monster_t *mo = &battle_monsters[mm->value];
     
@@ -567,7 +567,7 @@ void battle_loop_attack(void)
     case MONSTER_ALIVE:
       status_draw_integer(mm->value + STATUS_MONSTER_HP_LINE, 5,
                           mo->HP, SDL_::Color::WHITE);
-      set_timer_proc(battle_loop); /* メインループに戻る */
+      set_timer_proc(battle_loop); // メインループに戻る
       return;
 
     case MONSTER_KILLED:
@@ -579,7 +579,7 @@ void battle_loop_attack(void)
 
     case MONSTER_DEAD:
       if (--mo->monster_timer < 0) {
-        /* mo->monster_timer = 0; */
+        // mo->monster_timer = 0;
         mo->state = MONSTER_DISAPPEAR;
         update = 1;
       }
@@ -589,19 +589,19 @@ void battle_loop_attack(void)
       if (--mo->monster_timer < 0) {
         mo->state = MONSTER_RIP;
         
-        /* 宝箱 */
+        // 宝箱
         mm->type = MEMBER_BOX;
         mm->frame = 3;
         mm->value = killed_user_magic || in_battle() ? 0 : 1;
         killed_user_magic = 0;
         
-        set_timer_proc(battle_loop); /* メインループに戻る */
-        /* update = 1; */ /* たぶん無駄なフレーム */
+        set_timer_proc(battle_loop); // メインループに戻る
+        // update = 1; // たぶん無駄なフレーム
       }
       break;
     }
   }
-  /* 更新する？ */
+  // 更新する？
   if (update)
     update_background();
 }
@@ -632,7 +632,7 @@ void battle_loop_magic(void)
       if (!someone_dead) {
         user_deg_phase = DEG_PHASE_INACTIVE;
       } else {
-        /* 誰か死んだ */
+        // 誰か死んだ
         timer = dead_time();
         user_deg_phase = DEG_PHASE_DEAD;
       }
@@ -665,7 +665,7 @@ void battle_loop_magic(void)
         if (mo->state == MONSTER_DISAPPEAR) {
           mo->state = MONSTER_RIP;
           
-          /* 宝箱 */
+          // 宝箱
           mo->member->type = MEMBER_BOX;
           mo->member->frame = 3;
           mo->member->value = 0;
@@ -678,7 +678,7 @@ void battle_loop_magic(void)
   }
   
   if (user_deg_phase == DEG_PHASE_INACTIVE) {
-    set_timer_proc(battle_loop); /* メインループに戻る */
+    set_timer_proc(battle_loop); // メインループに戻る
   }
   if (update)
     update_background();
@@ -690,7 +690,7 @@ void update_background(void)
   magic_t *ma;
   int i, j;
   
-  /* 背景 */
+  // 背景
   if (in_darkness()) {
     fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
   } else {
@@ -702,12 +702,12 @@ void update_background(void)
     }
   }
 
-  /* ユーザー */
+  // ユーザー
   if (!user_hidden) {
     draw_sprite(clip_main, user.x, user.y, frame_user[user.frame]);
   }
 
-  /* モンスター等 */
+  // モンスター等
   mm = battle_room->members;
   for (; mm < &battle_room->members[MAX_MEMBER]; mm++) {
     switch (mm->type) {
@@ -742,7 +742,7 @@ void update_background(void)
     }
   }
 
-  /* 魔法 */
+  // 魔法
   ma = battle_magics;
   for (; ma < &battle_magics[MAX_MEMBER + 1]; ma++) {
     if (ma->lifetime > 0) {
@@ -750,7 +750,7 @@ void update_background(void)
     }
   }
 
-  /* ダメージ */
+  // ダメージ
   if (user_deg_phase == DEG_PHASE_HIT) {
     mm = battle_room->members;
 
@@ -772,20 +772,20 @@ int battle_move_user(int dir)
   int x, y;
   int update = 0;
 
-  /* シフトキーが押されていないならば方向を変える */
+  // シフトキーが押されていないならば方向を変える
   if (!keystate_SHIFT && user.dir != dir) {
     user.dir = dir;
     update = 1;
   }
 
-  /* その方向へ一歩進む */
+  // その方向へ一歩進む
   x = user.x + move_table[dir].x * STEP_USER;
   y = user.y + move_table[dir].y * STEP_USER;
 
-  /* 離脱しようとしている？ */
+  // 離脱しようとしている？
   if (x < 0 || x > 360 - 40 || y < 0 || y > 360 - 40) {
     if (update) {
-      /* フレーム更新 */
+      // フレーム更新
       user.frame = battle_frame_user[user.dir] + (user.frame + 1) % 2;
     }
     if (user_attempt_escape(dir)) {
@@ -794,7 +794,7 @@ int battle_move_user(int dir)
     goto done;
   }
 
-  /* 進もうとしている位置の障害物を調べる */
+  // 進もうとしている位置の障害物を調べる
   switch (dir) {
   case 2: something = battle_can_through(x, y + 39, x + 39, y + 39); break;
   case 4: something = battle_can_through(x, y, x, y + 39); break;
@@ -804,7 +804,7 @@ int battle_move_user(int dir)
   }
 
   if (something == NULL) {
-    /* 障害物はない */
+    // 障害物はない
   do_move:
     user.x = x;
     user.y = y;
@@ -816,14 +816,14 @@ int battle_move_user(int dir)
       goto done;
     }
 
-    /* 壁？ */
+    // 壁？
     if (something == &member_wall || something == &member_lock) {
-      /* 外套 */
+      // 外套
       if (using_mantle() && (!in_scenario2() ||
                              (something->value & TILE_WALL_MARBLE) == 0))
         goto do_move;
 
-      /* 最初からめり込んでいた？ */
+      // 最初からめり込んでいた？
       if (dir == 4 && user.x < 40)
         goto do_move;
       if (dir == 6 && user.x > 360 - 2 * 40)
@@ -834,11 +834,11 @@ int battle_move_user(int dir)
         goto do_move;
     }
     
-    /* 扉？ */
+    // 扉？
     if (in_tower() && something == &member_lock && user_use_key()) {
       int i;
       
-      /* member_lock には便利な値が書き込まれている */
+      // member_lock には便利な値が書き込まれている
       x = member_lock.x;
       y = member_lock.y;
       battle_map[y][x] = tile_data.floor;
@@ -847,7 +847,7 @@ int battle_move_user(int dir)
         if (room_door_position[i].x == x &&
             room_door_position[i].y == y) {
 
-          /* 鍵を開ける */
+          // 鍵を開ける
           battle_room->barrier[i] = BARRIER_OPEN;
           break;
         }
@@ -864,7 +864,7 @@ int battle_move_user(int dir)
   }
 done:
   if (update) {
-    /* フレーム更新 */
+    // フレーム更新
     user.frame = battle_frame_user[user.dir] + (user.frame + 1) % 2;
   }
   return update;
@@ -873,10 +873,10 @@ done:
 int battle_control_user_magic(int dir)
 {
   battle_user_magic->dir = dir;
-  return 0; /* 方向を変えるだけ */
+  return 0; // 方向を変えるだけ
 }
 
-/* モンスターの移動。静止 */
+// モンスターの移動。静止
 int monsters_move_rooted(void)
 {
   monster_t *mo, *mo_end;
@@ -888,13 +888,13 @@ int monsters_move_rooted(void)
 
       mo->monster_timer = monster_time();
 
-      /* 隣にユーザーがいる？ */
+      // 隣にユーザーがいる？
       if (monster_capture_user(mo) == 0) {
         battle_attack_user(mo->member);
         goto update_frame;
       }
 
-      /* フレーム更新 */
+      // フレーム更新
       if ((monster_status->activity & ACTIVITY_VIVID) != 0) {
       update_frame:
         mo->member->frame = frame_monster[mo->dir]
@@ -906,7 +906,7 @@ int monsters_move_rooted(void)
   return update;
 }
 
-/* モンスターの移動。瞬間移動 */
+// モンスターの移動。瞬間移動
 int monsters_move_vision(void)
 {
   monster_t *mo, *mo_end;
@@ -917,32 +917,32 @@ int monsters_move_vision(void)
     member_t *mm = mo->member;
     int dir;
 
-    /* 幻影時間はモンスターの素早さに関わらず時を刻む */
+    // 幻影時間はモンスターの素早さに関わらず時を刻む
     mo->phantom_timer--;
     
     switch (mm->type) {
     case MEMBER_MONSTER:
       {
-        /* もうすぐ消える？ */
+        // もうすぐ消える？
         if ((monster_status->activity & ACTIVITY_FADEOUT) != 0 &&
             mo->phantom_timer == 4) {
           mm->frame = 1;
           goto update_frame;
         }
           
-        /* 消える時間だ？ */
+        // 消える時間だ？
         if (mo->phantom_timer < 0) {
           mo->phantom_timer = phantom_time();
           mm->type = MEMBER_UNSEEN;
           update = 1;
         }
-        /* 行動する時間だ？ */
+        // 行動する時間だ？
         else if (--mo->monster_timer < 0) {
           mo->monster_timer= monster_time();
           
           dir = monster_capture_user(mo);
           if (dir == 0) {
-            /* 攻撃 */
+            // 攻撃
             battle_attack_user(mm);
             update = 1;
           }
@@ -951,7 +951,7 @@ int monsters_move_vision(void)
             goto update_frame;
           }
         }
-        /* フレーム更新 */
+        // フレーム更新
         if ((monster_status->activity & ACTIVITY_FADEOUT) == 0) {
           mm->frame++;
         update_frame:
@@ -963,7 +963,7 @@ int monsters_move_vision(void)
       
     case MEMBER_UNSEEN:
       if (mo->phantom_timer < 0 && monster_can_appear(mm)) {
-        /* 現れる場所を確保できた */
+        // 現れる場所を確保できた
         mo->phantom_timer = phantom_time();
         mo->dir = random_direction();
         mm->type = MEMBER_MONSTER;
@@ -976,7 +976,7 @@ int monsters_move_vision(void)
   return update;
 }
 
-/* 当たり判定 */
+// 当たり判定
 static member_t *battle_hit_test(int x, int y)
 {
   if (0 <= x && x < 360 && 0 <= y && y < 360) {
@@ -985,24 +985,24 @@ static member_t *battle_hit_test(int x, int y)
     int map;
 
     for (i = 0, mm = battle_room->members; i < MAX_MEMBER; i++, mm++) {
-      /* モンスターまたはお宝？ */
+      // モンスターまたはお宝？
       if (mm->type > 0) {
         if (mm->x <= x && x < mm->x + 40 && mm->y <= y && y < mm->y + 40)
           return mm;
       }
     }
     
-    /* 地形タイルを調べる */
+    // 地形タイルを調べる
     map = battle_map[y / 40][x / 40];
 
-    /* 扉？ */
+    // 扉？
     if (map == tile_data.locked) {
       member_lock.x = x / 40;
       member_lock.y = y / 40;
       return &member_lock;
     }
 
-    /* 壁？ */
+    // 壁？
     if (tile_data.flags[map] & TILE_WALL) {
       member_wall.value = tile_data.flags[map];
       return &member_wall;
@@ -1025,7 +1025,7 @@ member_t * monster_can_through(int x1, int y1, int dir)
   case 8: x2 += 39; break;
   default: return &member_wall;
   }
-  /* ユーザーと接触する？ */
+  // ユーザーと接触する？
   if ((user.x <= x1 && x1 < user.x + 40 && user.y <= y1 && y1 < user.y + 40) ||
       (user.x <= x2 && x2 < user.x + 40 && user.y <= y2 && y2 < user.y + 40)) {
     return &member_wall;
@@ -1044,35 +1044,35 @@ member_t *battle_can_through(int x1, int y1, int x2, int y2)
   if (um2 == NULL)
     return um1;
 
-  /* モンスターを優先的に返す */
+  // モンスターを優先的に返す
   if (um1->type == MEMBER_MONSTER) return um1;
   if (um2->type == MEMBER_MONSTER) return um2;
 
-  /* 壁でない方を優先的に返す */
+  // 壁でない方を優先的に返す
   if (um1->type != MEMBER_UNUSED) return um1;
   if (um2->type != MEMBER_UNUSED) return um2;
   
-  /* 最終的に壁でない方を返す */
+  // 最終的に壁でない方を返す
   return um1 == &member_wall ? um2 : um1;
 }
 
 int monster_can_appear(member_t *mm)
 {
-  /* 現れる場所を決める(ユーザーの歩幅にあわせる) */
+  // 現れる場所を決める(ユーザーの歩幅にあわせる)
   int x = random_integer(240 / STEP_USER) * STEP_USER + 40;
   int y = random_integer(240 / STEP_USER) * STEP_USER + 40;
 
-  /* そこには誰もいない？ */
+  // そこには誰もいない？
   if (battle_hit_test(x,      y     ) == NULL &&
       battle_hit_test(x + 39, y + 39) == NULL &&
       battle_hit_test(x + 39, y     ) == NULL &&
       battle_hit_test(x,      y + 39) == NULL &&
 #if 0
-      /* プレイヤーの軸上に現れない */
+      // プレイヤーの軸上に現れない
       (x <= user.x - 40 || user.x + 40 <= x) &&
       (y <= user.y - 40 || user.y + 40 <= y)
 #else
-      /* プレイヤーの軸上に現れる */
+      // プレイヤーの軸上に現れる
       !((user.x - 40 < x && x < user.x + 40) &&
         (user.y - 40 < y && y < user.y + 40))
 #endif
@@ -1096,38 +1096,38 @@ int monster_capture_user(monster_t *mo)
   int diff_x;
   int diff_y;
 
-  /* 見えない */
+  // 見えない
   if (using_demons_ring())
     return -1;
 
   diff_x = user.x - mo->member->x;
   diff_y = user.y - mo->member->y;
 
-  /* 水平座標がほぼ等しい？ */
+  // 水平座標がほぼ等しい？
   if (-40 < diff_x && diff_x < +40) {
-    /* 垂直座標を調べる */
+    // 垂直座標を調べる
     if (diff_y <= 0) {
       if (diff_y < -40) dir = 8; else mo->dir = 8;
     } else if (diff_y > 0) {
       if (diff_y > +40) dir = 2; else mo->dir = 2;
     }
   }
-  /* 垂直座標がほぼ等しい？ */
+  // 垂直座標がほぼ等しい？
   else if (-40 < diff_y && diff_y < +40) {
-    /* 水平座標を調べる */
+    // 水平座標を調べる
     if (diff_x <= 0) {
       if (diff_x < -40) dir = 4; else mo->dir = 4;
     } else if (diff_x > 0) {
       if (diff_x > +40) dir = 6; else mo->dir = 6;
     }
   } else {
-    return -1; /* モンスターはユーザーの位置を捕捉できない */
+    return -1; // モンスターはユーザーの位置を捕捉できない
   }
 
-  /* モンスターは魔法を使える？ */
+  // モンスターは魔法を使える？
   if (monster_is_caster &&
       monster_status->INT > 0 && mo->magic->lifetime == 0) {
-    /* ユーザーを捕捉済み */
+    // ユーザーを捕捉済み
     if (dir > 0 && mo->dir == dir) {
       battle_cast_spell(mo->magic, monster_status->magic,
                         monster_status->INT,
@@ -1135,7 +1135,7 @@ int monster_capture_user(monster_t *mo)
     }
   }
 
-  /* 骸骨？ */
+  // 骸骨？
   if (using_candle()) {
     return mo->dir;
   } else {
@@ -1143,12 +1143,12 @@ int monster_capture_user(monster_t *mo)
   }
 }
 
-/* 離脱する？ */
+// 離脱する？
 int user_attempt_escape(int dir)
 {
   int escape;
   
-  bgm_tempo(0); /* 元のテンポに戻す */
+  bgm_tempo(0); // 元のテンポに戻す
   
   escape = thunk_battle_escape && (*thunk_battle_escape)(dir);
   if (!escape && in_battle()) {
@@ -1157,7 +1157,7 @@ int user_attempt_escape(int dir)
   return escape;
 }
 
-/* 攻撃してみる？ */
+// 攻撃してみる？
 int user_attempt_attack(member_t *um)
 {
   switch (um->type) {
@@ -1195,7 +1195,7 @@ static int which_direction(int x1, int y1, int x2, int y2, int d2)
   case 6: case 9: d2 = 2; break;
   case 7: case 8: d2 = 3; break;
   default:
-    return 0; /* どこを向いているか分からない */
+    return 0; // どこを向いているか分からない
   }
   if (-40  < dx && dx < +40) {
     return direction_table[dy <= 0 ? 3 : 0][d2];
@@ -1206,10 +1206,10 @@ static int which_direction(int x1, int y1, int x2, int y2, int d2)
   return 0;
 }
 
-/* ユーザーがモンスターを攻撃 */
+// ユーザーがモンスターを攻撃
 void battle_attack_monster(member_t *mm)
 {
-  /* 命中？ */
+  // 命中？
   int hit = random_integer(user.equipment[GOODS_WEAPON] + 1)
     <= user.status.fighter.rank;
 
@@ -1225,10 +1225,10 @@ void battle_attack_monster(member_t *mm)
       - monster_defend_point(monster_status, guard);
     
     if (damage >= 0) {
-      /* 命中 */
+      // 命中
       decrement_monster_HP(mm, damage, 0);
 
-      /* 武器の熟練度を上げる */
+      // 武器の熟練度を上げる
       if (user_get_skillfull()) {
         user_skill_up(GOODS_WEAPON, 1);
       }
@@ -1238,7 +1238,7 @@ void battle_attack_monster(member_t *mm)
   }
 }
 
-/* 魔法がモンスターを直撃。0: ミス。1: 当たった */
+// 魔法がモンスターを直撃。0: ミス。1: 当たった
 int magic_attack_monster(member_t *mm, magic_t *ma, int deg)
 {
   int damage, killed;
@@ -1248,10 +1248,10 @@ int magic_attack_monster(member_t *mm, magic_t *ma, int deg)
     killed = decrement_monster_HP(mm, damage, 1);
 
     if (!deg) {
-      /* 全体魔法ではない */
-      killed_user_magic = killed; /* 魔法でやっつけたことを示すフラグ */
+      // 全体魔法ではない
+      killed_user_magic = killed; // 魔法でやっつけたことを示すフラグ
 
-      /* 魔法の熟練度を上げる */
+      // 魔法の熟練度を上げる
       if (user_get_skillfull()) {
         user_skill_up(GOODS_SCROLL, 1);
       }
@@ -1263,21 +1263,21 @@ int magic_attack_monster(member_t *mm, magic_t *ma, int deg)
   } else {
     if (!deg) {
       se_play(SE_MAGIC_FAILED);
-      emit_message("Failed!"); /* Deg 系でなければ、一回ごと */
+      emit_message("Failed!"); // Deg 系でなければ、一回ごと
     }
     return 0;
   }
 }
 
-/* モンスター全滅 */
+// モンスター全滅
 void battle_monsters_destroyed(void)
 {
   user.environment.in_battle = 0;
   status_refresh(0);
-  bgm_tempo(0); /* 元のテンポに戻す */
+  bgm_tempo(0); // 元のテンポに戻す
 }
 
-/* モンスターのヒットポイントを減少させる */
+// モンスターのヒットポイントを減少させる
 int decrement_monster_HP(member_t *mm, int how_many, int by_magic)
 {
   monster_t *mo;
@@ -1287,26 +1287,26 @@ int decrement_monster_HP(member_t *mm, int how_many, int by_magic)
   mo = &battle_monsters[mm->value];
   mo->HP -= how_many;
   
-  /* 死んだ？ */
+  // 死んだ？
   if (mo->HP < 0) {
     mo->state = MONSTER_KILLED;
 
-    /* カルマキャラクター */
+    // カルマキャラクター
     if (monster_status->KRM > 0) {
       user.status.KRM += user.status.fighter.rank
         + user.status.wizard.rank + 1;
     }
     
     if (!by_magic) {
-      /* 戦士の経験を積む */
+      // 戦士の経験を積む
       user.status.fighter.EXP += monster_status->EXP;
     } else {
-      /* 魔法使いの経験を積む */
+      // 魔法使いの経験を積む
       user.status.wizard.EXP += monster_status->EXP;
     }
     format_message("Killed!+%dexp", monster_status->EXP);
     
-    /* 全滅した？ */
+    // 全滅した？
     if (--battle_num_monsters == 0) {
       battle_monsters_destroyed();
     }
@@ -1315,19 +1315,19 @@ int decrement_monster_HP(member_t *mm, int how_many, int by_magic)
                        SDL_::Color::RED);
     return 1;
   }
-  /* ステータス画面更新 */
+  // ステータス画面更新
   status_draw_integer(mm->value + STATUS_MONSTER_HP_LINE, 5,
                       mo->HP, SDL_::Color::RED);
   return 0;
 }
 
-/* モンスターがユーザーを攻撃 */
+// モンスターがユーザーを攻撃
 void battle_attack_user(member_t *mm)
 {
   int guard;
   int damage;
 
-  /* 命中率は100% */
+  // 命中率は100%
   
   guard = which_direction(mm->x, mm->y, user.x, user.y, user.dir);
   
@@ -1336,8 +1336,8 @@ void battle_attack_user(member_t *mm)
   if (damage >= 0) {
     decrement_user_HP(damage, 0);
     
-    /* 防具の熟練度を上げる */
-    /* 正面？ */
+    // 防具の熟練度を上げる
+    // 正面？
     if (guard == GUARD_FRONT && user_get_skillfull()) {
       user_skill_up(GOODS_SHIELD, 1);
     }
@@ -1348,11 +1348,11 @@ void battle_attack_user(member_t *mm)
     if (user_damage == NULL) {
       se_play(SE_DAMAGED);
     }
-    user_damage = mm; /* 1 ターンに複数回攻撃されることがある */
+    user_damage = mm; // 1 ターンに複数回攻撃されることがある
   }
 }
 
-/* 魔法がユーザーを直撃 */
+// 魔法がユーザーを直撃
 void magic_attack_user(magic_t *ma)
 {
   int damage;
@@ -1361,7 +1361,7 @@ void magic_attack_user(magic_t *ma)
   if (damage > 0) {
     decrement_user_HP(damage, 0);
 
-    /* 防具の熟練度を上げる */
+    // 防具の熟練度を上げる
     if (user_get_skillfull()) {
       user_skill_up(GOODS_ARMOUR, 1);
       user_skill_up(GOODS_SHIELD, 1);
@@ -1378,7 +1378,7 @@ void magic_attack_user(magic_t *ma)
   }
 }
 
-/* ユーザーのヒットポイントを減少させる */
+// ユーザーのヒットポイントを減少させる
 int decrement_user_HP(int how_many, int no_echo)
 {
   user.status.HP -= how_many;
@@ -1389,19 +1389,19 @@ int decrement_user_HP(int how_many, int no_echo)
   return 0;
 }
 
-/* 宝箱を開ける */
+// 宝箱を開ける
 void battle_open_box(member_t *um)
 {
   if (random_integer(50 + user.environment.dungeon_level * 10)
       < user_DEX()) {
-    /* 開いた？ */
+    // 開いた？
     if (--um->frame < 0) {
       um->type = MEMBER_GOODS;
     
       if (um->value == 1) {
-        /* ウエイト: 危険なものが入っているかもしれない */
+        // ウエイト: 危険なものが入っているかもしれない
         extend_context(init_pause(200, ' '));
-        um->value = monster_status->goods; /* 赤箱 */
+        um->value = monster_status->goods; // 赤箱
       } else {
         um->value = monster_status->goods == GOODS_FOOD
           ? GOODS_FOOD : GOODS_GOLD;
@@ -1415,7 +1415,7 @@ void battle_open_box(member_t *um)
   }
 }
 
-/* お宝ゲット */
+// お宝ゲット
 void battle_get_goods(member_t *gm)
 {
   int goods_type, goods_numb;
@@ -1428,7 +1428,7 @@ void battle_get_goods(member_t *gm)
   goods_numb = gm->value % GOODS_FACTOR;
 
   if (goods_type == GOODS_OTHER_ITEM) {
-    /* 即座に効果の出るアイテム */
+    // 即座に効果の出るアイテム
     switch (goods_data[GOODS_OTHER_ITEM][goods_numb].type) {
     case OTHER_CROWN:    user.status.CRN++; break;
     case OTHER_KEY:      user.status.KEY++; break;	
@@ -1453,7 +1453,7 @@ void battle_get_goods(member_t *gm)
       return;
     }
   } else if (goods_type < GOODS_OTHER_ITEM) {
-    /* 在庫に加算 */
+    // 在庫に加算
     user.inventory[goods_type][goods_numb].stock++;
   } else {
     int amount;
@@ -1499,12 +1499,12 @@ void battle_cast_spell(magic_t *ma, int scroll_id, int INT,
   ma->dir         = dir;
   ma->frame       = frame_magic[scroll_type];
 
-  /* 全体魔法？ */
+  // 全体魔法？
   if (scroll_attribute) {
     ma->lifetime = 0;
     
     if (ma == battle_user_magic) {
-      /* 術者はユーザー */
+      // 術者はユーザー
       if (in_battle()) {
         int someone_hit = 0;
         member_t *mm = battle_room->members;
@@ -1515,27 +1515,27 @@ void battle_cast_spell(magic_t *ma, int scroll_id, int INT,
           }
         }
         if (someone_hit) {
-          /* 魔法の熟練度を上げる */
+          // 魔法の熟練度を上げる
           if (user_get_skillfull()) {
             user_skill_up(GOODS_SCROLL, 1);
           }
           user_deg_phase = DEG_PHASE_HIT;
-          set_timer(BATTLE_INTERVAL, battle_loop_magic); /* Deg 系魔法ループ */
+          set_timer(BATTLE_INTERVAL, battle_loop_magic); // Deg 系魔法ループ
         } else
           goto failed;
       } else {
       failed:
-        /* 失敗 */
+        // 失敗
         se_play(SE_MAGIC_FAILED);
         emit_message("Failed!");
         return;
       }
     } else {
-      /* 術者はモンスター */
+      // 術者はモンスター
       if (user_damage != NULL)
         return;
       
-      magic_attack_user(ma); /* 1 ターンに二回以上攻撃しない */
+      magic_attack_user(ma); // 1 ターンに二回以上攻撃しない
     }
   }
   se_play(SE_CAST_NEEDLE + scroll_type);
@@ -1570,7 +1570,7 @@ int battle_move_magic(void)
   magic_t *ma;
   int i, update = 0;
 
-  /* モンスターの魔法 */
+  // モンスターの魔法
   for (i = 0, ma = battle_magics; i < battle_max_monsters; i++, ma++) {
     if (ma->lifetime > 0) {
       ma->lifetime--;
@@ -1579,7 +1579,7 @@ int battle_move_magic(void)
       
       if (ma->x < user.x + 40 && user.x < ma->x + 16 &&
           ma->y < user.y + 40 && user.y < ma->y + 16) {
-        /* ユーザーに命中 */
+        // ユーザーに命中
         ma->lifetime = 0;
         magic_attack_user(ma);
       }
@@ -1587,14 +1587,14 @@ int battle_move_magic(void)
                something != NULL &&
                something != &member_wall &&
                something != &member_lock) {
-        /* 自分以外の壁や扉でないものに命中 */
+        // 自分以外の壁や扉でないものに命中
         ma->lifetime = 0;
       }
       update = 1;
     }
   }
 
-  /* ユーザーの魔法 */
+  // ユーザーの魔法
   ma = battle_user_magic;
   if (ma->lifetime > 0) {
     ma->lifetime--;
@@ -1603,16 +1603,16 @@ int battle_move_magic(void)
 
     if (something != NULL) {
       if (something->type == MEMBER_MONSTER) {
-        /* モンスターに命中 */
+        // モンスターに命中
         ma->lifetime = 0;
         magic_attack_monster(something, ma, 0);
       }
       else if (something->type == MEMBER_BOX ||
                something->type == MEMBER_GOODS) {
-        /* 宝箱、お宝に命中 */
+        // 宝箱、お宝に命中
         ma->lifetime = 0;
         user_attack = something;
-        /*se_play(SE_MAGIC_HIT);*/
+        // se_play(SE_MAGIC_HIT);
         se_play(SE_USER_HIT);
       }
     }
@@ -1635,12 +1635,12 @@ int monsters_move_walker(void)
       mo->monster_timer = monster_time();
       
       if (monster_capture_user(mo) == 0) {
-        /* 攻撃 */
+        // 攻撃
         battle_attack_user(mo->member);
         goto update_frame;
       }
 
-      /* 機敏に方向を変える？ */
+      // 機敏に方向を変える？
       if (random_integer(monster_sensitive) == 0) {
         mo->dir = (*monster_change_dir)(mo);
       }
@@ -1649,7 +1649,7 @@ int monsters_move_walker(void)
         x = mo->member->x;
         y = mo->member->y;
       
-        /* 進む */
+        // 進む
         switch (mo->dir) {
         case 2: y += STEP_MONSTER; break;
         case 4: x -= STEP_MONSTER; break;
@@ -1658,7 +1658,7 @@ int monsters_move_walker(void)
         default: goto done_move;
         }
 
-        /* 障害物を調べる */
+        // 障害物を調べる
         if (monster_can_through(x, y, mo->dir) != NULL) {
 #if 1
           mo->dir = change_dir_dancer(mo);
@@ -1666,7 +1666,7 @@ int monsters_move_walker(void)
           break;
 #endif
         } else {
-          /* 移動 */
+          // 移動
           mo->member->x = x;
           mo->member->y = y;
           mo->magic->dir = mo->dir;
@@ -1686,10 +1686,10 @@ int monsters_move_walker(void)
   return update;
 }
 
-/* 追跡型 */
+// 追跡型
 int change_dir_chaser(const monster_t *mo)
 {
-  /* ユーザーの姿は見えない？ */
+  // ユーザーの姿は見えない？
   if (using_demons_ring()) {
     return change_dir_neutral(mo);
   }
@@ -1714,10 +1714,10 @@ int change_dir_chaser(const monster_t *mo)
   }
 }
 
-/* 逃走型 */
+// 逃走型
 int change_dir_escapee(const monster_t *mo)
 {
-  /* ユーザーを捕捉せずに恣意的に進む？ */
+  // ユーザーを捕捉せずに恣意的に進む？
   if (random_integer(8) == 0) {
     return random_direction();
   } else {
@@ -1743,7 +1743,7 @@ int change_dir_escapee(const monster_t *mo)
   }
 }
 
-/* 舞踏型 */
+// 舞踏型
 int change_dir_dancer(const monster_t *mo)
 {
   static int table28[2] = { 4, 6 };
@@ -1757,7 +1757,7 @@ int change_dir_dancer(const monster_t *mo)
   }
 }
 
-/* 中立型 */
+// 中立型
 int change_dir_neutral(const monster_t *mo)
 {
   int dir = random_direction();

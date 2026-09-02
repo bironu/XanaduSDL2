@@ -24,21 +24,6 @@ Image::Image(const char * const file)
 {
 }
 
-// 親シート(source)の矩形(rect)部分を独立したImageとして複製する。
-// 旧C実装のsubsection_image()が「親バッファの一部を指すビュー」を作っていたのに対し、
-// Imageはコピー不可のため実データを複製する。複製後、左上ピクセルの色を
-// 透過色として設定する(旧tmpl_load()がBMP左上ピクセルをmaskにしていた慣習を踏襲)。
-Image::Image(const std::shared_ptr<Image> &source, const Rect &rect)
-	: Image(rect.w, rect.h)
-{
-	SDL_BlitSurface(source->get(), &rect, get(), nullptr);
-
-	lock();
-	const Uint32 topLeft = static_cast<const Uint32 *>(getPixels())[0];
-	unlock();
-	setColorKey(topLeft);
-}
-
 Image::~Image()
 {
 	if(isEnabled()){

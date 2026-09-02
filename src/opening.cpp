@@ -37,10 +37,10 @@ int init_opening(void)
   opening_step = 0;
   fade_mask = 0;
   
-  /* BGM mute */
+  // BGM mute
   bgm_play("");
   
-  /* 効果音 */
+  // 効果音
   se_load(SE_SOMEWHAT1, se_data.opening0);
   se_load(SE_SOMEWHAT2, se_data.opening1);
 
@@ -82,7 +82,7 @@ void opening_enter(void)
       visual_image = load_image(path);
     }
     se_play(visuals[opening_step].se);
-    /* thorugh */
+    // thorugh
     
   case 0x0000FF:
     extend_context(init_fade(clip_overall, x, y, visual_image, fade_mask));

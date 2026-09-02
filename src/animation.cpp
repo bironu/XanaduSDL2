@@ -22,7 +22,7 @@ int init_animation(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames,
   return CONTEXT_ANIMATION;
 }
 
-/* 地形タイルアニメーションの初期化 */
+// 地形タイルアニメーションの初期化
 int init_animation_tile(map_t *tiles, int n_frames, int x, int y,
                         void (*update_background)(void))
 {
@@ -55,14 +55,14 @@ void animation_leave(void)
 void animation_loop(void)
 {
   if (anime_current < anime_n_frames) {
-    std::shared_ptr<SDL_::Image> img = anime_frames[anime_current].image;
+    SDL_::SubImage img = anime_frames[anime_current].image;
     int x = anime_frames[anime_current].x;
     int y = anime_frames[anime_current].y;
     
-    /* 背景を更新 */
+    // 背景を更新
     (*thunk_update_background)();
     
-    /* フレームの描画 */
+    // フレームの描画
     if (anime_as_tile) {
       draw_image(anime_clip, x, y, img);
     } else {
@@ -70,7 +70,7 @@ void animation_loop(void)
     }
     anime_current++;
   } else {
-    /* コンテキストを復帰 */
+    // コンテキストを復帰
     resume_context();
   }
 }

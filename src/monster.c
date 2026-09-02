@@ -2,7 +2,7 @@
 
 #define number_of(m)		(sizeof(m)/sizeof(m[0]))
 
-/* 攻撃レベルごとの倍率 */
+// 攻撃レベルごとの倍率
 static int strength_table[16] = {
   3,
   5,
@@ -22,7 +22,7 @@ static int strength_table[16] = {
   5000
 };
 
-/* 防御レベルごとの倍率 */
+// 防御レベルごとの倍率
 static int defence_table[17] = {
   1,
   2,
@@ -43,7 +43,7 @@ static int defence_table[17] = {
   2000
 };
 
-/* 魔法ごとの倍率 */
+// 魔法ごとの倍率
 static int magic_table[17] = {
   2,
   2,
@@ -64,7 +64,7 @@ static int magic_table[17] = {
   5000
 };
 
-/* 攻撃レベルから攻撃力を返す */
+// 攻撃レベルから攻撃力を返す
 int get_monster_strength(int STR, int attack_level)
 {
   if (0 <= attack_level && attack_level < number_of(strength_table))
@@ -73,7 +73,7 @@ int get_monster_strength(int STR, int attack_level)
     return 0;
 }
 
-/* 防御レベルから防御力を返す */
+// 防御レベルから防御力を返す
 int get_monster_defence(int DEF, int defend_level)
 {
   if (0 <= defend_level && defend_level < number_of(defence_table))
@@ -82,7 +82,7 @@ int get_monster_defence(int DEF, int defend_level)
     return 0;
 }
 
-/* 魔法から攻撃力を返す */
+// 魔法から攻撃力を返す
 int get_monster_magic(int INT, int scroll_type)
 {
   if (0 <= scroll_type && scroll_type < number_of(magic_table))

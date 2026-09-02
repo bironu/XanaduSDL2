@@ -1,5 +1,6 @@
 #include "app/Application.h"
 #include "sdl/SDLWindow.h"
+#include "sdl/SDLMixAudio.h"
 #include "resources/Resources.h"
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
@@ -15,6 +16,7 @@ Application::Application(Uint32 flags)
 	, is_ttf_(::TTF_Init() == 0)
 	, is_image_(::IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG)
 	, is_mixer_(::Mix_Init(MIX_INIT_MP3))
+	, audio_(std::make_unique<SDL_::Mix_::Audio>())
 	, currentScene_()
 	, stackFuncResumeScene_()
 	, listWindow_()
@@ -30,6 +32,7 @@ Application::Application(Uint32 flags)
 		// "error messaging the mach port for IMKCFRunLoopWakeUpReliable".
 		::SDL_StopTextInput();
 	}
+	audio_->allocateChannels(MIX_CHANNELS);
 	instance_ = this;
 }
 
@@ -37,6 +40,9 @@ Application::~Application()
 {
 	instance_ = nullptr;
 	listWindow_.clear();
+	// Mix_::Audioのデストラクタ(Mix_CloseAudio)は、下のMix_Quit()より先に
+	// 終わらせておく必要がある
+	audio_.reset();
 	if (isMixer()) {
 		::Mix_Quit();
 	}

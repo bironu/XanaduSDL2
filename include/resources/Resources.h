@@ -11,6 +11,7 @@
 
 enum class ImageId;
 enum class StringId;
+enum class SoundFontId;
 
 namespace SDL_
 {
@@ -39,6 +40,7 @@ public:
 	int getScreenHeight() const { return screenHeight_; }
 
 	const char *getFontFileName() const;
+	const char *getSoundFontFileName(const SoundFontId &) const;
 
 	void addJoyDevice(const SDL_JoyDeviceEvent &);
 	void removeJoyDevice(const SDL_JoyDeviceEvent &);

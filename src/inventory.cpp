@@ -4,16 +4,16 @@
 static void inventory_hit_any_key(char *s);
 static void inventory_list_goods(void);
 
-#define STATE_EXIT		-1	/* すぐさま抜ける */
+#define STATE_EXIT		-1	// すぐさま抜ける
 
-/* 表示状態: GOODS_WEAPON..GOODS_MAGICITEM */
+// 表示状態: GOODS_WEAPON..GOODS_MAGICITEM
 static int inventory_state;
 
 int init_inventory(void)
 {
   inventory_state = GOODS_WEAPON;
   
-  /* scenario 2 */
+  // scenario 2
   visual_image = load_image(IMAGE_DIR "/picture/shop.bmp");
   
   emit_message("Hit any key");
@@ -28,7 +28,7 @@ void inventory_enter(void)
   case GOODS_ARMOUR:
   case GOODS_SHIELD:
   case GOODS_MAGIC_ITEM:
-    /* 品物のリストを表示 */
+    // 品物のリストを表示
     inventory_list_goods();
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
                                      inventory_hit_any_key));

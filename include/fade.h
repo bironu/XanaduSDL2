@@ -8,4 +8,4 @@ extern void fade_leave(void);
 
 extern int init_fade(std::shared_ptr<SDL_::Image> clip, int x, int y, std::shared_ptr<SDL_::Image> img, unsigned rgb);
 
-#endif /* fade_H */
+#endif // fade_H

@@ -26,11 +26,9 @@ int main(int argc, char *argv[])
 
 	auto mainWindow = std::make_shared<SDL_::Window>("xanadu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
 	app.registerMainWindow(mainWindow);
-	//auto size = mainWindow->getSize();
-	//res.setWindowWidth(size.getWidth());
-	//res.setWindowHeight(size.getHeight());
 
 	initLegacyGraphics(res);
+	initLegacySound(res);
 
 	app.registerNextSceneFunc([](){
 		return std::make_shared<MenuScene>();

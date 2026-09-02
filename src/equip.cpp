@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 
-/* 注意: WEAPON..MAGICITEM は GOODS_ 定数に一致すること！ */
+// 注意: WEAPON..MAGICITEM は GOODS_ 定数に一致すること！
 #define STATE_WEAPON		GOODS_WEAPON
 #define STATE_SCROLL		GOODS_SCROLL
 #define STATE_ARMOUR		GOODS_ARMOUR
@@ -43,7 +43,7 @@ void equip_enter(void)
     break;
     
   default:
-    /* 新しいユーザーイメージをロード */
+    // 新しいユーザーイメージをロード
     load_user_image();
     resume_context();
   }
@@ -76,11 +76,11 @@ void equip_which(char *s)
     
     emit_message(goods_data[goods_type][n].name);
     
-    /* 在庫ある？ */
+    // 在庫ある？
     if (user.inventory[goods_type][n].stock > 0) {
       user.inventory[goods_type][n].stock--;
 
-      /* 初めて装備するものに対して初期熟練度を与える */
+      // 初めて装備するものに対して初期熟練度を与える
       if (user.inventory[goods_type][n].skill == 0) {
         user.inventory[goods_type][n].skill = 30;
       }
@@ -90,7 +90,7 @@ void equip_which(char *s)
       equip_state = STATE_EXIT;
       return;
     } else {
-      /* 在庫ない */
+      // 在庫ない
       emit_message("Not owned !");
     }
   }

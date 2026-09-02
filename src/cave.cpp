@@ -21,7 +21,7 @@ void cave_enter(void)
   static animation_frame_t frames[20];
   int i;
   
-  /* 歩いていくユーザーの後ろ姿 */
+  // 歩いていくユーザーの後ろ姿
   for (i = 0; i < 20; i++) {
     frames[i].image = frame_user[battle_frame_user[8] + i % 2];
     frames[i].x = 160;
