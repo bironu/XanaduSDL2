@@ -1,11 +1,11 @@
 #ifndef user_dead_H
 #define user_dead_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+/* コンテキスト保護関数 */
 extern void user_dead_enter(void);
 extern void user_dead_leave(void);
 
-/* $B=i4|2=4X?t(J */
+/* 初期化関数 */
 extern int init_user_dead(int x, int y, void (*update_background)(void));
 
 #endif /* user_dead_H */

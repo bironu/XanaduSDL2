@@ -7,42 +7,42 @@
 #define PACKD
 #endif
 
-#define MAX_MONSTER		8	/* $B%b%s%9%?!<?t(J */
-#define MAX_VARIETY		4	/* $B%P%i%(%F%#?t(J */
+#define MAX_MONSTER		8	/* モンスター数 */
+#define MAX_VARIETY		4	/* バラエティ数 */
 
-/* $B%b%s%9%?!<$N9TF07ABV%U%i%0(J */
-#define ACTIVITY_CREEPER	0x01	/* $B:81&$KGg$$2s$k(J */
-#define ACTIVITY_LADDER		0x08	/* $B?bD>$K0\F0$9$k(J */
-#define ACTIVITY_VIVID		0x04	/* $BKh%U%l!<%`99?7(J */
-#define ACTIVITY_FLIGHT		0x02	/* $B=ENL$N1F6A$r<u$1$J$$(J */
-#define ACTIVITY_TELEPORT	0x10	/* $B0lDj;~4V$G%F%l%]!<%H(J */
-#define ACTIVITY_FADEOUT	0x20	/* $BMO0E(J($B%U%'!<%I%"%&%H(J) */
+/* モンスターの行動形態フラグ */
+#define ACTIVITY_CREEPER	0x01	/* 左右に這い回る */
+#define ACTIVITY_LADDER		0x08	/* 垂直に移動する */
+#define ACTIVITY_VIVID		0x04	/* 毎フレーム更新 */
+#define ACTIVITY_FLIGHT		0x02	/* 重量の影響を受けない */
+#define ACTIVITY_TELEPORT	0x10	/* 一定時間でテレポート */
+#define ACTIVITY_FADEOUT	0x20	/* 溶暗(フェードアウト) */
 
 #define ACTIVITY_WALKER		(ACTIVITY_CREEPER | ACTIVITY_LADDER)
 
-/* $B%b%s%9%?!<$N%9%F!<%?%9>pJs$rJ];}$9$k9=B$BN(J */
+/* モンスターのステータス情報を保持する構造体 */
 typedef struct {
-  char		name[16];		/* $BL>A0(J */
-  char		group_min;		/* $B:G>.9=@.0w?t(J */
-  char		group_max;		/* $B:GBg9=@.0w?t(J */
-  short		max_HP;			/* $BBQ5WNO(J(100$BJ,$N(J1) */
-  short		STR;			/* $B6/$5(J */
-  short		INT;			/* $B8-$5(J */
-  short		AGL;			/* $BAGAa$5(J */
-  short		DEF[3];			/* $BKI8fNO(J */
-  short		MGR[9];			/* $BKbK!Dq93NO(J */
-  short		EXP;			/* $B7P83CM(J */
-  short		KRM;			/* $B%+%k%^(J */
-  short		attack_level;		/* $B967b%l%Y%k(J */
-  short		defend_level;		/* $BKI8f%l%Y%k(J */
-  short		magic;			/* $BKbK!(J */
-  short		goods;			/* $B=j;}IJ(J */
-  short		amount;			/* $B6b2_!&?)NA$NNL(J */
-  short		unknownA;		/* $B2?!)(J */
-  short		activity;		/* $B3hF07ABV(J */
+  char		name[16];		/* 名前 */
+  char		group_min;		/* 最小構成員数 */
+  char		group_max;		/* 最大構成員数 */
+  short		max_HP;			/* 耐久力(100分の1) */
+  short		STR;			/* 強さ */
+  short		INT;			/* 賢さ */
+  short		AGL;			/* 素早さ */
+  short		DEF[3];			/* 防御力 */
+  short		MGR[9];			/* 魔法抵抗力 */
+  short		EXP;			/* 経験値 */
+  short		KRM;			/* カルマ */
+  short		attack_level;		/* 攻撃レベル */
+  short		defend_level;		/* 防御レベル */
+  short		magic;			/* 魔法 */
+  short		goods;			/* 所持品 */
+  short		amount;			/* 金貨・食料の量 */
+  short		unknownA;		/* 何？ */
+  short		activity;		/* 活動形態 */
 } PACKED monster_status_t;
 
-/* $B%b%s%9%?!<%G!<%?(J */
+/* モンスターデータ */
 extern monster_status_t monster_data[MAX_MONSTER * MAX_VARIETY];
 
 #endif /* monster_H */

@@ -1,7 +1,7 @@
 #include "xanadu.h"
 #include "pause.h"
 
-#define WAIT_INTERVAL		500	/* $BBT$A;~4V(J */
+#define WAIT_INTERVAL		500	/* 待ち時間 */
 
 static int pause_interval;
 static int pause_clearkey;

@@ -4,14 +4,14 @@
 static animation_frame_t *anime_frames;
 static int anime_n_frames;
 static int anime_current;
-static image_t *anime_clip;
+static std::shared_ptr<SDL_::Image> anime_clip;
 static int anime_as_tile;
 
 static void (*thunk_update_background)(void);
 
 static void animation_loop(void);
 
-int init_animation(image_t *clip, animation_frame_t *frames, int n_frames,
+int init_animation(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames, int n_frames,
                    void (*update_background)(void))
 {
   anime_frames = frames;
@@ -22,18 +22,18 @@ int init_animation(image_t *clip, animation_frame_t *frames, int n_frames,
   return CONTEXT_ANIMATION;
 }
 
-/* $BCO7A%?%$%k%"%K%a!<%7%g%s$N=i4|2=(J */
+/* 地形タイルアニメーションの初期化 */
 int init_animation_tile(map_t *tiles, int n_frames, int x, int y,
                         void (*update_background)(void))
 {
   static animation_frame_t *frames;
   int i;
-  
-  free(frames);
-  frames = (animation_frame_t *)malloc(n_frames * sizeof(animation_frame_t));
-  
+
+  delete[] frames;
+  frames = new animation_frame_t[n_frames];
+
   for (i = 0; i < n_frames; i++) {
-    frames[i].image = &frame_tiles[tiles[i]];
+    frames[i].image = frame_tiles[tiles[i]];
     frames[i].x = x;
     frames[i].y = y;
   }
@@ -55,14 +55,14 @@ void animation_leave(void)
 void animation_loop(void)
 {
   if (anime_current < anime_n_frames) {
-    image_t *img = anime_frames[anime_current].image;
+    std::shared_ptr<SDL_::Image> img = anime_frames[anime_current].image;
     int x = anime_frames[anime_current].x;
     int y = anime_frames[anime_current].y;
     
-    /* $BGX7J$r99?7(J */
+    /* 背景を更新 */
     (*thunk_update_background)();
     
-    /* $B%U%l!<%`$NIA2h(J */
+    /* フレームの描画 */
     if (anime_as_tile) {
       draw_image(anime_clip, x, y, img);
     } else {
@@ -70,7 +70,7 @@ void animation_loop(void)
     }
     anime_current++;
   } else {
-    /* $B%3%s%F%-%9%H$rI|5"(J */
+    /* コンテキストを復帰 */
     resume_context();
   }
 }

@@ -2,48 +2,48 @@
 #define shop_H
 
 /* scenario 1 */
-#define SHOP_WEAPON		0	/* $BIp4o(B */
-#define SHOP_SCROLL		1	/* $BKbK!(B */
-#define SHOP_ARMORY		2	/* $B3;(B */
-#define SHOP_SHIELD		3	/* $B=b(B */
-#define SHOP_SECRET		4	/* $BF;6q(B */
-#define SHOP_GUILDS		5	/* $B80(B */
-#define SHOP_FOODS		6	/* $B?)NA(B */
-#define SHOP_INN		7	/* $B=I20(B */
-#define SHOP_HEALERS		8	/* $BIB1!(B */
-#define SHOP_TEMPLE		9	/* $B;{1!(B */
+#define SHOP_WEAPON		0	/* 武器 */
+#define SHOP_SCROLL		1	/* 魔法 */
+#define SHOP_ARMORY		2	/* 鎧 */
+#define SHOP_SHIELD		3	/* 盾 */
+#define SHOP_SECRET		4	/* 道具 */
+#define SHOP_GUILDS		5	/* 鍵 */
+#define SHOP_FOODS		6	/* 食料 */
+#define SHOP_INN		7	/* 宿屋 */
+#define SHOP_HEALERS		8	/* 病院 */
+#define SHOP_TEMPLE		9	/* 寺院 */
 
 /* trainig-ground */
-#define SHOP_CASTLE		10	/* $B2&>k(B */
-#define SHOP_STR		11	/* $B6/$5(B */
-#define SHOP_INT		12	/* $BCN<1(B */
-#define SHOP_WIS		13	/* $B8-$5(B */
-#define SHOP_DEX		14	/* $B4oMQ$5(B */
-#define SHOP_AGL		15	/* $BB.$5(B */
-#define SHOP_CHR		16	/* $BL%NO(B */
-#define SHOP_MGR		17	/* $BKbK!Dq93NO(B */
+#define SHOP_CASTLE		10	/* 王城 */
+#define SHOP_STR		11	/* 強さ */
+#define SHOP_INT		12	/* 知識 */
+#define SHOP_WIS		13	/* 賢さ */
+#define SHOP_DEX		14	/* 器用さ */
+#define SHOP_AGL		15	/* 速さ */
+#define SHOP_CHR		16	/* 魅力 */
+#define SHOP_MGR		17	/* 魔法抵抗力 */
 
 /* scenario 2 */
-#define MAX_ARTICLE		16	/* $B<h$j07$$>&IJ$N?t(B */
+#define MAX_ARTICLE		16	/* 取り扱い商品の数 */
 
-/* $B%7%g%C%W$N<h$j07$$>&IJ$K4X$9$k>pJs$rJ];}$9$k9=B$BN(B */
+/* ショップの取り扱い商品に関する情報を保持する構造体 */
 typedef struct {
-  short		price;			/* $B2A3J(B(100$BJ,$N(B1) */
-  short		count;			/* $B8D?t(B(100$BJ,$N(B1) */
-  short		goods;			/* $BIJJ*(B */
+  short		price;			/* 価格(100分の1) */
+  short		count;			/* 個数(100分の1) */
+  short		goods;			/* 品物 */
 } article_t;
 
-/* $B%7%g%C%W$K4X$9$k>pJs$rJ];}$9$k9=B$BN(B */
+/* ショップに関する情報を保持する構造体 */
 typedef struct {
-  char *	text;			/* $B%F%-%9%H(B */
-  article_t	articles[MAX_ARTICLE];	/* $B>&IJ(B */
+  char *	text;			/* テキスト */
+  article_t	articles[MAX_ARTICLE];	/* 商品 */
 } shop_data_t;
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(B */
+/* コンテキスト保護関数 */
 extern void shop_enter(void);
 extern void shop_leave(void);
 
-/* $B=i4|2=4X?t(B */
+/* 初期化関数 */
 extern int init_shop(int shop_id);
 
 #endif /* shop_H */

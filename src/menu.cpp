@@ -22,25 +22,25 @@
 #define MENU_LOAD		2
 #define MENU_DEBUG		3
 #define MENU_BOSS		4
-#define MENU_GAME		5	/* $B?7$7$$%2!<%`(B */
+#define MENU_GAME		5	/* 新しいゲーム */
 
 #define reenter()		(menu_enter())
 
 #define MAX_USER_ENTRY		8
 
-/* $B%G%#%l%/%H%jCf$N%f!<%6!<>pJs$rJ];}$9$k9=B$BN(B */
+/* ディレクトリ中のユーザー情報を保持する構造体 */
 typedef struct {
-  char		name[16];		/* $BL>A0(B */
+  char		name[16];		/* 名前 */
 } user_entry_t;
 
 static user_entry_t user_entries[MAX_USER_ENTRY];
 static int menu_state;
 
-/* $B%m%4(B */
-static image_t *logo_image;
+/* ロゴ */
+static std::shared_ptr<SDL_::Image> logo_image;
 
-static void menu_draw_text(int row, int col, const char *, pixel_t);
-static void menu_draw_item(int row, int col, int key, const char *, pixel_t);
+static void menu_draw_text(int row, int col, const char *, SDL_::Color);
+static void menu_draw_item(int row, int col, int key, const char *, SDL_::Color);
 
 static void generic_menu_key_event(int c);
 static void load_menu_key_event(int c);
@@ -55,14 +55,14 @@ int load_game(int i);
 
 void menu_enter(void)
 {
-  pixel_t pixel1 = user.environment.scenario == 0 ? red_pixel : white_pixel;
-  pixel_t pixel2 = user.environment.scenario != 0 ? red_pixel : white_pixel;
+  SDL_::Color pixel1 = user.environment.scenario == 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
+  SDL_::Color pixel2 = user.environment.scenario != 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 
   bgm_play(bgm_data.start_menu); /* BGM */
 
-  fill_image(clip_main, 0, 0, clip_main->width, clip_main->height, black_pixel);
+  fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
   
-  /* $B%m%4(B */
+  /* ロゴ */
   if (!logo_image) {
     logo_image = load_image(IMAGE_DIR "/picture/logo.bmp");
   }
@@ -79,14 +79,14 @@ void menu_enter(void)
   case MENU_DEBUG:
     thunk_key_event = debug_menu_key_event;
     init_debug();
-    menu_draw_text( 0, 4, "Debug mode", red_pixel);
+    menu_draw_text( 0, 4, "Debug mode", SDL_::Color::RED);
     menu_draw_item( 2, 0, '+', "SCENARIO 1", pixel1);
     menu_draw_item( 3, 0, '*', "SCENARIO 2", pixel2);
     {
-      pixel_t pixels[11];
+      SDL_::Color pixels[11];
       int i;
-      for (i = 0; i < 11; i++) { pixels[i] = white_pixel; }
-      pixels[user.environment.dungeon_level] = red_pixel;
+      for (i = 0; i < 11; i++) { pixels[i] = SDL_::Color::WHITE; }
+      pixels[user.environment.dungeon_level] = SDL_::Color::RED;
       if (user.environment.scenario == 0) {
         menu_draw_item( 4, 0, '1', "Level 1",  pixels[0]);
         menu_draw_item( 5, 0, '2', "Level 2",  pixels[1]);
@@ -113,12 +113,12 @@ void menu_enter(void)
         menu_draw_item(14, 0, 'B', "Shhangri-La", pixels[10]);
       }
     }
-    menu_draw_item(15, 0, 'F', "Enter field", white_pixel);
-    menu_draw_item(16, 0, 'T', "Enter tower", white_pixel);
-    menu_draw_item(17, 0, 'R', "Return back", red_pixel);
+    menu_draw_item(15, 0, 'F', "Enter field", SDL_::Color::WHITE);
+    menu_draw_item(16, 0, 'T', "Enter tower", SDL_::Color::WHITE);
+    menu_draw_item(17, 0, 'R', "Return back", SDL_::Color::RED);
 #if 0
-    menu_draw_text(19, 0, "Should reload a level", white_pixel);
-    menu_draw_text(20, 0, "just switch SCENARIOs", white_pixel);
+    menu_draw_text(19, 0, "Should reload a level", SDL_::Color::WHITE);
+    menu_draw_text(20, 0, "just switch SCENARIOs", SDL_::Color::WHITE);
 #endif
     break;
     
@@ -127,92 +127,88 @@ void menu_enter(void)
       int i, n;
       thunk_key_event = load_menu_key_event;
 
-      menu_draw_text( 0, 4, "Load game", red_pixel);
+      menu_draw_text( 0, 4, "Load game", SDL_::Color::RED);
       n = init_load_menu();
       for (i = 0; i < n; i++) {
-        menu_draw_item( 2 + i, 0, 'A' + i, user_entries[i].name, white_pixel);
+        menu_draw_item( 2 + i, 0, 'A' + i, user_entries[i].name, SDL_::Color::WHITE);
       }
-      menu_draw_item(2 + i, 0, 'R', "Return back", red_pixel);
+      menu_draw_item(2 + i, 0, 'R', "Return back", SDL_::Color::RED);
     }
     break;
 
   case MENU_BOSS:
     thunk_key_event = boss_menu_key_event;
     init_debug();
-    menu_draw_text( 0, 4, "Boss menu", red_pixel);
+    menu_draw_text( 0, 4, "Boss menu", SDL_::Color::RED);
     if (user.environment.scenario == 0) {
-      menu_draw_item( 2, 0, 'A', "Kraken Giant",  white_pixel);
-      menu_draw_item( 3, 0, 'B', "Grell Giant",   white_pixel);
-      menu_draw_item( 4, 0, 'C', "Karttikeya",    white_pixel);
-      menu_draw_item( 5, 0, 'D', "Silver Dragon", white_pixel);
-      menu_draw_item( 6, 0, 'E', "Big Kraken",    white_pixel);
-      menu_draw_item( 7, 0, 'F', "King Dragon",   white_pixel);
-      menu_draw_item( 8, 0, 'R', "Return back",   red_pixel);
+      menu_draw_item( 2, 0, 'A', "Kraken Giant",  SDL_::Color::WHITE);
+      menu_draw_item( 3, 0, 'B', "Grell Giant",   SDL_::Color::WHITE);
+      menu_draw_item( 4, 0, 'C', "Karttikeya",    SDL_::Color::WHITE);
+      menu_draw_item( 5, 0, 'D', "Silver Dragon", SDL_::Color::WHITE);
+      menu_draw_item( 6, 0, 'E', "Big Kraken",    SDL_::Color::WHITE);
+      menu_draw_item( 7, 0, 'F', "King Dragon",   SDL_::Color::WHITE);
+      menu_draw_item( 8, 0, 'R', "Return back",   SDL_::Color::RED);
     } else {
-      menu_draw_item( 2, 0, 'A', "Marivoux",      white_pixel);
-      menu_draw_item( 3, 0, 'B', "Peluton",       white_pixel);
-      menu_draw_item( 4, 0, 'C', "Great Kraken",  white_pixel);
-      menu_draw_item( 5, 0, 'D', "Zschokke",      white_pixel);
-      menu_draw_item( 6, 0, 'E', "White Dragon",  white_pixel);
-      menu_draw_item( 7, 0, 'F', "Bogres",        white_pixel);
-      menu_draw_item( 8, 0, 'G', "Red Dragon",    white_pixel);
-      menu_draw_item( 9, 0, 'H', "Guin",          white_pixel);
-      menu_draw_item(10, 0, 'I', "Hydra",         white_pixel);
-      menu_draw_item(11, 0, 'J', "Buzzati",       white_pixel);
-      menu_draw_item(12, 0, 'K', "Boiardo",       white_pixel);
-      menu_draw_item(13, 0, 'L', "King Dragon",   white_pixel);
-      menu_draw_item(14, 0, 'R', "Return back",   red_pixel);
+      menu_draw_item( 2, 0, 'A', "Marivoux",      SDL_::Color::WHITE);
+      menu_draw_item( 3, 0, 'B', "Peluton",       SDL_::Color::WHITE);
+      menu_draw_item( 4, 0, 'C', "Great Kraken",  SDL_::Color::WHITE);
+      menu_draw_item( 5, 0, 'D', "Zschokke",      SDL_::Color::WHITE);
+      menu_draw_item( 6, 0, 'E', "White Dragon",  SDL_::Color::WHITE);
+      menu_draw_item( 7, 0, 'F', "Bogres",        SDL_::Color::WHITE);
+      menu_draw_item( 8, 0, 'G', "Red Dragon",    SDL_::Color::WHITE);
+      menu_draw_item( 9, 0, 'H', "Guin",          SDL_::Color::WHITE);
+      menu_draw_item(10, 0, 'I', "Hydra",         SDL_::Color::WHITE);
+      menu_draw_item(11, 0, 'J', "Buzzati",       SDL_::Color::WHITE);
+      menu_draw_item(12, 0, 'K', "Boiardo",       SDL_::Color::WHITE);
+      menu_draw_item(13, 0, 'L', "King Dragon",   SDL_::Color::WHITE);
+      menu_draw_item(14, 0, 'R', "Return back",   SDL_::Color::RED);
     }
 #if 0
-    menu_draw_text(19, 2, "Which do you fight", white_pixel);
-    menu_draw_text(20, 4, "a battle with?", white_pixel);
+    menu_draw_text(19, 2, "Which do you fight", SDL_::Color::WHITE);
+    menu_draw_text(20, 4, "a battle with?", SDL_::Color::WHITE);
 #endif
     break;
 
   case MENU_VERSION:
     thunk_key_event = version_info_key_event;
-    menu_draw_text( 1,  8, "XANADU", white_pixel);
-    menu_draw_text( 3,  1, "REVISION:", red_pixel);
-    menu_draw_text( 3, 10, "1.1.4", white_pixel);
-    menu_draw_text( 4,  1, "  SYSTEM:", red_pixel);
+    menu_draw_text( 1,  8, "XANADU", SDL_::Color::WHITE);
+    menu_draw_text( 3,  1, "REVISION:", SDL_::Color::RED);
+    menu_draw_text( 3, 10, "1.1.4", SDL_::Color::WHITE);
+    menu_draw_text( 4,  1, "  SYSTEM:", SDL_::Color::RED);
 #ifdef __WIN32__
-    menu_draw_text( 4, 10, "Win32", white_pixel);
+    menu_draw_text( 4, 10, "Win32", SDL_::Color::WHITE);
 #else
-    menu_draw_text( 4, 10, "X11R6", white_pixel);
+    menu_draw_text( 4, 10, "X11R6", SDL_::Color::WHITE);
 #endif
-    menu_draw_text( 5,  1, " DISPLAY:", red_pixel);
-    {
-      char buf[16];
-      sprintf(buf, "%dbpp", graphic_methods.bits_per_pixel);
-      menu_draw_text(5, 10, buf, white_pixel);
-    }
-    menu_draw_text( 6,  1, "     BGM:", red_pixel);
-    menu_draw_text( 6, 10, bgm_enabled() ? "OK" : "Disable", white_pixel);
-    menu_draw_text( 7,  1, "     S.E:", red_pixel);
-    menu_draw_text( 7, 10, se_enabled() ? "OK" : "Disable", white_pixel);
+    menu_draw_text( 5,  1, " DISPLAY:", SDL_::Color::RED);
+    menu_draw_text(5, 10, "32bpp", SDL_::Color::WHITE);
+    menu_draw_text( 6,  1, "     BGM:", SDL_::Color::RED);
+    menu_draw_text( 6, 10, bgm_enabled() ? "OK" : "Disable", SDL_::Color::WHITE);
+    menu_draw_text( 7,  1, "     S.E:", SDL_::Color::RED);
+    menu_draw_text( 7, 10, se_enabled() ? "OK" : "Disable", SDL_::Color::WHITE);
 
-    /*menu_draw_text( 9,  0, "-NOTICE-", white_pixel);*/
-    menu_draw_text(10,  0, "XANADU WAS ORIGINALLY", white_pixel);
-    menu_draw_text(11,  0, "RELEASED IN 1985", white_pixel);
-    menu_draw_text(12,  0, "BY FALCOM.", white_pixel);
+    /*menu_draw_text( 9,  0, "-NOTICE-", SDL_::Color::WHITE);*/
+    menu_draw_text(10,  0, "XANADU WAS ORIGINALLY", SDL_::Color::WHITE);
+    menu_draw_text(11,  0, "RELEASED IN 1985", SDL_::Color::WHITE);
+    menu_draw_text(12,  0, "BY FALCOM.", SDL_::Color::WHITE);
     
-    menu_draw_item(14,  0, 'R', "Return back", red_pixel);
+    menu_draw_item(14,  0, 'R', "Return back", SDL_::Color::RED);
     break;
     
   case MENU_GENERIC:
   default:
     thunk_key_event = generic_menu_key_event;
-    menu_draw_text( 0, 4, "Start menu", red_pixel);
-    menu_draw_item( 2, 0, 'L', "Load game",  white_pixel);
+    menu_draw_text( 0, 4, "Start menu", SDL_::Color::RED);
+    menu_draw_item( 2, 0, 'L', "Load game",  SDL_::Color::WHITE);
     menu_draw_item( 3, 0, '1', "SCENARIO 1", pixel1);
     menu_draw_item( 4, 0, '2', "SCENARIO 2", pixel2);
-    menu_draw_item( 5, 0, 'N', "New game",   white_pixel);
-    menu_draw_item( 6, 0, 'D', "Debug mode", white_pixel);
-    menu_draw_item( 7, 0, 'B', "Boss stage", white_pixel);
-    menu_draw_item( 8, 0, 'O', "Opening", white_pixel);
-    menu_draw_item( 9, 0, 'E', "Ending(LONG)", white_pixel);
-    menu_draw_item(10, 0, 'V', "Version info", white_pixel);
-    menu_draw_text(12, 0, "Please Num-Lock *OFF*", red_pixel);
+    menu_draw_item( 5, 0, 'N', "New game",   SDL_::Color::WHITE);
+    menu_draw_item( 6, 0, 'D', "Debug mode", SDL_::Color::WHITE);
+    menu_draw_item( 7, 0, 'B', "Boss stage", SDL_::Color::WHITE);
+    menu_draw_item( 8, 0, 'O', "Opening", SDL_::Color::WHITE);
+    menu_draw_item( 9, 0, 'E', "Ending(LONG)", SDL_::Color::WHITE);
+    menu_draw_item(10, 0, 'V', "Version info", SDL_::Color::WHITE);
+    menu_draw_text(12, 0, "Please Num-Lock *OFF*", SDL_::Color::RED);
   }
   update(rect_main);
 }
@@ -222,16 +218,16 @@ void menu_leave(void)
   thunk_key_event = NULL;
 }
 
-void menu_draw_text(int row, int col, const char *s, pixel_t pixel)
+void menu_draw_text(int row, int col, const char *s, SDL_::Color pixel)
 {
   draw_text(clip_main, col * 16, row * 16, s, pixel);
 }
 
-void menu_draw_item(int row, int col, int key, const char *s, pixel_t pixel)
+void menu_draw_item(int row, int col, int key, const char *s, SDL_::Color pixel)
 {
   char buf[3] = "*:";
   buf[0] = key;
-  draw_text(clip_main, col * 16, row * 16, buf, red_pixel);
+  draw_text(clip_main, col * 16, row * 16, buf, SDL_::Color::RED);
   col += 2;
   draw_text(clip_main, col * 16, row * 16, s, pixel);
 }
@@ -303,7 +299,7 @@ void load_menu_key_event(int c)
   case 'A': case 'B': case 'C': case 'D':
   case 'E': case 'F': case 'G': case 'H':
     if (load_game(c - 'A') == 0) {
-      /* $B%2!<%`$r:F3+$9$k(B */
+      /* ゲームを再開する */
       load_user_image();
       init_level(user.environment.dungeon_level, user_path);
       if (in_tower())
@@ -431,13 +427,13 @@ int load_game(int i)
     user_path = strdup(path);
 
     if (load_user()) {
-      /* $B<:GT(B */
+      /* 失敗 */
       emit_error("Can't load user.dat!");
       free((void *)user_path);
       user_path = NULL;
       goto failure;
     } else
-      return 0; /* $B@.8y(B */
+      return 0; /* 成功 */
   }
 failure:
   return 1;

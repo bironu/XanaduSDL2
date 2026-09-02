@@ -37,7 +37,7 @@ public:
 	virtual void onDestroy(uint32_t);
 	virtual void onResume(uint32_t);
 
-	void clear();
+	// void clear();
 	void swap();
 	void quit();
 

@@ -1,7 +1,7 @@
 #ifndef menu_H
 #define menu_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+/* コンテキスト保護関数 */
 extern void menu_enter(void);
 extern void menu_leave(void);
 

@@ -4,12 +4,12 @@
 #include "user.h"
 #include "monster.h"
 
-/* $BKI8fLL(J */
-#define GUARD_FRONT		0	/* $BA0LL(J */
-#define GUARD_BACK		1	/* $BGXLL(J */
-#define GUARD_SIDE		2	/* $BB&LL(J */
+/* 防御面 */
+#define GUARD_FRONT		0	/* 前面 */
+#define GUARD_BACK		1	/* 背面 */
+#define GUARD_SIDE		2	/* 側面 */
 
-/* $BIp4o!&KbK!!&KI6q$N@-G=(J */
+/* 武器・魔法・防具の性能 */
 #define weapon_performance(STR, weapon_id) \
   ((STR) * weapon_data()[weapon_id].performance)
 #define scroll_performance(INT, scroll_id) \
@@ -27,7 +27,7 @@ extern int monster_attack_point(const monster_status_t *m);
 extern int monster_magic_point(const monster_status_t *m, int MGR);
 extern int monster_defend_point(const monster_status_t *m, int guard);
 
-/* $BF;6q$N8zNO(J */
+/* 道具の効力 */
 extern int item_performance(int WIS, int skill);
 
 #endif /* numinous_H */

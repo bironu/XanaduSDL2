@@ -40,19 +40,16 @@ int init_opening(void)
   /* BGM mute */
   bgm_play("");
   
-  /* $B8z2L2;(B */
+  /* 効果音 */
   se_load(SE_SOMEWHAT1, se_data.opening0);
   se_load(SE_SOMEWHAT2, se_data.opening1);
 
-  free(visual_image);
-  visual_image = NULL;
-  
-  fill_image(clip_overall, 0, 0, clip_overall->width, clip_overall->height,
-             black_pixel);
+  visual_image = nullptr;
+
+  fill_image(clip_overall, 0, 0, clip_overall->getWidth(), clip_overall->getHeight(),
+             SDL_::Color::BLACK);
   update(rect_overall);
   update_immediately();
-  
-  init_pixel_table(); /* At first time, it's too slow. */
 
   return CONTEXT_OPENING;
 }
@@ -82,7 +79,6 @@ void opening_enter(void)
       char path[BUFSIZ];
       sprintf(path, IMAGE_DIR "/%s", visuals[opening_step].image);
       
-      free(visual_image);      
       visual_image = load_image(path);
     }
     se_play(visuals[opening_step].se);

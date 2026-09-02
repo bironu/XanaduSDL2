@@ -40,10 +40,6 @@ set(XANADU_CORE_SOURCES
   field.cpp
   goods.cpp
   graphics.cpp
-  image8.cpp
-  image16.cpp
-  image24.cpp
-  image32.cpp
   inventory.cpp
   menu.cpp
   message.cpp
@@ -65,7 +61,11 @@ target_include_directories(xanadu_core PUBLIC
   ${CMAKE_SOURCE_DIR}/include
 )
 
+# context.cpp が Application / GameScene派生クラス群を介して
+# 画面遷移をSDL2側のシーン機構に橋渡ししているための依存
+target_link_libraries(xanadu_core PUBLIC app scene)
+
 # SDL2ベースの新フロントエンド実行ファイル
 add_executable(xanadu main.cpp)
 
-target_link_libraries(xanadu PRIVATE ${XANADU_SDL_MODULES})
+target_link_libraries(xanadu PRIVATE ${XANADU_SDL_MODULES} xanadu_core)

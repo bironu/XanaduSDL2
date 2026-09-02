@@ -3,6 +3,7 @@
 #include "resources/Resources.h"
 #include "task/TaskManager.h"
 #include "scene/menu/MenuScene.h"
+#include "sdl/LegacyPlatform.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -23,11 +24,13 @@ int main(int argc, char *argv[])
 	const int width = res.getWindowWidth();
 	const int height = res.getWindowHeight();
 
-	auto mainWindow = std::make_shared<SDL_::Window>("xanadu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+	auto mainWindow = std::make_shared<SDL_::Window>("xanadu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
 	app.registerMainWindow(mainWindow);
 	//auto size = mainWindow->getSize();
 	//res.setWindowWidth(size.getWidth());
 	//res.setWindowHeight(size.getHeight());
+
+	initLegacyGraphics(res);
 
 	app.registerNextSceneFunc([](){
 		return std::make_shared<MenuScene>();

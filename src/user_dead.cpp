@@ -3,8 +3,8 @@
 #include "status.h"
 #include "animation.h"
 
-#define STATE_SWOON		0	/* $B:*E](J */
-#define STATE_GRAVE		1	/* $BKdAr(J */
+#define STATE_SWOON		0	/* 昏倒 */
+#define STATE_GRAVE		1	/* 埋葬 */
 
 #define STATE_EXIT		-1
 
@@ -23,7 +23,7 @@ int init_user_dead(int x, int y, void (*update_background)(void))
   thunk_update_background = update_background;
   user_revived = 0;
 
-  /* $B%f!<%6!<$rI=<($7$J$$(J */
+  /* ユーザーを表示しない */
   user_hidden = 1;
 
   return CONTEXT_USER_DEAD;
@@ -40,7 +40,7 @@ void user_dead_enter(void)
       
       user_dead_state = STATE_GRAVE;
 
-      /* $B:*E]%U%l!<%`$r:n@.(J */
+      /* 昏倒フレームを作成 */
       for (i = 0, n = user.dir; i < 8; i++) {
         switch (n) {
         case 6: case 3: case 9: n = 8; break;
@@ -48,12 +48,12 @@ void user_dead_enter(void)
         case 8: case 5:         n = 4; break;
         case 2: default:        n = 6; break;
         }
-        swoon_frames[i].image = &frame_user[battle_frame_user[n]];
+        swoon_frames[i].image = frame_user[battle_frame_user[n]];
         swoon_frames[i].x = user_x;
         swoon_frames[i].y = user_y;
       }
       
-      /* $B:*E]%7!<%s(J */
+      /* 昏倒シーン */
       extend_context(init_animation(clip_main, swoon_frames, 8,
                                     thunk_update_background));
     }
@@ -63,11 +63,11 @@ void user_dead_enter(void)
     {
       user_dead_state = STATE_EXIT;
 
-      /* $BJhI8$rI=<((J */
+      /* 墓標を表示 */
       (*thunk_update_background)();
-      draw_sprite(clip_main, user_x, user_y, &frame_specials[SPECIAL_GRAVE]);
+      draw_sprite(clip_main, user_x, user_y, frame_specials[SPECIAL_GRAVE]);
 
-      /* $BNnLt$r;}$C$F$$$k!)(J */
+      /* 霊薬を持っている？ */
       if (user.status.ELX > 0) {
         user_revived = 1;
         emit_message("Hit to use Elixer");
@@ -80,7 +80,7 @@ void user_dead_enter(void)
     break;
     
   default:
-    /* $B%f!<%6!<$OI|3h$7$?!)(J */
+    /* ユーザーは復活した？ */
     if (user_revived) {
       user.status.HP = user.status.max_HP;
       user.status.ELX--;
@@ -89,7 +89,7 @@ void user_dead_enter(void)
       se_load(SE_SOMEWHAT1, se_data.use_elixer);
       se_play(SE_SOMEWHAT1);
 
-      status_update_HP(white_pixel);
+      status_update_HP(SDL_::Color::WHITE);
       restore_context();
     } else {
       reset_context();
@@ -103,6 +103,6 @@ void user_dead_leave(void)
 
 void restore_context(void)
 {
-  user_hidden = 0; /* $B%f!<%6!<$r$^$?8+$($k$h$&$K$9$k(J */
+  user_hidden = 0; /* ユーザーをまた見えるようにする */
   resume_context();
 }

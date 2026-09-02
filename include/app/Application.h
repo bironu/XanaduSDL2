@@ -42,6 +42,12 @@ public:
 		nextScene_ = nextScene;
 	}
 
+	std::shared_ptr<Scene> getCurrentScene() const { return currentScene_; }
+
+	// 旧C時代の自由関数(context.cpp の switch_context 等)からアプリ本体に
+	// アクセスするための参照。インスタンスは常に高々1つしか生成されない前提。
+	static Application &instance() { return *instance_; }
+
 	//static void waitFrame();
 	void quit(const int val = 0);
 	void updateWindow(Uint32 id);
@@ -61,6 +67,8 @@ private:
 	std::shared_ptr<SDL_::Window> mainWindow_;
 	FuncCreateScene nextScene_;
 	int return_code_;
+
+	static Application *instance_;
 };
 
 #endif // APPLICATION_H_

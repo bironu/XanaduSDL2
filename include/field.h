@@ -3,26 +3,26 @@
 
 #include "xanadu.h"
 
-/* $B%U%#!<%k%I$N0l<!85:BI8$KJQ49(J */
+/* フィールドの一次元座標に変換 */
 #define field_offset_XY(x, y)	((x) + (y) * FIELD_WIDTH)
 
-/* $B%f!<%6!<$N;k3&$N:8>e6y$NAjBP0LCV(J */
+/* ユーザーの視界の左上隅の相対位置 */
 #define user_sight_XY() (in_training_ground()		\
                          ? field_offset_XY(-4, -7)	\
                          : field_offset_XY(-4, -4))
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+/* コンテキスト保護関数 */
 extern void field_enter(void);
 extern void field_leave(void);
 
-/* $B;XDj$5$l$?0LCV$N%^%C%W$NCO7A$rJV$9(J */
+/* 指定された位置のマップの地形を返す */
 int point_map(int p);
 
-/* $B=i4|2=4X?t(J */
+/* 初期化関数 */
 extern int init_field(void);
 extern int init_training_ground(int scenario);
 
-/* $B<!$N3,AX$K9T$/F67"$r3+$/(J */
+/* 次の階層に行く洞窟を開く */
 extern void field_cave_open(void);
 
 #endif /* field_H */

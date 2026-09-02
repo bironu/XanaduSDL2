@@ -2,29 +2,29 @@
 #define context_H
 
 #define CONTEXT_NULL		0
-#define CONTEXT_START_MENU	1	/* $B%9%?!<%H%a%K%e!<(J */
-#define CONTEXT_FIELD		2	/* $B%U%#!<%k%I(J */
-#define CONTEXT_TOWER		3	/* $B%?%o!<FbIt(J */
-#define CONTEXT_BATTLE		4	/* $B@oF.(J */
-#define CONTEXT_BOSS		5	/* $B%\%9%9%F!<%8(J */
-#define CONTEXT_SHOP		6	/* $B%7%g%C%W(J */
-#define CONTEXT_CAVE		7	/* $BF67"(J */
-#define CONTEXT_USE		8	/* $B%"%$%F%`;HMQ(J */
-#define CONTEXT_EQUIPMENT	9	/* $BAuHw(J */
-#define CONTEXT_INVENTORY	10	/* $B:_8KI=<(2hLL(J */
-#define CONTEXT_ANIMATION	11	/* $B%"%K%a!<%7%g%s(J */
-#define CONTEXT_USER_DEAD	12	/* $B%f!<%6!<;`K4(J */
-#define CONTEXT_ENTER_CHARACTER	13	/* $BJ8;zF~NO(J */
-#define CONTEXT_ENTER_NUMBER	14	/* $B?tCMF~NO(J */
-#define CONTEXT_ENTER_STRING	15	/* $BJ8;zNsF~NO(J */
-#define CONTEXT_PAUSE		16	/* $B0l;~Dd;_(J */
-#define CONTEXT_FADE		17	/* $B%U%'!<%I(J */
-#define CONTEXT_OPENING		18	/* $B%*!<%W%K%s%0(J */
-#define CONTEXT_ENDING		19	/* $B%(%s%G%#%s%0(J */
+#define CONTEXT_START_MENU	1	/* スタートメニュー */
+#define CONTEXT_FIELD		2	/* フィールド */
+#define CONTEXT_TOWER		3	/* タワー内部 */
+#define CONTEXT_BATTLE		4	/* 戦闘 */
+#define CONTEXT_BOSS		5	/* ボスステージ */
+#define CONTEXT_SHOP		6	/* ショップ */
+#define CONTEXT_CAVE		7	/* 洞窟 */
+#define CONTEXT_USE		8	/* アイテム使用 */
+#define CONTEXT_EQUIPMENT	9	/* 装備 */
+#define CONTEXT_INVENTORY	10	/* 在庫表示画面 */
+#define CONTEXT_ANIMATION	11	/* アニメーション */
+#define CONTEXT_USER_DEAD	12	/* ユーザー死亡 */
+#define CONTEXT_ENTER_CHARACTER	13	/* 文字入力 */
+#define CONTEXT_ENTER_NUMBER	14	/* 数値入力 */
+#define CONTEXT_ENTER_STRING	15	/* 文字列入力 */
+#define CONTEXT_PAUSE		16	/* 一時停止 */
+#define CONTEXT_FADE		17	/* フェード */
+#define CONTEXT_OPENING		18	/* オープニング */
+#define CONTEXT_ENDING		19	/* エンディ%s%0 */
 
-#define MAX_CONTEXT		20	/* $B%3%s%F%-%9%H$N?t(J */
+#define MAX_CONTEXT		20	/* コンテキストの数 */
 
-#define CONTEXT_RESUME		-1	/* $BD>A0$N%3%s%F%-%9%H$rI|5"(J */
+#define CONTEXT_RESUME		-1	/* 直前のコンテキストを復帰 */
 
 extern void switch_context(int context_id);
 extern void extend_context(int context_id);

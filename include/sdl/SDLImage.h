@@ -24,6 +24,7 @@ public:
 	}
 	Image(int width, int height);
 	explicit Image(const char * const file);
+	Image(const std::shared_ptr<Image> &source, const Rect &rect);
 	~Image();
 
 	SDL_Surface *get() const { return surface_;}

@@ -2,7 +2,7 @@
 
 #define number_of(m)		(sizeof(m)/sizeof(m[0]))
 
-/* $B967b%l%Y%k$4$H$NG\N((J */
+/* 攻撃レベルごとの倍率 */
 static int strength_table[16] = {
   3,
   5,
@@ -22,7 +22,7 @@ static int strength_table[16] = {
   5000
 };
 
-/* $BKI8f%l%Y%k$4$H$NG\N((J */
+/* 防御レベルごとの倍率 */
 static int defence_table[17] = {
   1,
   2,
@@ -43,7 +43,7 @@ static int defence_table[17] = {
   2000
 };
 
-/* $BKbK!$4$H$NG\N((J */
+/* 魔法ごとの倍率 */
 static int magic_table[17] = {
   2,
   2,
@@ -64,7 +64,7 @@ static int magic_table[17] = {
   5000
 };
 
-/* $B967b%l%Y%k$+$i967bNO$rJV$9(J */
+/* 攻撃レベルから攻撃力を返す */
 int get_monster_strength(int STR, int attack_level)
 {
   if (0 <= attack_level && attack_level < number_of(strength_table))
@@ -73,7 +73,7 @@ int get_monster_strength(int STR, int attack_level)
     return 0;
 }
 
-/* $BKI8f%l%Y%k$+$iKI8fNO$rJV$9(J */
+/* 防御レベルから防御力を返す */
 int get_monster_defence(int DEF, int defend_level)
 {
   if (0 <= defend_level && defend_level < number_of(defence_table))
@@ -82,7 +82,7 @@ int get_monster_defence(int DEF, int defend_level)
     return 0;
 }
 
-/* $BKbK!$+$i967bNO$rJV$9(J */
+/* 魔法から攻撃力を返す */
 int get_monster_magic(int INT, int scroll_type)
 {
   if (0 <= scroll_type && scroll_type < number_of(magic_table))

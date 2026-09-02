@@ -3,24 +3,24 @@
 
 #include "graphics.h"
 
-/* $B%a%C%;!<%8I=<(4X?t(J */
-extern void display_message(const char *msg, pixel_t pixel);
+/* メッセージ表示関数 */
+extern void display_message(const char *msg, SDL_::Color pixel);
 extern void flush_message(void);
 
-/* $B=q<02=%a%C%;!<%8I=<(4X?t(J */
+/* 書式化メッセージ表示関数 */
 extern void format_message(const char *fmt, ...);
 
-#define emit_message(s) display_message(s, white_pixel)
-#define emit_error(s) display_message(s, red_pixel)
+#define emit_message(s) display_message(s, SDL_::Color::WHITE)
+#define emit_error(s) display_message(s, SDL_::Color::RED)
 
-/* $B%-!<F~NO=i4|2=4X?t(J */
+/* キー入力初期化関数 */
 extern int init_enter_buffer(int context_id, void (*consumer)(char *s));
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+/* コンテキスト保護関数 */
 extern void message_enter_enter(void);
 extern void message_enter_leave(void);
 
-/* $B%-!<%$%Y%s%H$,H/@8$7$?$H$-$K8F$P$l$k4X?t(J */
+/* キーイベントが発生したときに呼ばれる関数 */
 extern void (*thunk_key_event)(int c);
 
 #endif /* message_H */

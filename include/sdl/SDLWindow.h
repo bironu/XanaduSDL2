@@ -79,7 +79,6 @@ public:
 
 private:
 	SDL_Window * const window_;
-	SDL_GLContext const context_;
 	SDL_::Renderer renderer_;
 };
 

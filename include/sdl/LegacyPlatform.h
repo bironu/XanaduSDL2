@@ -1,0 +1,19 @@
+#if !defined(LEGACY_PLATFORM_H_)
+#define LEGACY_PLATFORM_H_
+
+class Resources;
+
+// 旧C実装(main.c / win32, x11の各main.c)が担っていた
+//   ・画面バッファ(clip_overall等)の確保
+//   ・タイマー/音声/描画のプラットフォームフック(update_region, bgm_play, se_play, draw_text 等)
+// のうち、まだSDL2側に本実装がないものについての橋渡し。
+//
+// 画面バッファの確保とdraw_text(BitmapFont経由)は実装済み。
+// タイマー・音声はまだ何もしないダミー実装(SDL2でのオーディオ統合は今後の課題)。
+void initLegacyGraphics(Resources &res);
+
+// clip_overall/clip_main等を合成し、実際にウィンドウへ描画する。
+// Scene::swap()から毎フレーム呼び出される。
+void presentLegacyFrame();
+
+#endif // LEGACY_PLATFORM_H_

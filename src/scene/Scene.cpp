@@ -1,10 +1,10 @@
 #include "scene/Scene.h"
 #include "sdl/SDLWindow.h"
+#include "sdl/LegacyPlatform.h"
 #include "app/Application.h"
 #include "resources/Resources.h"
 #include "task/TaskManager.h"
 #include <SDL2/SDL_log.h>
-#include <SDL2/SDL_opengl.h>
 
 Scene::Scene()
 	: app_(nullptr)
@@ -21,19 +21,24 @@ void Scene::prepare(Application *app, Resources *res, TaskManager *manager)
 	manager_ = manager;
 }
 
-void Scene::clear()
-{
-	::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
+// void Scene::clear()
+// {
+// 	::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// }
 
 void Scene::swap()
 {
+	presentLegacyFrame();
 	app_->getMainWindow()->swap();
 }
 
 bool Scene::onIdle(uint32_t tick)
 {
-	return !manager_->compute(tick);
+	const bool stillRunning = !manager_->compute(tick);
+	/* レンダラはSDL_RENDERER_PRESENTVSYNCで生成されているため、
+	   ここで毎回present()してもリフレッシュレートで自然にペーシングされる */
+	swap();
+	return stillRunning;
 }
 
 void Scene::onCreate(uint32_t tick)

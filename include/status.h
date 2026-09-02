@@ -3,25 +3,25 @@
 
 #include "graphics.h"
 
-/* $B%9%F!<%?%92hLLA4BN$N99?7(J */
+/* ステータス画面全体の更新 */
 extern void status_refresh(int in_battle);
 extern void status_user_status(void);
 extern void status_user_goods(int goods_type);
 extern void status_list_goods(int goods_type, unsigned display_bits);
 
-/* $BFCDj$N%(%s%H%j$r99?7$9$k(J */
+/* 特定のエントリを更新する */
 extern void status_update_rank(void);
-extern void status_update_HP(pixel_t pixel);
+extern void status_update_HP(SDL_::Color pixel);
 extern void status_update_gold(void);
 extern void status_update_food(void);
 extern void status_update_experience(void);
 extern void status_update_equipment(void);
 
-/* $B?tCM$^$?$OJ8;zNs$rIA2h$9$k(J */
-extern void status_draw_integer(int row, int col, int n, pixel_t pixel);
-extern void status_draw_text(int row, int col, const char *s, pixel_t pixel);
+/* 数値または文字列を描画する */
+extern void status_draw_integer(int row, int col, int n, SDL_::Color pixel);
+extern void status_draw_text(int row, int col, const char *s, SDL_::Color pixel);
 
-/* $BFCDj$N9T$r>C5n$9$k(J */
+/* 特定の行を消去する */
 extern void status_erase_line(int row);
 
 #endif /* status_H */

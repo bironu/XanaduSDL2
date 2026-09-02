@@ -6,7 +6,7 @@
 se_data_t se_data;
 bgm_data_t bgm_data;
 
-/* $B%G%U%)%k%H$N(B BGM */
+/* デフォルトの BGM */
 static char *default_field_bgm[2];
 static char *default_tower_bgm[2];
 static char *default_boss_bgm[2];
@@ -14,21 +14,21 @@ static char *default_boss_bgm[2];
 static void set_bgm_data(const char *symbol, const char *filename);
 static void set_se_data(const char *symbol, const char *filename);
 
-/* $B9T$rJ,3d(B(0: $B2r@O$G$-$?!"(B1: $B2r@O$G$-$J$+$C$?(B) */
+/* 行を分割(0: 解析できた、1: 解析できなかった) */
 static int parse_line(char *p, char **symbol, char **filename)
 {
-  /* $B%3%a%s%H9T!)(B */
+  /* コメント行？ */
   if (*p == '#')
     return 1;
 
-  /* $B6uGr$rFI$_Ht$P$9(B */
+  /* 空白を読み飛ばす */
   while (isspace(*p)) p++;
 
-  /* $B%7%s%\%k$r6h@Z$k(B */
+  /* シンボルを区切る */
   *symbol = p;
   while (isdigit(*p) || isalpha(*p) || *p == '_') p++;
 
-  /* $B%3%m%s$G$J$$!)(B */
+  /* コロンでない？ */
   if (*p != ':') {
     return 1;
   } else {
@@ -36,7 +36,7 @@ static int parse_line(char *p, char **symbol, char **filename)
   }
   while (isspace(*p)) p++;
 
-  /* $B%U%!%$%kL>$r6h@Z$k(B */
+  /* ファイル名を区切る */
   *filename = p;
   while (*p != '\0' && !isspace(*p)) p++;
   *p = '\0';
@@ -57,40 +57,40 @@ int init_bgm(void)
   while (fgets(buf, sizeof(buf), fp) != NULL) {
     char *symbol, *filename;
 
-    /* $B9T$rJ,2r(B */
+    /* 行を分解 */
     if (parse_line(buf, &symbol, &filename) == 0) {
       set_bgm_data(symbol, filename);
     }
   }
   fclose(fp);
 
-  /* $B$3$N%U%'%$%:$,=*N;$7$?8e$O!"J8;zNs$rGK4~$9$k$N$O4m81(B */
+  /* このフェイズが終了した後は、文字列を破棄するのは危険 */
   for (scenario = 0; scenario < 2; scenario++) {
     dungeon_bgm_t *dungeon_bgm = &bgm_data.dungeon[scenario];
 
     for (i = 0; i < MAX_DUNGEON_LEVEL; i++) {
-      /* $B%G%U%)%k%H$N;XDj$rH?1G$9$k(B */
+      /* デフォルトの指定を反映する */
       if (dungeon_bgm->field[i] == NULL) {
         dungeon_bgm->field[i] = default_field_bgm[scenario];
       }
       if (dungeon_bgm->tower[i] == NULL) {
         dungeon_bgm->tower[i] = default_tower_bgm[scenario];
       }
-      /* $BL$;XDj$N%?%o!<$N2;3Z$r$=$N%U%#!<%k%I(B($B$b$7$"$l$P(B)$B$HF1$8$K$9$k(B */
+      /* 未指定のタワーの音楽をそのフィールド(もしあれば)と同じにする */
       if (dungeon_bgm->field[i] != NULL &&
           dungeon_bgm->tower[i] == NULL) {
         dungeon_bgm->tower[i] = dungeon_bgm->field[i];
       }
     }
 
-    /* $B%\%9%9%F!<%8(B */
+    /* ボスステージ */
     for (i = 0; i < 16; i++) {
       if (dungeon_bgm->boss[i] == NULL) {
         dungeon_bgm->boss[i] = default_boss_bgm[scenario];
       }
     }
   }
-  /* $B%7%g%C%W(B */
+  /* ショップ */
   for (i = 0; i < 32; i++) {
     if (bgm_data.shop[i] == NULL) {
       bgm_data.shop[i] = bgm_data.default_shop;
@@ -113,7 +113,7 @@ int init_se(void)
   while (fgets(buf, sizeof(buf), fp) != NULL) {
     char *symbol, *filename;
 
-    /* $B9T$rJ,2r(B */
+    /* 行を分解 */
     if (parse_line(buf, &symbol, &filename) == 0) {
       set_se_data(symbol, filename);
     }
@@ -123,10 +123,10 @@ int init_se(void)
   return 0;
 }
 
-/* BGM $B%G!<%?$rEPO?(B */
+/* BGM データを登録 */
 void set_bgm_data(const char *symbol, const char *filename)
 {
-  /* $B%7%s%\%k>H9gI=(B */
+  /* シンボル照合表 */
   static struct {
     const char *	symbol;
     char **		value;
@@ -154,7 +154,7 @@ void set_bgm_data(const char *symbol, const char *filename)
   char **default_boss;
   int i, scenario = 0;
 
-  /* $B%7%s%\%kI=$r>H2q$9$k(B */
+  /* シンボル表を照会する */
   for (i = 0; i < number_of(symbol_table); i++) {
     if (stricmp(symbol, symbol_table[i].symbol) == 0) {
       free(*symbol_table[i].value);
@@ -200,7 +200,7 @@ void set_bgm_data(const char *symbol, const char *filename)
     free(*default_tower);
     *default_tower = strdup(filename);
   }
-  /* $B%U%#!<%k%I!)(B */
+  /* フィールド？ */
   else if (strnicmp(symbol, "FIELD", 5) == 0) {
     int n = atoi(symbol + 5);
     if (1 <= n && n <= MAX_DUNGEON_LEVEL) {
@@ -209,7 +209,7 @@ void set_bgm_data(const char *symbol, const char *filename)
       dungeon_bgm->field[n] = strdup(filename);
     }
   }
-  /* $B%?%o!<!)(B */
+  /* タワー？ */
   else if (strnicmp(symbol, "TOWER", 5) == 0) {
     int n = atoi(symbol + 5);
     if (1 <= n && n <= MAX_DUNGEON_LEVEL) {
@@ -218,7 +218,7 @@ void set_bgm_data(const char *symbol, const char *filename)
       dungeon_bgm->tower[n] = strdup(filename);
     }
   }
-  /* $B%\%9!)(B */
+  /* ボス？ */
   else if (strnicmp(symbol, "BOSS", 4) == 0) {
     int n = atoi(symbol + 4);
     if (1 <= n && n <= 16) {
@@ -229,10 +229,10 @@ void set_bgm_data(const char *symbol, const char *filename)
   }
 }
 
-/* SE $B%G!<%?$rEPO?(B */
+/* SE データを登録 */
 void set_se_data(const char *symbol, const char *filename)
 {
-  /* $B%7%s%\%k>H9gI=(B */
+  /* シンボル照合表 */
   static struct {
     const char *	symbol;
     char **		value;
@@ -294,7 +294,7 @@ void set_se_data(const char *symbol, const char *filename)
   int i;
 
   if (!filename || filename[0] == '\0') {
-    /* $B6uJ8;zNs$G$O>e=q$-$7$J$$(B */
+    /* 空文字列では上書きしない */
   }
   else if (stricmp(symbol, "DEFAULT_CAST") == 0) {
     for (i = 0; i < number_of(se_data.cast); i++) {

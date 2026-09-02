@@ -1,78 +1,115 @@
 #include "context.h"
-#include "menu.h"
-#include "field.h"
-#include "tower.h"
-#include "battle.h"
-#include "boss.h"
-#include "shop.h"
-#include "cave.h"
-#include "use_item.h"
-#include "equip.h"
-#include "inventory.h"
-#include "user_dead.h"
-#include "animation.h"
-#include "pause.h"
-#include "fade.h"
-#include "opening.h"
-#include "ending.h"
+#include "user.h"
 
-/* $B%3%s%F%-%9%H$N>pJs$rJ];}$9$k9=B$BN(J */
-typedef struct {
-  int		context_id;		/* $B%3%s%F%-%9%H(JID */
-  void		(*enter_guard)(void);	/* $B?JF~J]8n(J */
-  void		(*leave_guard)(void);	/* $BB`=PJ]8n(J */
-} context_t;
+#include "app/Application.h"
+#include "scene/GameScene.h"
 
-context_t current;
-context_t contexts[MAX_CONTEXT] = {
-  { CONTEXT_NULL,		NULL,		NULL		 },
-  { CONTEXT_START_MENU,		menu_enter,	menu_leave	 },
-  { CONTEXT_FIELD,		field_enter,	field_leave	 },
-  { CONTEXT_TOWER,		tower_enter,	tower_leave	 },
-  { CONTEXT_BATTLE,		battle_enter,	battle_leave	 },
-  { CONTEXT_BOSS,		boss_enter,	boss_leave	 },
-  { CONTEXT_SHOP,		shop_enter,	shop_leave	 },
-  { CONTEXT_CAVE,		cave_enter,	cave_leave	 },
-  { CONTEXT_USE,		use_item_enter,	use_item_leave	 },
-  { CONTEXT_EQUIPMENT,		equip_enter,	equip_leave	 },
-  { CONTEXT_INVENTORY,		inventory_enter, inventory_leave },
-  { CONTEXT_ANIMATION,		animation_enter, animation_leave },
-  { CONTEXT_USER_DEAD,		user_dead_enter, user_dead_leave },
-  { CONTEXT_ENTER_CHARACTER,	message_enter_enter, message_enter_leave },
-  { CONTEXT_ENTER_NUMBER,	message_enter_enter, message_enter_leave },
-  { CONTEXT_ENTER_STRING,	message_enter_enter, message_enter_leave },
-  { CONTEXT_PAUSE,		pause_enter,	pause_leave	 },
-  { CONTEXT_FADE,		fade_enter,	fade_leave	 },
-  { CONTEXT_OPENING,		opening_enter,	opening_leave	 },
-  { CONTEXT_ENDING,		ending_enter,	ending_leave	 }
-};
+#include "scene/menu/MenuScene.h"
+#include "scene/field/FieldScene.h"
+#include "scene/tower/TowerScene.h"
+#include "scene/battle/BattleScene.h"
+#include "scene/boss/BossScene.h"
+#include "scene/shop/ShopScene.h"
+#include "scene/cave/CaveScene.h"
+#include "scene/useitem/UseItemScene.h"
+#include "scene/equip/EquipScene.h"
+#include "scene/inventory/InventoryScene.h"
+#include "scene/animation/AnimationScene.h"
+#include "scene/userdead/UserDeadScene.h"
+#include "scene/message/MessageEnterScene.h"
+#include "scene/pause/PauseScene.h"
+#include "scene/fade/FadeScene.h"
+#include "scene/opening/OpeningScene.h"
+#include "scene/ending/EndingScene.h"
 
-#define STACK_SIZE 8
+#include <memory>
 
-static int stack_top;
-static context_t suspended[STACK_SIZE];
+/*
+ * 旧C実装ではコンテキストごとにenter_guard/leave_guardの関数ポインタを
+ * 保持するテーブル(contexts[])を切り替えることで画面遷移を実現していたが、
+ * 現在はCONTEXT_IDごとに対応するGameScene派生クラス(*Scene)をApplicationに
+ * 生成させることで同じ役割を果たす。
+ *
+ *   switch_context(id)  : 現在のSceneをfinish()し、新しいSceneをそのまま置き換える
+ *                          (旧: leave_guard() -> current差し替え -> enter_guard())
+ *   extend_context(id)  : 現在のSceneを終了させずに新しいSceneへ進む
+ *                          (Application::run()がonSuspend()でスタックへ積む)
+ *   resume_context()    : 現在のSceneをfinish()するだけ
+ *                          (Application::run()がスタックから前のSceneを復元しonResume()を呼ぶ)
+ */
+
+namespace {
+
+FuncCreateScene create_scene_func(int context_id)
+{
+  switch (context_id) {
+  case CONTEXT_START_MENU:
+    return []{ return std::make_shared<MenuScene>(); };
+  case CONTEXT_FIELD:
+    return []{ return std::make_shared<FieldScene>(); };
+  case CONTEXT_TOWER:
+    return []{ return std::make_shared<TowerScene>(); };
+  case CONTEXT_BATTLE:
+    return []{ return std::make_shared<BattleScene>(); };
+  case CONTEXT_BOSS:
+    return []{ return std::make_shared<BossScene>(); };
+  case CONTEXT_SHOP:
+    return []{ return std::make_shared<ShopScene>(); };
+  case CONTEXT_CAVE:
+    return []{ return std::make_shared<CaveScene>(); };
+  case CONTEXT_USE:
+    return []{ return std::make_shared<UseItemScene>(); };
+  case CONTEXT_EQUIPMENT:
+    return []{ return std::make_shared<EquipScene>(); };
+  case CONTEXT_INVENTORY:
+    return []{ return std::make_shared<InventoryScene>(); };
+  case CONTEXT_ANIMATION:
+    return []{ return std::make_shared<AnimationScene>(); };
+  case CONTEXT_USER_DEAD:
+    return []{ return std::make_shared<UserDeadScene>(); };
+  case CONTEXT_ENTER_CHARACTER:
+  case CONTEXT_ENTER_NUMBER:
+  case CONTEXT_ENTER_STRING:
+    return [context_id]{ return std::make_shared<MessageEnterScene>(context_id); };
+  case CONTEXT_PAUSE:
+    return []{ return std::make_shared<PauseScene>(); };
+  case CONTEXT_FADE:
+    return []{ return std::make_shared<FadeScene>(); };
+  case CONTEXT_OPENING:
+    return []{ return std::make_shared<OpeningScene>(); };
+  case CONTEXT_ENDING:
+    return []{ return std::make_shared<EndingScene>(); };
+  default:
+    return nullptr;
+  }
+}
+
+} // namespace
 
 void switch_context(int context_id)
 {
-  /* $B8=:_$N%3%s%F%-%9%H$NB`=PJ]8n$r8F$S=P$9(J */
-  if (current.leave_guard)
-    (*(current.leave_guard))();
+  Application &app = Application::instance();
+  auto current = app.getCurrentScene();
 
-  /* $B%3%s%F%-%9%H$NJQ99(J */
-  if (context_id == CONTEXT_RESUME)
-    current = suspended[--stack_top];
-  else
-    current = contexts[context_id];
+  if (context_id == CONTEXT_RESUME) {
+    /* Application::run()がスタックの一つ前のSceneを自動的に復元する */
+    if (current) {
+      current->finish();
+    }
+    return;
+  }
 
-  /* $B?7$7$$%3%s%F%-%9%H$N?JF~J]8n$r8F$S=P$9(J */
-  if (current.enter_guard)
-    (*(current.enter_guard))();
+  if (current) {
+    current->finish();
+  }
+  app.registerNextSceneFunc(create_scene_func(context_id));
 }
 
 void extend_context(int context_id)
 {
-  suspended[stack_top++] = current;
-  switch_context(context_id);
+  /* finish()しないことで、Application::run()が現在のSceneをonSuspend()経由で
+     スタックへ積んでから新しいSceneへ進む */
+  Application::instance().registerNextSceneFunc(create_scene_func(context_id));
 }
 
 void resume_context(void)
@@ -80,15 +117,16 @@ void resume_context(void)
   switch_context(CONTEXT_RESUME);
 }
 
-/* $B=i4|>uBV$KLa$9(J */
+/* 初期状態に戻す */
 void reset_context(void)
 {
   user_hidden = 0;
-  stack_top = 0;  
   switch_context(CONTEXT_START_MENU);
 }
 
 int current_context_id(void)
 {
-  return current.context_id;
+  auto current = Application::instance().getCurrentScene();
+  auto game = std::dynamic_pointer_cast<GameScene>(current);
+  return game ? game->contextId() : CONTEXT_NULL;
 }

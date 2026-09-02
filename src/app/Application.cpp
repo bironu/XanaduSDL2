@@ -8,6 +8,8 @@
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
 
+Application *Application::instance_ = nullptr;
+
 Application::Application(Uint32 flags)
 	: is_application_(::SDL_Init(flags) == 0)
 	, is_ttf_(::TTF_Init() == 0)
@@ -28,10 +30,12 @@ Application::Application(Uint32 flags)
 		// "error messaging the mach port for IMKCFRunLoopWakeUpReliable".
 		::SDL_StopTextInput();
 	}
+	instance_ = this;
 }
 
 Application::~Application()
 {
+	instance_ = nullptr;
 	listWindow_.clear();
 	if (isMixer()) {
 		::Mix_Quit();

@@ -11,64 +11,64 @@
 #include "animation.h"
 #include "pause.h"
 
-#define GRAVITY_RATE		0	/* $B=ENOH/@8%?%$%_%s%0(B */
-#define GRAVITY_WAIT		1	/* $BF~NOMQ=ENO%&%(%$%H(B */
+#define GRAVITY_RATE		0	/* 重力発生タイミング */
+#define GRAVITY_WAIT		1	/* 入力用重力ウエイト */
 
-#define MAX_ACCELERATION	4	/* $B:GBg2CB.EY(B */
+#define MAX_ACCELERATION	4	/* 最大加速度 */
 
-#define UPDATE_ABORT		-1	/* $B$9$0$5$^%k!<%W$rH4$1$k(B */
+#define UPDATE_ABORT		-1	/* すぐさまループを抜ける */
 
-#define FIELD_INTERVAL		120	/* $B%U%#!<%k%I%?%$%^!<(B */
+#define FIELD_INTERVAL		120	/* フィールドタイマー */
 #define TRAP_RECOVERY_INTERVAL	(FIELD_INTERVAL / 2)
 
-/* $B%U%l!<%`(B */
+/* フレーム */
 static const int field_frame_user[10] = { 8, 0, 4, 2, 0, 4, 2, 0, 4, 2 };
-const int frame_monster[10] = { 0, 0, 2, 2, 0, 2, 2, 0, 0, 2 };
-const int frame_magic[MAX_SCROLL_TYPE] = { 0, 2, 4, 6, 8, 10, 12, 12, 14 };
+extern const int frame_monster[10] = { 0, 0, 2, 2, 0, 2, 2, 0, 0, 2 };
+extern const int frame_magic[MAX_SCROLL_TYPE] = { 0, 2, 4, 6, 8, 10, 12, 12, 14 };
 
-/* $B0\F0I=(B */
-const point_t move_table[10] = {
+/* 移動表 */
+extern const point_t move_table[10] = {
   {  0,  0 },
   { -1,  1 }, {  0,  1 }, {  1,  1 },
   { -1,  0 }, {  0,  0 }, {  1,  0 },
   { -1, -1 }, {  0, -1 }, {  1, -1 }
 };
 
-/* $B%k!<%W(B */
+/* ループ */
 static void field_loop(void);
 static void field_trap_loop(void);
 
-/* $BIA2h4XO"(B */
+/* 描画関連 */
 static void update_background(void);
 
-/* $B=ENO4XO"(B */
-static int gravity_clock; /* $B=ENO%+%&%s%?(B */
+/* 重力関連 */
+static int gravity_clock; /* 重力カウンタ */
 static int field_gravitate_user(void);
 static int field_gravitate_monsters(void);
 
-/* $B5U$5%D%i%i(B */
-static int field_user_trapped; /* $B%@%a!<%8%U%i%0(B */
+/* 逆さツララ */
+static int field_user_trapped; /* ダメージフラグ */
 static void user_fall_hazard(void);
 
-/* $B0\F04XO"(B */
-static int monster_clock; /* $B%b%s%9%?!<0\F0%+%&%s%?(B */
-static int field_accel; /* $B2CB.(B */
-static int field_jump; /* $BD7LvNO(B */
-static int field_warp_count; /* $B%o!<%W%+%&%s%?(B */
+/* 移動関連 */
+static int monster_clock; /* モンスター移動カウンタ */
+static int field_accel; /* 加速 */
+static int field_jump; /* 跳躍力 */
+static int field_warp_count; /* ワープカウンタ */
 static int field_move_user(int dir);
 static int field_move_monsters(void);
 static int open_tombs(void);
 static int field_warp_next(int point);
 
-/* $B@oF.4XO"(B */
+/* 戦闘関連 */
 static tomb_t *monster_encountered;
 static void field_begin_battle(void);
 static int field_battle_escape(int dir);
 
-/* $B?JF~4XO"(B */
+/* 進入関連 */
 static void field_enter_where(void);
 
-/* $B%^%C%W4XO"(B */
+/* マップ関連 */
 static tomb_t *monster_map[FIELD_SIZE];
 static int in_user_sight(int point);
 static int point_can_move(int point, int dir);
@@ -102,7 +102,7 @@ int init_training_ground(int scenario)
   load_user_unarmed();
   init_level(TRAINING_GROUND_LEVEL, LEVEL_DIR "/xa1");
 
-  /* $B%o!<%W%+%&%s%?$N=i4|2=(B */
+  /* ワープカウンタの初期化 */
   field_warp_count = 0;
   
   return CONTEXT_FIELD;
@@ -116,7 +116,7 @@ int init_level(int level, const char *dir)
     return 1;
   }
   
-  /* $B%b%s%9%?!<%^%C%W$N=i4|2=(B */
+  /* モンスターマップの初期化 */
   for (i = 0; i < FIELD_SIZE; i++) {
     monster_map[i] = NULL;
   }
@@ -126,14 +126,14 @@ int init_level(int level, const char *dir)
       monster_map[tm->point] = tm;
   }
   
-  /* $B%G%P%C%0%b!<%I(B */
+  /* デバッグモード */
   if (dir == NULL) {
     open_tombs();
   }
   
   field_cave_open();
   
-  /* $BIJJ*%G!<%?%Y!<%9$r=i4|2=(B */
+  /* 品物データベースを初期化 */
   init_goods(user.environment.scenario);
   
   return 0;
@@ -147,10 +147,10 @@ int init_field(void)
   } else {
     bgm_play(bgm_data.dungeon[user.environment.scenario]
              .field[user.environment.dungeon_level]);
-    bgm_tempo(0); /* $B%F%s%](B */
+    bgm_tempo(0); /* テンポ */
   }
   
-  /* $B@oF.Cf$@$C$?!)(B */
+  /* 戦闘中だった？ */
   if (in_battle())
     return init_battle(&user.environment.field_room,
                        &user.battle,
@@ -161,7 +161,7 @@ int init_field(void)
 
 void field_enter(void)
 {
-  /* $BJQ?t$N=i4|2=(B */
+  /* 変数の初期化 */
   gravity_clock = GRAVITY_RATE;
   monster_encountered = NULL;
   field_accel = 0;
@@ -185,19 +185,19 @@ void field_enter(void)
   } else {
     bgm_play(bgm_data.dungeon[user.environment.scenario]
              .field[user.environment.dungeon_level]);
-    bgm_tempo(0); /* $B%F%s%](B */
+    bgm_tempo(0); /* テンポ */
   }
 
-  /* $B$*$C$H!)(B */
+  /* おっと？ */
   if ((monster_encountered = point_monster(user.point)) != NULL &&
       !in_training_ground()) {
     field_begin_battle();
   } else {
-    /* $B2hLL$N99?7(B */
+    /* 画面の更新 */
     update_background();
     status_refresh(0);
 
-    /* $B%a%$%s%k!<%W$N3+;O(B */
+    /* メインループの開始 */
     set_timer(FIELD_INTERVAL, field_loop);
   }
 }
@@ -207,31 +207,31 @@ void field_leave(void)
   kill_timer();
 }
 
-/* $B%a%$%s%k!<%W(B */
+/* メインループ */
 void field_loop(void)
 {
   int key1, key2, key3, key4, key6, key7, key8, key9;
   int update = 0;
 
-  /* $B;~4V$N7P2a(B */
+  /* 時間の経過 */
   if (!in_training_ground()) {
     user_time_elapse(FIELD_INTERVAL);
   }
 
-  /* $B;`$s$@!)(B */
+  /* 死んだ？ */
   if (user.status.HP < 0) {
     extend_context(init_user_dead(user.x, user.y, update_background));
     return;
   }
 
   if (get_keystate(VK_CONTROL)) {
-    /* Ctrl+Q: $BJ]B8(B */
+    /* Ctrl+Q: 保存 */
     if (get_keystate('Q')) {
       save_user();
       switch_context(CONTEXT_START_MENU);
       return;
     }
-    /* Ctrl+S: $B%5%&%s%I(B */
+    /* Ctrl+S: サウンド */
     if (get_keystate('S')) {
       if (bgm_mute()) {
         emit_message("Sound Off");
@@ -242,37 +242,37 @@ void field_loop(void)
       return;
     }
   } else {
-    /* SPACE: $B7zJ*!&F67"$KF~$k(B */
+    /* SPACE: 建物・洞窟に入る */
     if (get_keystate(VK_SPACE)) {
       field_enter_where();
       return;
     }
-    /* ENTER: $B%"%$%F%`;HMQ(B */  
+    /* ENTER: アイテム使用 */  
     if (get_keystate(VK_RETURN) && !in_training_ground() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
       extend_context(init_use_item(update_background, NULL));
       return;
     }
-    /* S: $B%9%F!<%?%9I=<((B */
+    /* S: ステータス表示 */
     if (get_keystate('S')) {
       status_user_status();
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, NULL));
       return;
     }
-    /* I: $B:_8KI=<((B */
+    /* I: 在庫表示 */
     if (get_keystate('I')) {
       extend_context(init_inventory());
       return;
     }
-    /* E: $BAuHw(B */
+    /* E: 装備 */
     if (get_keystate('E') && !in_training_ground()) {
       extend_context(init_equip());
       return;
     }
   }
 
-  /* $B0\F0(B */
+  /* 移動 */
   key2 = get_keystate(VK_DOWN);
   key4 = get_keystate(VK_LEFT);
   key6 = get_keystate(VK_RIGHT);
@@ -308,29 +308,29 @@ void field_loop(void)
   else if (user.dir == 7) {
          if (key9) update = field_move_user(9);
     else if (key7) update = field_move_user(7);
-    else field_accel = field_jump = 0; /* $B2CB.EY!&D7LvNO$r%/%j%"(B */
+    else field_accel = field_jump = 0; /* 加速度・跳躍力をクリア */
   } else {
          if (key7) update = field_move_user(7);
     else if (key9) update = field_move_user(9);
-    else field_accel = field_jump = 0; /* $B2CB.EY!&D7LvNO$r%/%j%"(B */
+    else field_accel = field_jump = 0; /* 加速度・跳躍力をクリア */
   }
     
-  /* $B%k!<%W$rH4$1$k!)(B */
+  /* ループを抜ける？ */
   if (update < 0)
     return;
 
-  /* $B%f!<%6!<$O%b%s%9%?!<$KAx6x$7$?!)(B */
+  /* ユーザーはモンスターに遭遇した？ */
   if (monster_encountered != NULL && !in_training_ground())
     goto do_battle;
 
-  /* $B%b%s%9%?!<$r=P7b$5$;$k(B */
+  /* モンスターを出撃させる */
   open_tombs();
 
   if (!using_hourglass()) {
-    /* $B%b%s%9%?!<$N0\F0(B */
+    /* モンスターの移動 */
     update += field_move_monsters();
   
-    /* $B%b%s%9%?!<$O%f!<%6!<$K@\?($7$?!)(B */
+    /* モンスターはユーザーに接触した？ */
     if (monster_encountered != NULL && !in_training_ground()) {
     do_battle:
       field_begin_battle();
@@ -338,13 +338,13 @@ void field_loop(void)
     }
   }
 
-  /* $B=ENO$rH/@8$5$;$k(B */
+  /* 重力を発生させる */
   if (--gravity_clock < 0) {
     gravity_clock = GRAVITY_RATE;
     update += field_gravitate_user();
   }
 
-  /* $B99?7$9$k!)(B */
+  /* 更新する？ */
   if (update)
     update_background();
 
@@ -356,15 +356,15 @@ void field_loop(void)
 
 void field_trap_loop(void)
 {
-  /* $B%@%a!<%88D=j$rH?E>(B: $B$3$3$OI,$:Fs2sDL$k(B */
-  inverse_image(clip_main, user.x, user.y, &mask_damaged);
+  /* ダメージ個所を反転: ここは必ず二回通る */
+  inverse_image(clip_main, user.x, user.y, mask_damaged);
   update_region(rect_main.x + user.x, rect_main.y + user.y, 40, 40);
 
   if (field_user_trapped) {
     field_user_trapped = 0;
   } else {
-    status_update_HP(white_pixel);
-    set_timer(FIELD_INTERVAL, field_loop); /* $BI|5"(B */
+    status_update_HP(SDL_::Color::WHITE);
+    set_timer(FIELD_INTERVAL, field_loop); /* 復帰 */
   }
 }
 
@@ -379,27 +379,27 @@ void update_background(void)
 
   for (i = 0; i < 360; i += 40) {
     for (j = 0; j < 360; j += 40) {
-      /* $B%U%#!<%k%I$NHO0O30$J$i%l%s%,$GKd$a?T$/$9(B */
+      /* フィールドの範囲外ならレンガで埋め尽くす */
       int index = (top <= map && map < end) ? *map : tile_data.bricks;
-      draw_image(clip_main, j, i, &frame_tiles[index]);
+      draw_image(clip_main, j, i, frame_tiles[index]);
       map++;
     }
     map += FIELD_WIDTH - 9;
   }
 
-  /* $B%f!<%6!<$NIA2h(B */
+  /* ユーザーの描画 */
   if (!user_hidden) {
-    draw_sprite(clip_main, user.x, user.y, &frame_user[user.frame]);
+    draw_sprite(clip_main, user.x, user.y, frame_user[user.frame]);
   }
 
   mo_top += user.point + user_sight_XY();
   
-  /* $B%b%s%9%?!<$NIA2h(B */
+  /* モンスターの描画 */
   for (i = 0; i < 360; i += 40) {
     for (j = 0; j < 360; j += 40) {
       if (monster_map <= mo_top && mo_top < mo_end && *mo_top != NULL) {
         tomb_t *mo = *mo_top;
-        draw_sprite(clip_main, j, i, &frame_monsters[mo->monster_id / 4][mo->frame]);
+        draw_sprite(clip_main, j, i, frame_monsters[mo->monster_id / 4][mo->frame]);
       }
       mo_top++;
     }
@@ -408,7 +408,7 @@ void update_background(void)
   update(rect_main);
 }
 
-/* $B%f!<%6!<$N0\F0(B */
+/* ユーザーの移動 */
 int field_move_user(int dir)
 {
   int pos, map;
@@ -424,22 +424,22 @@ int field_move_user(int dir)
     user.dir = dir;
   }
   
-  /* $B2CB.EY%"%C%W!*(B */
+  /* 加速度アップ！ */
   field_accel = min(MAX_ACCELERATION, field_accel + 1);
   
   if (!using_winged_boots()) {
-    /* $BB->l$,$J$$!)(B */
+    /* 足場がない？ */
     if ((map = point_no_foothold(user.point)) != 0) {
       no_foothold = 1;
     
       /* scenario 2 */
       if (map == tile_data.slope_left ||
           map == tile_data.slope_rite) {
-        /* $B@)8f$G$-$J$$(B */
+        /* 制御できない */
         return 0; /*goto done_move;*/
       }
     
-      /* $BD7LvNO$r>CHq$G$-$k!)(B */
+      /* 跳躍力を消費できる？ */
       switch (field_jump) {
       case 1:
       case 2:
@@ -454,24 +454,24 @@ int field_move_user(int dir)
       }
       field_jump = 0;
     } else {
-      /* $BB->l$rMxMQ$7$FD7LvNO$r$?$a$k(B */
+      /* 足場を利用して跳躍力をためる */
       field_jump = field_accel;
     }
   }
 
 retry:
-  /* $B0\F0@h$N0LCV(B */
+  /* 移動先の位置 */
   pos = user.point + field_offset_XY(dx, dy);
 
-  /* $B%"%&%H%*%V%P%&%s%:!)(B */
+  /* アウトオブバウンズ？ */
   if (pos < 0 || FIELD_SIZE <= pos) {
     goto done_move;
   }
 
-  /* $B%b%s%9%?!<$,$$$k!)(B */
+  /* モンスターがいる？ */
   if ((monster_encountered = point_monster(pos)) != NULL) {
     if (dx == 0 || dy == 0)
-      return 0; /* $BAx6x(B */
+      return 0; /* 遭遇 */
 #if 0
     if (no_foothold && dy == 1 && (dir == 4 || dir == 6)) {
       user.point += FIELD_WIDTH;
@@ -482,19 +482,19 @@ retry:
     goto done_move;
   }
 
-  /* $B8=:_$NCO7A$,;XDj$7$?J}8~$X$N0\F0$r5v$9!)(B */
+  /* 現在の地形が指定した方向への移動を許す？ */
   if (!using_mantle() && !point_can_move(user.point, dir)) {
     goto done_move;
   }
 
-  /* $B0\F0@h$NCO7A$,?/F~$r5v$5$J$$!)(B */
+  /* 移動先の地形が侵入を許さない？ */
   if (!point_can_through(pos)) {
     map = point_map(pos);
 
-    /* $B30Ee$,L58z!)(B */
+    /* 外套が無効？ */
     if (!using_mantle() || (tile_data.flags[map] & TILE_WALL_MARBLE) != 0) {
       
-      /* $BHb!)(B */
+      /* 扉？ */
       if (map == tile_data.locked && user_use_key()) {
       
         level_data.field[pos] = pos % 2 != 0
@@ -504,7 +504,7 @@ retry:
         se_play(SE_LOST_KEY); /* SE */
         emit_message("Lost key");
       
-        /* $BHb$r3+$1$k(B */
+        /* 扉を開ける */
         extend_context(init_animation_tile(tile_data.field_open, 3,
                                            user.x + dx * 40,
                                            user.y + dy * 40,
@@ -514,11 +514,11 @@ retry:
 
       if (no_foothold && dy < 0) {
 #if 1
-        /* $B%9%`!<%:$JJ}K!(B */
+        /* スムーズな方法 */
         dy = 1;
         goto retry;
 #else
-        /* $B<+M3Mn2<$rBT$D(B */
+        /* 自由落下を待つ */
         gravity_clock = GRAVITY_WAIT;
 #endif
       }
@@ -527,10 +527,10 @@ retry:
     }
   }
   
-  /* $B=ENOH/@8%?%$%_%s%0$NCY1d(B */
+  /* 重力発生タイミングの遅延 */
   gravity_clock = GRAVITY_WAIT;
   
-  /* $B%o!<%W%]%$%s%H!)(B */
+  /* ワープポイント？ */
   if (point_map(pos) == tile_data.pattern_warp) {
     user.point = field_warp_next(pos);
   } else {
@@ -543,7 +543,7 @@ done_move:
     map = point_map(user.point + FIELD_WIDTH);
     if (map == tile_data.icicle_hazard &&
         point_map(user.point) != tile_data.ladder) {
-      /* $B5U$5%D%i%i(B */
+      /* 逆さツララ */
       user_fall_hazard();
     }
   }
@@ -558,43 +558,43 @@ int field_gravitate_user(void)
   int map = point_map(pos);
   int update = 0;
 
-  /* $B%f!<%6!<$OCh$KIb$$$F$$$k!)(B */
+  /* ユーザーは宙に浮いている？ */
   if (using_winged_boots())
     return 0;
   
-  /* $BB->l$,$J$$!)(B */
+  /* 足場がない？ */
   if (point_no_foothold(user.point)) {
 
-    /* $B%o!<%W%]%$%s%H!)(B */
+    /* ワープポイント？ */
     if (map == tile_data.pattern_warp) {
       pos = field_warp_next(pos);
     }
-    /* $B<PLL(B($B:82<$,$j(B)$B!)(B */    
+    /* 斜面(左下がり)？ */    
     else if (map == tile_data.slope_left) {
       pos -= 1;
       if (!point_can_through(pos))
         return 0;
       
-      /* $B:82<8~$-(B */
+      /* 左下向き */
       user.frame = field_frame_user[1] + (user.frame + 1) % 2;
-      field_accel = field_jump = MAX_ACCELERATION; /* $B2CB.(B */
+      field_accel = field_jump = MAX_ACCELERATION; /* 加速 */
     }
-    /* $B<PLL(B($B1&2<$,$j(B)$B!)(B */
+    /* 斜面(右下がり)？ */
     else if (map == tile_data.slope_rite) {
       pos += 1;
       if (!point_can_through(pos))
         return 0;
 
-      /* $B1&2<8~$-(B */
+      /* 右下向き */
       user.frame = field_frame_user[3] + (user.frame + 1) % 2;
-      field_accel = field_jump = MAX_ACCELERATION; /* $B2CB.(B */
+      field_accel = field_jump = MAX_ACCELERATION; /* 加速 */
     }
 
-    /* $BMn2<(B */
+    /* 落下 */
     user.point = pos;
     update = 1;
   
-    /* $BCeCO$7$?!)(B */
+    /* 着地した？ */
     if (!point_no_foothold(user.point)) {
       field_jump = field_accel;
     }
@@ -604,19 +604,19 @@ int field_gravitate_user(void)
   
   if (point_map(user.point) != tile_data.ladder &&
       map == tile_data.icicle_hazard) {
-    /* $B5U$5%D%i%i(B */
+    /* 逆さツララ */
     user_fall_hazard();
   }
   return update;
 }
 
-/* $B<!$N%o!<%W0LCV$rJV$9(B */
+/* 次のワープ位置を返す */
 int field_warp_next(int point)
 {
   int p;
 
   if (in_training_ground()) {
-    /* $B71N}>l$G(B 10 $B2s%o!<%W$7$?!)(B */
+    /* 訓練場で 10 回ワープした？ */
     if (field_warp_count < 10)
       field_warp_count++;
     else
@@ -638,7 +638,7 @@ void user_fall_hazard(void)
 {
   int i, damage;
 
-  /* $B%@%a!<%8$N7W;;(B */
+  /* ダメージの計算 */
   damage = 1;
   for (i = 0; i < MAX_GOODS; i++) {
     damage += user.inventory[GOODS_WEAPON][i].stock;
@@ -651,7 +651,7 @@ void user_fall_hazard(void)
   user.status.HP -= damage;
     
   format_message("DMG-%d", damage);
-  status_update_HP(red_pixel);
+  status_update_HP(SDL_::Color::RED);
   
   field_user_trapped = 1;
   se_play(SE_TRAPPED);
@@ -663,10 +663,10 @@ int open_tombs(void)
   int n = 0;
 
   for (top = level_data.tombs, end = top + MAX_TOMB; top < end; top++) { 
-    /* $BB`<#$5$l$F$7$^$C$?$,!"4pCO$K$O$^$@<!$N@$Be$,$$$k!)(B */
+    /* 退治されてしまったが、基地にはまだ次の世代がいる？ */
     if (top->num_members == 0 && top->monster_id >= 0) {
 
-      /* $B$=$3$OB>$N%b%s%9%?!<$,$*$i$:!"%f!<%6!<$K8+$($J$$!)(B */
+      /* そこは他のモンスターがおらず、ユーザーに見えない？ */
       if (monster_map[top->point_tomb] == NULL &&
           !in_user_sight(top->point_tomb)) {
         
@@ -675,12 +675,12 @@ int open_tombs(void)
         int group_rnd = mo->group_max - mo->group_min;
         int num_members;
 
-        /* $B?7$7$$%0%k!<%W$rAH?%$9$k(B */
+        /* 新しいグループを組織する */
         num_members = max(1,
                           group_rnd > 0
                           ? group_min + random_integer(group_rnd) : group_min);
         
-        /* $B?7$7$$%b%s%9%?!<$r=P8=$5$;$k(B */
+        /* 新しいモンスターを出現させる */
         top->point       = top->point_tomb;
         top->num_members = num_members;
         top->frame       = 0;
@@ -701,47 +701,47 @@ int field_move_monsters(void)
   tomb_t *top, *end;
   int n = 0;
 
-  /* $B0\F0%/%m%C%/$N99?7(B */
+  /* 移動クロックの更新 */
   monster_clock = (monster_clock + 1) % 2;
 
   for (top = level_data.tombs, end = top + MAX_TOMB; top < end; top++) {
 
-    /* $B$^$@B`<#$5$l$F$$$J$$9=@.0w$,$$$k!)(B */
+    /* まだ退治されていない構成員がいる？ */
     if (top->num_members > 0) {
       int dx, dy;
       int old;
       int pos;
       
-      /* $B%f!<%6!<$h$jCY$$$H0\F0B.EY$OH>J,(B */
+      /* ユーザーより遅いと移動速度は半分 */
       if (top->AGL < user_AGL() && monster_clock == 0)
         continue;
         
-      /* $B<+J,$N>l=j$r$$$C$?$s%/%j%"(B */
+      /* 自分の場所をいったんクリア */
       monster_map[top->point] = NULL;
 
-      /* $B0LCV(B */
+      /* 位置 */
       old = top->point;
       pos = top->point;
 
       dx = move_table[top->dir].x;
       dy = move_table[top->dir].y;
 
-      /* $B%b%s%9%?!<$OF0$+$J$$!)(B */
+      /* モンスターは動かない？ */
       if ((top->activity & ACTIVITY_WALKER) == 0)
         goto done_move;
 
-      /* $B=ENO$N1F6A$r<u$1$J$$!)(B */
+      /* 重力の影響を受けない？ */
       if ((top->activity & ACTIVITY_FLIGHT) != 0) {
         if (dx == 0 && dy == 0)
-          goto no_move; /* $BL50UL#$J%[%P!<%j%s%0$OHr$1$?$$(B */
+          goto no_move; /* 無意味なホバーリングは避けたい */
         
-        /* $B$H$j$"$($:$3$NJ}8~$K0\F0$7$F$_$k(B */
+        /* とりあえずこの方向に移動してみる */
         pos = top->point + field_offset_XY(dx, dy);
         if (!point_can_through(pos))
           goto no_move;
         
       } else {
-        /* $B6u$rHt$Y$k$b$N0J30$OB->l$J$7$G$O0\F0$G$-$J$$(B */
+        /* 空を飛べるもの以外は足場なしでは移動できない */
         if (point_no_foothold(pos))
           goto done_move;
 
@@ -749,7 +749,7 @@ int field_move_monsters(void)
         case 0:
         case 5: goto no_move;
 
-          /* $B2<$*$h$S<P$a2<(B */
+          /* 下および斜め下 */
         case 2:
           if ((top->activity & ACTIVITY_LADDER) == 0) {
             top->dir = 6;
@@ -758,12 +758,12 @@ int field_move_monsters(void)
         case 1:
         case 3:
           pos = top->point + field_offset_XY(dx,  1);
-          /* $BB->l$,$J$$>l=j$K$O9_$j$J$$(B */
+          /* 足場がない場所には降りない */
           if (!point_can_through(pos) || point_no_foothold(pos))
             top->dir += 3;
           break;
 
-          /* $B>e$*$h$S<P$a>e(B */
+          /* 上および斜め上 */
         case 8:
           if ((top->activity & ACTIVITY_LADDER) == 0) {
             top->dir = 4;
@@ -772,7 +772,7 @@ int field_move_monsters(void)
         case 7:
         case 9:
           pos = top->point + field_offset_XY(dx, -1);
-          /* $BB->l$,$"$k$J$i>e$K9T$1$k(B */
+          /* 足場があるなら上に行ける */
           if (!point_can_through(pos) || point_no_foothold(pos))
             top->dir -= 3;
           break;
@@ -781,37 +781,37 @@ int field_move_monsters(void)
         if (!point_can_through(pos) || point_no_foothold(pos))
           goto no_move;
       }
-      /* $B0\F0(B */
+      /* 移動 */
       top->point = pos;
       goto done_move;
 
     no_move:
-      /* $B$7$+$7$=$l$O%f!<%6!<!)(B($B>e2<:81&$N0\F0$N$_(B) */
+      /* しかしそれはユーザー？(上下左右の移動のみ) */
       if (top->dir % 2 == 0 && pos == user.point) {
         monster_encountered = top;
       }
-      /* $B$3$N0LCV$GB-F'$_(B */
+      /* この位置で足踏み */
       pos = old;
 
-      /* $BJ}8~E>49$K(B 1 $B%?!<%s>CHq$9$k(B */
+      /* 方向転換に 1 ターン消費する */
       top->dir = random_direction();
 
     done_move:
       if ((top->activity & ACTIVITY_VIVID) != 0) {
-        top->frame++; /* $B%U%l!<%`99?7(B */
+        top->frame++; /* フレーム更新 */
       }
       top->frame = frame_monster[top->dir] + top->frame % 2;
 
-      /* $B%f!<%6!<$,8+$F$$$?!)(B */
+      /* ユーザーが見ていた？ */
       if (in_user_sight(old) || in_user_sight(pos))
         n++;
 
-      /* $B?7$7$$>l=j$K<+J,<+?H$rCV$/(B */
+      /* 新しい場所に自分自身を置く */
       monster_map[pos] = top;
     }
   }
 
-  /* $B%f!<%6!<$K8+$i$l$?%b%s%9%?!<$N?t$rJV$9(B */
+  /* ユーザーに見られたモンスターの数を返す */
   return n + field_gravitate_monsters();
 }
 
@@ -821,27 +821,27 @@ int field_gravitate_monsters(void)
   int n = 0;
   
   for (top = level_data.tombs, end = top + MAX_TOMB; top < end; top++) {
-    /* $B=ENO$N1F6A$r<u$1$k!)(B */
+    /* 重力の影響を受ける？ */
     if (top->num_members > 0 && (top->activity & ACTIVITY_FLIGHT) == 0) {
       int old = top->point;
       int pos = top->point;
       int map = point_no_foothold(top->point);
 
-      /* $BB->l$,$J$$(B */
+      /* 足場がない */
       if (map != 0) {
-        /* $B<PLL(B($B:82<$,$j(B) */
+        /* 斜面(左下がり) */
         if (map == tile_data.slope_left) {
           pos += field_offset_XY(-1, 1);
           if (!point_can_through(pos))
             continue;
         }
-        /* $B<PLL(B($B1&2<$,$j(B) */
+        /* 斜面(右下がり) */
         else if (map == tile_data.slope_rite) {
           pos += field_offset_XY(+1, 1);
           if (!point_can_through(pos))
             continue;
         }
-        /* $B<+M3Mn2<(B */
+        /* 自由落下 */
         else {
           pos += field_offset_XY( 0, 1);
         }
@@ -849,7 +849,7 @@ int field_gravitate_monsters(void)
         monster_map[pos] = top;
         top->point = pos;
 
-        /* $B%f!<%6!<$+$i$=$l$,8+$($k!)(B */
+        /* ユーザーからそれが見える？ */
         if (in_user_sight(old) || in_user_sight(top->point))
           n++;
       }
@@ -858,10 +858,10 @@ int field_gravitate_monsters(void)
   return n;
 }
 
-/* $B@oF.$r3+;O$9$k(B */
+/* 戦闘を開始する */
 void field_begin_battle()
 {
-  /* $B%b%s%9%?!<$N@oF.;~%U%)!<%a!<%7%g%s(B */
+  /* モンスターの戦闘時フォーメーション */
   static const point_t monster_formation[MAX_MEMBER] = {
     {  0,  0 }, { -1,  0 }, {  1,  0 },
     {  0, -1 }, {  0,  1 }, { -1,  1 },
@@ -871,43 +871,43 @@ void field_begin_battle()
   room_t *room = &user.environment.field_room;
   tomb_t *ma = monster_encountered;
 
-  /* $BAx6x$7$?%b%s%9%?!<$N=P8=0LCVHV9f$r95$($F$*$/(B */
+  /* 遭遇したモンスターの出現位置番号を控えておく */
   user.environment.field_encountered = ma - level_data.tombs;
 
-  /* $BAx6x$7$?%b%s%9%?!<$N>pJs(B */
+  /* 遭遇したモンスターの情報 */
   room->monster_id = ma->monster_id;
 
-  /* $B3F%b%s%9%?!<$N=i4|0LCV$r7h$a$k(B */
+  /* 各モンスターの初期位置を決める */
   for (i = 0; i < ma->num_members; i++) {
     room->members[i].type = MEMBER_MONSTER;
     room->members[i].x = (monster_formation[i].x + 4) * 40;
     room->members[i].y = (monster_formation[i].y + 4) * 40;
   }
 
-  /* $B;D$j$N%(%s%H%j$O;H$o$J$$(B */
+  /* 残りのエントリは使わない */
   for (; i < MAX_MEMBER; i++)
     room->members[i].type = MEMBER_UNUSED;
   
-  /* $B@o>l$N>pJs(B */
+  /* 戦場の情報 */
   room->barrier[0] = !point_can_escape(ma->point + FIELD_WIDTH);
   room->barrier[1] = !point_can_escape(ma->point - 1);
   room->barrier[2] = !point_can_escape(ma->point + 1);
   room->barrier[3] = !point_can_escape(ma->point - FIELD_WIDTH);
   
-  /* $B%f!<%6!<$N=i4|0LCV$r?dB,$9$k(B */
+  /* ユーザーの初期位置を推測する */
   diff = user.point - ma->point;
 #if 0
        if (diff >   1) { user.x = 160; user.y = 320; }
   else if (diff ==  1) { user.x = 320; user.y = 160; }
   else if (diff <  -1) { user.x = 160; user.y =   0; }
   else if (diff == -1) { user.x =   0; user.y = 160; }
-  else                 { user.x = 160; user.y =   0; } /* $B>e(B */
+  else                 { user.x = 160; user.y =   0; } /* 上 */
 #else
        if (diff >   1) { user.x = 160; user.y = 320; user.dir = 8; }
   else if (diff ==  1) { user.x = 320; user.y = 160; user.dir = 4; }
   else if (diff <  -1) { user.x = 160; user.y =   0; user.dir = 2; }
   else if (diff == -1) { user.x =   0; user.y = 160; user.dir = 6; }
-  else                 { user.x = 160; user.y =   0; user.dir = 2; } /* $B>e(B */
+  else                 { user.x = 160; user.y =   0; user.dir = 2; } /* 上 */
   
   {
     user.frame = battle_frame_user[user.dir];
@@ -926,12 +926,12 @@ int field_battle_escape(int dir)
       user.environment.field_encountered < MAX_TOMB) {
     ma = &level_data.tombs[user.environment.field_encountered];
   } else {
-    /* $BCWL?E*%(%i!<(B: $BC&=P$G$-$J$$(B */
+    /* 致命的エラー: 脱出できない */
     emit_error("Can't leave there!");
     return 0;
   }
   
-  /* $B%f!<%6!<$N?7$7$$0LCV$r7h$a$k(B */
+  /* ユーザーの新しい位置を決める */
   p = ma->point;
   switch (dir) {
   case 2: p += FIELD_WIDTH; break;
@@ -940,27 +940,27 @@ int field_battle_escape(int dir)
   case 8: p -= FIELD_WIDTH; break;
   }
 
-  /* $B%U%#!<%k%I$N>e2<$N6-3&$r1[$($J$$!)(B */
+  /* フィールドの上下の境界を越えない？ */
   if (0 <= p && p < FIELD_SIZE) {
     int num_members = 0;
   
-    /* $B@8$-;D$C$?%b%s%9%?!<$N?t$rD4$Y!"7k2L$rH?1G$9$k(B */
+    /* 生き残ったモンスターの数を調べ、結果を反映する */
     for (i = 0; i < MAX_MEMBER; i++) {
       if (member_monster(&user.environment.field_room.members[i]))
         num_members++;
     }
     ma->num_members = num_members;
     
-    /* $BB`<#$5$l$?!)(B */
+    /* 退治された？ */
     if (num_members <= 0) {
-      ma->monster_id++; /* $B<!$N@$Be(B */
+      ma->monster_id++; /* 次の世代 */
       if (ma->monster_id % MAX_VARIETY == 0) {
-        ma->monster_id = -1; /* $BBG$A;_$a(B */
+        ma->monster_id = -1; /* 打ち止め */
       }
       monster_map[ma->point] = NULL;
     }
 
-    /* $B?7$7$$>l=j$K$O%b%s%9%?!<$,$$$k!)(B */
+    /* 新しい場所にはモンスターがいる？ */
     if ((monster_encountered = point_monster(p)) != NULL) {
       user.point = ma->point;
       field_begin_battle();
@@ -970,10 +970,10 @@ int field_battle_escape(int dir)
     }
     return 1;
   }
-  return 0; /* $BC&=P$G$-$J$$!*(B */
+  return 0; /* 脱出できない！ */
 }
 
-/* $B;XDj$5$l$?0LCV$O%f!<%6!<$+$i8+$($k!)(B */
+/* 指定された位置はユーザーから見える？ */
 int in_user_sight(int p)
 {
   int top = user.point + user_sight_XY();
@@ -985,7 +985,7 @@ int in_user_sight(int p)
   return 0;
 }
 
-/* $B;XDj$5$l$?0LCV$N%^%C%W$NCO7A$rJV$9(B */
+/* 指定された位置のマップの地形を返す */
 int point_map(int p)
 {
   if (0 <= p && p < FIELD_SIZE)
@@ -994,26 +994,26 @@ int point_map(int p)
     return tile_data.bricks;
 }
 
-/* $B;XDj$5$l$?0LCV!V$+$i!W!";XDj$5$l$?J}8~!V$K!W0\F02DG=!)(B */
+/* 指定された位置「から」、指定された方向「に」移動可能？ */
 int point_can_move(int p, int d)
 {
   return point_map(p) != tile_data.bridge || move_table[d].y >= 0;
 }
 
-/* $B;XDj$5$l$?0LCV!V$K!WDL2a2DG=!)(B */
+/* 指定された位置「に」通過可能？ */
 int point_can_through(int p)
 {
   if (0 <= p && p < FIELD_SIZE) {
     int map = level_data.field[p];
 
-    /* $B%f!<%6!<$^$?$O%b%s%9%?!<$r9MN8$KF~$l$k(B */
+    /* ユーザーまたはモンスターを考慮に入れる */
     return (tile_data.flags[map] & TILE_WALL) == 0 &&
       p != user.point && monster_map[p] == NULL;
   }
   return 0;
 }
 
-/* $B;XDj$5$l$?0LCV!V$K!W!";XDj$5$l$?J}8~!V$G!WC&=P2DG=!)(B */
+/* 指定された位置「に」、指定された方向「で」脱出可能？ */
 int point_can_escape(int p)
 {
   if (0 <= p && p < FIELD_SIZE) {
@@ -1023,36 +1023,36 @@ int point_can_escape(int p)
   return 0;
 }
 
-/* $B;XDj$5$l$?0LCV$OB->l$,$J$$!)(B */
-/* -1: $BB->l$,$J$$!"(B[$B<PLL$NCO7A(B]: $BB->l$,$J$$(B */
+/* 指定された位置は足場がない？ */
+/* -1: 足場がない、[斜面の地形]: 足場がない */
 int point_no_foothold(int pos)
 {
   if (0 <= pos && pos < FIELD_SIZE - FIELD_WIDTH) {
     int map;
     
-    /* $B$=$N0LCV$NCO7A$O!V$O$7$4!W!)(B */
+    /* その位置の地形は「はしご」？ */
     if (level_data.field[pos] == tile_data.ladder)
       return 0;
 
-    /* $BD>2<$N0LCV(B */
+    /* 直下の位置 */
     pos += FIELD_WIDTH;
     map = level_data.field[pos];
 
-    /* $B<PLL!)(B */
+    /* 斜面？ */
     if (map == tile_data.slope_left || map == tile_data.slope_rite)
       return map;
 
-    /* $B$=$3$K$OB->l$H$J$kCO7A$,$J$/!"%f!<%6!<!&%b%s%9%?!<$,$$$J$$!)(B */
+    /* そこには足場となる地形がなく、ユーザー・モンスターがいない？ */
     if ((tile_data.flags[map] & FOOTHOLD_MASK) == 0u &&
         pos != user.point &&
         monster_map[pos] == NULL)
       return -1;
   }
-  /* $B:G2<AX$*$h$S%U%#!<%k%I$NHO0O30$OD4$Y$k$^$G$b$J$$(B */
+  /* 最下層およびフィールドの範囲外は調べるまでもない */
   return 0;
 }
 
-/* $B;XDj$5$l$?0LCV$K%b%s%9%?!<$,$$$k!)(B */
+/* 指定された位置にモンスターがいる？ */
 tomb_t *point_monster(int p)
 {
   return 0 <= p && p < FIELD_SIZE ? monster_map[p] : NULL;
@@ -1064,7 +1064,7 @@ void field_enter_where(void)
   int map = point_map(user.point);
 
   if (map == tile_data.cave_closed) {
-    /* scenario 2: $B:G2<AX$KDL$8$kHb!)(B */
+    /* scenario 2: 最下層に通じる扉？ */
     if (in_scenario2()) {
       if (user.equipment[GOODS_WEAPON    ] == MAX_GOODS - 1 &&
           user.equipment[GOODS_SCROLL    ] == MAX_GOODS - 1 &&
@@ -1081,19 +1081,19 @@ void field_enter_where(void)
     return;
   }
 
-  /* $B<!$N%l%Y%k$X9T$/!)(B */
+  /* 次のレベルへ行く？ */
   if (map == tile_data.cave_next) {
     int to_level = user.environment.dungeon_level + 1;
     
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
-      /* $B$3$N$H$-%f!<%6!<%G!<%?$NJ]B8(B */
+      /* このときユーザーデータの保存 */
       extend_context(init_cave(to_level));
       return;
     }
-    /* $B71N}>l$+$iH4$1$k!)(B */
+    /* 訓練場から抜ける？ */
     else if (in_training_ground()) {
       if (strcmp(user.status.name, "") == 0) {
-        /* $B2&MM$K2q$C$F$$$J$$(B */
+        /* 王様に会っていない */
         user.point = field_offset_XY(5, 10);
         user.frame = 0;
       } else {
@@ -1107,13 +1107,13 @@ void field_enter_where(void)
 
         extend_context(init_cave(0));
         
-        make_user_dir(); /* $B%f!<%6!<%G%#%l%/%H%j$r:n@.$9$k(B */
-        init_level(0, user_path); /* $BFI$_D>$7(B */
+        make_user_dir(); /* ユーザーディレクトリを作成する */
+        init_level(0, user_path); /* 読み直し */
       }
       return;
     }
   }
-  /* $BA0$N%l%Y%k$X9T$/!)(B */
+  /* 前のレベルへ行く？ */
   if (map == tile_data.cave_back) {
     int to_level = user.environment.dungeon_level - 1;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
@@ -1121,7 +1121,7 @@ void field_enter_where(void)
       return;
     }
   }
-  /* $B;03,AX<!$N%l%Y%k$K9T$/!)(B */
+  /* 三階層次のレベルに行く？ */
   if (map == tile_data.cave_next3) {
     int to_level = user.environment.dungeon_level + 3;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
@@ -1129,7 +1129,7 @@ void field_enter_where(void)
       return;
     }
   }
-  /* $B;03,AXA0$N%l%Y%k$K9T$/!)(B */
+  /* 三階層前のレベルに行く？ */
   if (map == tile_data.cave_back3) {
     int to_level = user.environment.dungeon_level - 3;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
@@ -1138,7 +1138,7 @@ void field_enter_where(void)
     }
   }
   
-  /* $B%7%g%C%W(B */
+  /* ショップ */
   for (i = 0; i < MAX_SHOP; i++) {
     if (level_data.shops[i].point == user.point) {
       extend_context(init_shop(level_data.shops[i].value));
@@ -1146,23 +1146,23 @@ void field_enter_where(void)
     }
   }
 
-  /* $B%7%J%j%*(B1: $B:G8e$N:V(B */
+  /* シナリオ1: 最後の砦 */
   if (map == tile_data.last_tower && !in_scenario2()) {
     if (user.status.CRN != 4 ||
         user.status.KRM != 0) {
-      emit_message("Enter-Closed"); /* $BK\Ev$O2?$F8@$&$N!)(B */
+      emit_message("Enter-Closed"); /* 本当は何て言うの？ */
       return;
     }
   }
 
-  /* $B%?%o!<(B */
+  /* タワー */
   for (i = 0; i < TOWER_SIZE; i++) {
     if (level_data.tower[i].entrance_point == user.point) {
       int boss_id = level_data.tower[i].boss_id;
 
-      /* $B%\%9!)(B */
+      /* ボス？ */
       if (boss_id >= 0) {
-        save_user(); /* $B%?%o!<$KF~$kA0$N>uBV$rJ]B8$9$k(B */
+        save_user(); /* タワーに入る前の状態を保存する */
       }
 
       user.point = i;
@@ -1184,15 +1184,15 @@ void field_cave_open(void)
 {
   /* scenario 1 */
   if (!in_scenario2()) {
-    /* $BI,MW%i%s%/(B */
+    /* 必要ランク */
     const int require_rank[10] = { 1, 3, 4, 5, 7, 8, 10, 11, 13 };
     int level = user.environment.dungeon_level;
     
-    /* $B5,Dj$N%i%s%/$r%/%j%"$7$?!)(B */
+    /* 規定のランクをクリアした？ */
     if (0 <= level && level < 10 &&
         require_rank[level] <= user_higher_rank()) {
       int i;
-      /* $BIu0u$5$l$F$$$?F67"$r3+$/(B */
+      /* 封印されていた洞窟を開く */
       for (i = 0; i < FIELD_SIZE; i++) {
         if (level_data.field[i] == tile_data.cave_closed) {
           level_data.field[i] = tile_data.cave_next;
