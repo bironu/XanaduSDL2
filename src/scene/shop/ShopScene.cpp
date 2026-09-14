@@ -3,7 +3,7 @@
 #include "context.h"
 
 ShopScene::ShopScene()
-	: GameScene(CONTEXT_SHOP, []{ return std::make_shared<ShopScene>(); })
+	: GameScene(CONTEXT_SHOP)
 {
 }
 

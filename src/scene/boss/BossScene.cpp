@@ -3,7 +3,7 @@
 #include "context.h"
 
 BossScene::BossScene()
-	: GameScene(CONTEXT_BOSS, []{ return std::make_shared<BossScene>(); })
+	: GameScene(CONTEXT_BOSS)
 {
 }
 

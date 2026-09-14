@@ -24,7 +24,7 @@ public:
 	MenuScene();
 
 	void dispatch(const SDL_Event &event) override;
-	FuncCreateScene onSuspend() override;
+	void onSuspend() override;
 	void onCreate(uint32_t tick) override;
 	void onDestroy(uint32_t tick) override;
 	void onResume(uint32_t tick) override;
@@ -62,7 +62,8 @@ private:
 	// static membersとする。
 	static State state_;
 	static std::array<UserEntry, kMaxUserEntry> userEntries_;
-	static std::shared_ptr<SDL_::Image> logoImage_;
+	std::shared_ptr<SDL_::Image> imageLogo_;
+	std::shared_ptr<SDL_::Image> imageFrame_;
 };
 
 #endif // MENUSCENE_H_

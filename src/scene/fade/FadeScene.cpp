@@ -4,7 +4,7 @@
 #include "context.h"
 
 FadeScene::FadeScene()
-	: GameScene(CONTEXT_FADE, []{ return std::make_shared<FadeScene>(); })
+	: GameScene(CONTEXT_FADE)
 {
 }
 

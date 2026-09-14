@@ -187,10 +187,12 @@ int draw_text(std::shared_ptr<SDL_::Image> dst, int x, int y, const char *s, con
 
 void update_region(int, int, int, int)
 {
+    update_immediately();
 }
 
 void update_immediately(void)
 {
+    presentLegacyFrame();
 }
 
 int load_background(const char *filename)

@@ -14,7 +14,6 @@ class Scene;
 class Application;
 class Resources;
 class TaskManager;
-using FuncCreateScene = std::function<std::shared_ptr<Scene>()>;
 union SDL_Event;
 class Task;
 class Scene
@@ -31,7 +30,7 @@ public:
 	void unregisterTask(int, bool);
 
 	virtual void dispatch(const SDL_Event &) = 0;
-	virtual FuncCreateScene onSuspend() = 0;
+	virtual void onSuspend() = 0;
 	virtual bool onIdle(uint32_t);
 	virtual void onCreate(uint32_t);
 	virtual void onDestroy(uint32_t);

@@ -3,7 +3,7 @@
 #include "context.h"
 
 UserDeadScene::UserDeadScene()
-	: GameScene(CONTEXT_USER_DEAD, []{ return std::make_shared<UserDeadScene>(); })
+	: GameScene(CONTEXT_USER_DEAD)
 {
 }
 

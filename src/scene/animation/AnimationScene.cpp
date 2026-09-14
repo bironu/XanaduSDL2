@@ -3,7 +3,7 @@
 #include "context.h"
 
 AnimationScene::AnimationScene()
-	: GameScene(CONTEXT_ANIMATION, []{ return std::make_shared<AnimationScene>(); })
+	: GameScene(CONTEXT_ANIMATION)
 {
 }
 

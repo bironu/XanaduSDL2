@@ -3,7 +3,7 @@
 #include "context.h"
 
 PauseScene::PauseScene()
-	: GameScene(CONTEXT_PAUSE, []{ return std::make_shared<PauseScene>(); })
+	: GameScene(CONTEXT_PAUSE)
 {
 }
 

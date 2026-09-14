@@ -30,9 +30,7 @@ int main(int argc, char *argv[])
 	initLegacyGraphics(res);
 	initLegacySound(res);
 
-	app.registerNextSceneFunc([](){
-		return std::make_shared<MenuScene>();
-	});
+	app.registerNextScene(std::make_shared<MenuScene>());
 
 	TaskManager manager;
 	return app.run(res, manager);

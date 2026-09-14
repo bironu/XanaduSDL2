@@ -3,7 +3,7 @@
 #include "context.h"
 
 FieldScene::FieldScene()
-	: GameScene(CONTEXT_FIELD, []{ return std::make_shared<FieldScene>(); })
+	: GameScene(CONTEXT_FIELD)
 {
 }
 

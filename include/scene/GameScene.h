@@ -8,11 +8,11 @@
 //   旧context_tのenter_guard  -> GameScene派生クラスのonEnter (onCreate/onResumeから呼ばれる)
 //   旧context_tのleave_guard  -> GameScene派生クラスのonLeave (onDestroy/onSuspendから呼ばれる)
 //   switch_context/extend_context/resume_context (src/context.cpp) が
-//   Application::registerNextSceneFunc 経由でこのクラスの生成・破棄・一時停止・再開を駆動する。
+//   Application::registerNextScene 経由でこのクラスの生成・破棄・一時停止・再開を駆動する。
 class GameScene : public Scene
 {
 public:
-	GameScene(int contextId, FuncCreateScene resumeFactory);
+	GameScene(int contextId);
 	virtual ~GameScene() = default;
 
 	// src/context.h の CONTEXT_* 定数
@@ -21,7 +21,7 @@ public:
 	void onCreate(uint32_t tick) override;
 	void onDestroy(uint32_t tick) override;
 	void onResume(uint32_t tick) override;
-	FuncCreateScene onSuspend() override;
+	void onSuspend() override;
 
 	// キー入力等のOSイベント処理。挙動は全コンテキスト共通のため、この基底クラスで実装する。
 	void dispatch(const SDL_Event &event) override;
@@ -33,7 +33,6 @@ protected:
 
 private:
 	const int contextId_;
-	const FuncCreateScene resumeFactory_;
 };
 
 #endif // GAME_SCENE_H_

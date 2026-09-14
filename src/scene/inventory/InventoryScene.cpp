@@ -3,7 +3,7 @@
 #include "context.h"
 
 InventoryScene::InventoryScene()
-	: GameScene(CONTEXT_INVENTORY, []{ return std::make_shared<InventoryScene>(); })
+	: GameScene(CONTEXT_INVENTORY)
 {
 }
 

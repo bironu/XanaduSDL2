@@ -3,7 +3,7 @@
 #include "context.h"
 
 OpeningScene::OpeningScene()
-	: GameScene(CONTEXT_OPENING, []{ return std::make_shared<OpeningScene>(); })
+	: GameScene(CONTEXT_OPENING)
 {
 }
 

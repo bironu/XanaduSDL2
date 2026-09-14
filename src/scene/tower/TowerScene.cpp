@@ -3,7 +3,7 @@
 #include "context.h"
 
 TowerScene::TowerScene()
-	: GameScene(CONTEXT_TOWER, []{ return std::make_shared<TowerScene>(); })
+	: GameScene(CONTEXT_TOWER)
 {
 }
 

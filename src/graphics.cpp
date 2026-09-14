@@ -20,8 +20,8 @@ void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<
   if (!dst || !src) {
     return;
   }
-  /* draw_imageは常に不透明合成(旧tmpl_drawはmaskを一切見ない)。
-     srcにcolorkeyが設定済みでも、一時的に無効化してから合成する */
+  // draw_imageは常に不透明合成(旧tmpl_drawはmaskを一切見ない)。
+  // srcにcolorkeyが設定済みでも、一時的に無効化してから合成する
   Uint32 savedKey;
   const bool hadKey = (SDL_GetColorKey(src->get(), &savedKey) == 0);
   if (hadKey) {

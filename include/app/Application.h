@@ -42,7 +42,7 @@ public:
 	int run(Resources &, TaskManager &manager);
 	void clearResumeStack();
 
-	void registerNextSceneFunc(FuncCreateScene nextScene)
+	void registerNextScene(std::shared_ptr<Scene> nextScene)
 	{
 		nextScene_ = nextScene;
 	}
@@ -68,13 +68,13 @@ private:
 	const bool is_mixer_;
 	std::unique_ptr<SDL_::Mix_::Audio> audio_;
 	std::shared_ptr<Scene> currentScene_;
-	std::stack<FuncCreateScene> stackFuncResumeScene_;
+	std::stack<std::shared_ptr<Scene>> stackResumeScene_;
 	std::vector<std::shared_ptr<SDL_::Window>> listWindow_;
 	std::shared_ptr<SDL_::Window> mainWindow_;
-	FuncCreateScene nextScene_;
+	std::shared_ptr<Scene> nextScene_;
 	int return_code_;
 
-	static Application *instance_;
+	static Application *instance_; // TODO: singletonはやめる
 };
 
 #endif // APPLICATION_H_

@@ -40,45 +40,45 @@
 
 namespace {
 
-FuncCreateScene create_scene_func(int context_id)
+std::shared_ptr<Scene> create_scene(int context_id)
 {
   switch (context_id) {
   case CONTEXT_START_MENU:
-    return []{ return std::make_shared<MenuScene>(); };
+    return std::make_shared<MenuScene>();
   case CONTEXT_FIELD:
-    return []{ return std::make_shared<FieldScene>(); };
+    return std::make_shared<FieldScene>();
   case CONTEXT_TOWER:
-    return []{ return std::make_shared<TowerScene>(); };
+    return std::make_shared<TowerScene>();
   case CONTEXT_BATTLE:
-    return []{ return std::make_shared<BattleScene>(); };
+    return std::make_shared<BattleScene>();
   case CONTEXT_BOSS:
-    return []{ return std::make_shared<BossScene>(); };
+    return std::make_shared<BossScene>();
   case CONTEXT_SHOP:
-    return []{ return std::make_shared<ShopScene>(); };
+    return std::make_shared<ShopScene>();
   case CONTEXT_CAVE:
-    return []{ return std::make_shared<CaveScene>(); };
+    return std::make_shared<CaveScene>();
   case CONTEXT_USE:
-    return []{ return std::make_shared<UseItemScene>(); };
+    return std::make_shared<UseItemScene>();
   case CONTEXT_EQUIPMENT:
-    return []{ return std::make_shared<EquipScene>(); };
+    return std::make_shared<EquipScene>();
   case CONTEXT_INVENTORY:
-    return []{ return std::make_shared<InventoryScene>(); };
+    return std::make_shared<InventoryScene>();
   case CONTEXT_ANIMATION:
-    return []{ return std::make_shared<AnimationScene>(); };
+    return std::make_shared<AnimationScene>();
   case CONTEXT_USER_DEAD:
-    return []{ return std::make_shared<UserDeadScene>(); };
+    return std::make_shared<UserDeadScene>();
   case CONTEXT_ENTER_CHARACTER:
   case CONTEXT_ENTER_NUMBER:
   case CONTEXT_ENTER_STRING:
-    return [context_id]{ return std::make_shared<MessageEnterScene>(context_id); };
+    return std::make_shared<MessageEnterScene>(context_id);
   case CONTEXT_PAUSE:
-    return []{ return std::make_shared<PauseScene>(); };
+    return std::make_shared<PauseScene>();
   case CONTEXT_FADE:
-    return []{ return std::make_shared<FadeScene>(); };
+    return std::make_shared<FadeScene>();
   case CONTEXT_OPENING:
-    return []{ return std::make_shared<OpeningScene>(); };
+    return std::make_shared<OpeningScene>();
   case CONTEXT_ENDING:
-    return []{ return std::make_shared<EndingScene>(); };
+    return std::make_shared<EndingScene>();
   default:
     return nullptr;
   }
@@ -102,14 +102,14 @@ void switch_context(int context_id)
   if (current) {
     current->finish();
   }
-  app.registerNextSceneFunc(create_scene_func(context_id));
+  app.registerNextScene(create_scene(context_id));
 }
 
 void extend_context(int context_id)
 {
   // finish()しないことで、Application::run()が現在のSceneをonSuspend()経由で
   // スタックへ積んでから新しいSceneへ進む
-  Application::instance().registerNextSceneFunc(create_scene_func(context_id));
+  Application::instance().registerNextScene(create_scene(context_id));
 }
 
 void resume_context(void)

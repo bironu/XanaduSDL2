@@ -2,7 +2,7 @@
 #include "message.h"
 
 MessageEnterScene::MessageEnterScene(int contextId)
-	: GameScene(contextId, [contextId]{ return std::make_shared<MessageEnterScene>(contextId); })
+	: GameScene(contextId)
 {
 }
 

@@ -72,20 +72,17 @@ int toCharCode(const SDL_Keysym &keysym)
 
 } // namespace
 
-GameScene::GameScene(int contextId, FuncCreateScene resumeFactory)
+GameScene::GameScene(int contextId)
 	: contextId_(contextId)
-	, resumeFactory_(std::move(resumeFactory))
 {
 }
 
 void GameScene::onCreate(uint32_t /*tick*/)
 {
-	onEnter();
 }
 
 void GameScene::onDestroy(uint32_t /*tick*/)
 {
-	onLeave();
 }
 
 void GameScene::onResume(uint32_t /*tick*/)
@@ -93,10 +90,9 @@ void GameScene::onResume(uint32_t /*tick*/)
 	onEnter();
 }
 
-FuncCreateScene GameScene::onSuspend()
+void GameScene::onSuspend()
 {
 	onLeave();
-	return resumeFactory_;
 }
 
 void GameScene::dispatch(const SDL_Event &event)

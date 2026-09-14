@@ -3,7 +3,7 @@
 #include "context.h"
 
 BattleScene::BattleScene()
-	: GameScene(CONTEXT_BATTLE, []{ return std::make_shared<BattleScene>(); })
+	: GameScene(CONTEXT_BATTLE)
 {
 }
 

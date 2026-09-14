@@ -18,7 +18,7 @@ Application::Application(Uint32 flags)
 	, is_mixer_(::Mix_Init(MIX_INIT_MP3))
 	, audio_(std::make_unique<SDL_::Mix_::Audio>())
 	, currentScene_()
-	, stackFuncResumeScene_()
+	, stackResumeScene_()
 	, listWindow_()
 	, mainWindow_()
 	, nextScene_()
@@ -93,10 +93,11 @@ std::shared_ptr<SDL_::Window> Application::getWindow(int id)
 
 int Application::run(Resources &res, TaskManager &manager)
 {
-	currentScene_ = nextScene_();
+	currentScene_ = nextScene_;
 	currentScene_->prepare(this, &res, &manager);
 	currentScene_->onCreate(getTickCount());
-	nextScene_ = nullptr;
+    currentScene_->onResume(getTickCount());
+	nextScene_.reset();
 
 	SDL_Event event;
 	bool idle(false);
@@ -118,27 +119,31 @@ int Application::run(Resources &res, TaskManager &manager)
 			}
 		}
 		if (currentScene_ && currentScene_->isFinished()) {
+            currentScene_->onSuspend();
 			currentScene_->onDestroy(tick);
 			currentScene_.reset();
 		}
 
 		if (nextScene_) {
 			if (currentScene_) {
-				stackFuncResumeScene_.push(currentScene_->onSuspend());
+                currentScene_->onSuspend();
+				stackResumeScene_.push(currentScene_);
 			}
-			currentScene_ = nextScene_();
-			nextScene_ = nullptr;
-			currentScene_->prepare(this, &res, &manager);
+			currentScene_ = nextScene_;
+			nextScene_.reset();
+        	currentScene_->prepare(this, &res, &manager);
 			currentScene_->onCreate(tick);
+            currentScene_->onResume(tick);
 		}
 		else if (!currentScene_) {
-			if(!stackFuncResumeScene_.empty()){
-				auto funcResumeScene = stackFuncResumeScene_.top();
-				stackFuncResumeScene_.pop();
-				currentScene_ = funcResumeScene();
-				currentScene_->prepare(this, &res, &manager);
+			if(!stackResumeScene_.empty()){
+				currentScene_ = stackResumeScene_.top();
+				stackResumeScene_.pop();
 				currentScene_->onResume(tick);
 			}
+            else {
+                break;
+            }
 		}
 	}
 	clearResumeStack();
@@ -147,7 +152,7 @@ int Application::run(Resources &res, TaskManager &manager)
 
 void Application::clearResumeStack()
 {
-	while(!stackFuncResumeScene_.empty()){stackFuncResumeScene_.pop();}
+	while(!stackResumeScene_.empty()){stackResumeScene_.pop();}
 }
 
 void Application::quit(const int val)

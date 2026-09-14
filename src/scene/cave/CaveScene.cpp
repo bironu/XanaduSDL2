@@ -3,7 +3,7 @@
 #include "context.h"
 
 CaveScene::CaveScene()
-	: GameScene(CONTEXT_CAVE, []{ return std::make_shared<CaveScene>(); })
+	: GameScene(CONTEXT_CAVE)
 {
 }
 

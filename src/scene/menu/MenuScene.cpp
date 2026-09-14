@@ -1,3 +1,5 @@
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 #include "scene/menu/MenuScene.h"
 #include "xanadu.h"
 #include "context.h"
@@ -12,17 +14,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef __BORLANDC__
-#include <dir.h>
-#include <dos.h>
-#elif __FreeBSD__
-#include <sys/types.h>
-#include <dirent.h>
-#endif
-
 MenuScene::State MenuScene::state_ = MenuScene::State::Generic;
 std::array<MenuScene::UserEntry, MenuScene::kMaxUserEntry> MenuScene::userEntries_{};
-std::shared_ptr<SDL_::Image> MenuScene::logoImage_;
 
 MenuScene::MenuScene()
 {
@@ -45,24 +38,25 @@ void MenuScene::dispatch(const SDL_Event &event)
 	}
 }
 
-FuncCreateScene MenuScene::onSuspend()
+void MenuScene::onSuspend()
 {
 	onLeave();
-	return []{ return std::make_shared<MenuScene>(); };
 }
 
 void MenuScene::onCreate(uint32_t /*tick*/)
 {
-	onEnter();
+    auto &res = getResources();
+    imageLogo_ = res.getImage(ImageId::picture_logo);
+    imageFrame_ = res.getImage(ImageId::xa1_frame);
 }
 
 void MenuScene::onDestroy(uint32_t /*tick*/)
 {
-	onLeave();
 }
 
 void MenuScene::onResume(uint32_t /*tick*/)
 {
+
 	onEnter();
 }
 
@@ -75,12 +69,13 @@ void MenuScene::onEnter()
 
 	fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
 
-	// ロゴ
-	if (!logoImage_) {
-		logoImage_ = load_image(IMAGE_DIR "/picture/logo.bmp");
-	}
-	if (logoImage_) {
-		draw_image(clip_main, 100, 290, logoImage_);
+    // Frame
+    if (imageFrame_) {
+        draw_image(clip_overall, 0, 0, imageFrame_);
+    }
+	// Logo
+	if (imageLogo_) {
+		draw_image(clip_main, 100, 290, imageLogo_);
 	}
 
 	switch (state_) {

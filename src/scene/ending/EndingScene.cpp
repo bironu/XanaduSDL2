@@ -3,7 +3,7 @@
 #include "context.h"
 
 EndingScene::EndingScene()
-	: GameScene(CONTEXT_ENDING, []{ return std::make_shared<EndingScene>(); })
+	: GameScene(CONTEXT_ENDING)
 {
 }
 

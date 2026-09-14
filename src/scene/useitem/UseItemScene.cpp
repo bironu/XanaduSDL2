@@ -3,7 +3,7 @@
 #include "context.h"
 
 UseItemScene::UseItemScene()
-	: GameScene(CONTEXT_USE, []{ return std::make_shared<UseItemScene>(); })
+	: GameScene(CONTEXT_USE)
 {
 }
 

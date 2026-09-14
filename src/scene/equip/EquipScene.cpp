@@ -3,7 +3,7 @@
 #include "context.h"
 
 EquipScene::EquipScene()
-	: GameScene(CONTEXT_EQUIPMENT, []{ return std::make_shared<EquipScene>(); })
+	: GameScene(CONTEXT_EQUIPMENT)
 {
 }
 
