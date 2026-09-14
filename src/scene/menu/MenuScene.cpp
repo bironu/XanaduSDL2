@@ -1,18 +1,478 @@
 #include "scene/menu/MenuScene.h"
-#include "menu.h"
+#include "xanadu.h"
 #include "context.h"
+#include "field.h"
+#include "tower.h"
+#include "boss.h"
+#include "opening.h"
+#include "ending.h"
+
+#include <SDL2/SDL_events.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#ifdef __BORLANDC__
+#include <dir.h>
+#include <dos.h>
+#elif __FreeBSD__
+#include <sys/types.h>
+#include <dirent.h>
+#endif
+
+MenuScene::State MenuScene::state_ = MenuScene::State::Generic;
+std::array<MenuScene::UserEntry, MenuScene::kMaxUserEntry> MenuScene::userEntries_{};
+std::shared_ptr<SDL_::Image> MenuScene::logoImage_;
 
 MenuScene::MenuScene()
-	: GameScene(CONTEXT_START_MENU, []{ return std::make_shared<MenuScene>(); })
 {
+}
+
+void MenuScene::dispatch(const SDL_Event &event)
+{
+	if (event.type != SDL_KEYDOWN || event.key.repeat != 0) {
+		return;
+	}
+
+	const SDL_Keysym &keysym = event.key.keysym;
+	switch (state_) {
+	case State::Generic: onGenericKey(keysym); break;
+	case State::Load:    onLoadKey(keysym);    break;
+	case State::Debug:   onDebugKey(keysym);   break;
+	case State::Boss:    onBossKey(keysym);    break;
+	case State::Version: onVersionKey(keysym); break;
+	case State::Game:    break; // onEnter()内で即座に遷移するため滞留しない
+	}
+}
+
+FuncCreateScene MenuScene::onSuspend()
+{
+	onLeave();
+	return []{ return std::make_shared<MenuScene>(); };
+}
+
+void MenuScene::onCreate(uint32_t /*tick*/)
+{
+	onEnter();
+}
+
+void MenuScene::onDestroy(uint32_t /*tick*/)
+{
+	onLeave();
+}
+
+void MenuScene::onResume(uint32_t /*tick*/)
+{
+	onEnter();
 }
 
 void MenuScene::onEnter()
 {
-	menu_enter();
+	const SDL_::Color pixel1 = user.environment.scenario == 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
+	const SDL_::Color pixel2 = user.environment.scenario != 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
+
+	bgm_play(bgm_data.start_menu); // BGM
+
+	fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
+
+	// ロゴ
+	if (!logoImage_) {
+		logoImage_ = load_image(IMAGE_DIR "/picture/logo.bmp");
+	}
+	if (logoImage_) {
+		draw_image(clip_main, 100, 290, logoImage_);
+	}
+
+	switch (state_) {
+	case State::Game:
+		state_ = State::Generic;
+		switch_context(init_training_ground(user.environment.scenario));
+		return;
+
+	case State::Debug:
+		initDebug();
+		drawText(0, 4, "Debug mode", SDL_::Color::RED);
+		drawItem(2, 0, '+', "SCENARIO 1", pixel1);
+		drawItem(3, 0, '*', "SCENARIO 2", pixel2);
+		{
+			SDL_::Color pixels[11];
+			for (int i = 0; i < 11; i++) { pixels[i] = SDL_::Color::WHITE; }
+			pixels[user.environment.dungeon_level] = SDL_::Color::RED;
+			if (user.environment.scenario == 0) {
+				drawItem( 4, 0, '1', "Level 1",  pixels[0]);
+				drawItem( 5, 0, '2', "Level 2",  pixels[1]);
+				drawItem( 6, 0, '3', "Level 3",  pixels[2]);
+				drawItem( 7, 0, '4', "Level 4",  pixels[3]);
+				drawItem( 8, 0, '5', "Level 5",  pixels[4]);
+				drawItem( 9, 0, '6', "Level 6",  pixels[5]);
+				drawItem(10, 0, '7', "Level 7",  pixels[6]);
+				drawItem(11, 0, '8', "Level 8",  pixels[7]);
+				drawItem(12, 0, '9', "Level 9",  pixels[8]);
+				drawItem(13, 0, 'A', "Level 10", pixels[9]);
+				drawItem(14, 0, 'B', "Training Ground", pixels[10]);
+			} else {
+				drawItem( 4, 0, '1', "Maple Ford",  pixels[0]);
+				drawItem( 5, 0, '2', "Filane",      pixels[1]);
+				drawItem( 6, 0, '3', "Poigone",     pixels[2]);
+				drawItem( 7, 0, '4', "Gandic",      pixels[3]);
+				drawItem( 8, 0, '5', "Nuldour",     pixels[4]);
+				drawItem( 9, 0, '6', "Alf",         pixels[5]);
+				drawItem(10, 0, '7', "Alcanek",     pixels[6]);
+				drawItem(11, 0, '8', "Altel",       pixels[7]);
+				drawItem(12, 0, '9', "Klepsydar",   pixels[8]);
+				drawItem(13, 0, 'A', "Rilvan",      pixels[9]);
+				drawItem(14, 0, 'B', "Shhangri-La", pixels[10]);
+			}
+		}
+		drawItem(15, 0, 'F', "Enter field", SDL_::Color::WHITE);
+		drawItem(16, 0, 'T', "Enter tower", SDL_::Color::WHITE);
+		drawItem(17, 0, 'R', "Return back", SDL_::Color::RED);
+		break;
+
+	case State::Load:
+		{
+			const int n = initLoadMenu();
+			drawText(0, 4, "Load game", SDL_::Color::RED);
+			int i = 0;
+			for (; i < n; i++) {
+				drawItem(2 + i, 0, 'A' + i, userEntries_[i].name, SDL_::Color::WHITE);
+			}
+			drawItem(2 + i, 0, 'R', "Return back", SDL_::Color::RED);
+		}
+		break;
+
+	case State::Boss:
+		initDebug();
+		drawText(0, 4, "Boss menu", SDL_::Color::RED);
+		if (user.environment.scenario == 0) {
+			drawItem( 2, 0, 'A', "Kraken Giant",  SDL_::Color::WHITE);
+			drawItem( 3, 0, 'B', "Grell Giant",   SDL_::Color::WHITE);
+			drawItem( 4, 0, 'C', "Karttikeya",    SDL_::Color::WHITE);
+			drawItem( 5, 0, 'D', "Silver Dragon", SDL_::Color::WHITE);
+			drawItem( 6, 0, 'E', "Big Kraken",    SDL_::Color::WHITE);
+			drawItem( 7, 0, 'F', "King Dragon",   SDL_::Color::WHITE);
+			drawItem( 8, 0, 'R', "Return back",   SDL_::Color::RED);
+		} else {
+			drawItem( 2, 0, 'A', "Marivoux",      SDL_::Color::WHITE);
+			drawItem( 3, 0, 'B', "Peluton",       SDL_::Color::WHITE);
+			drawItem( 4, 0, 'C', "Great Kraken",  SDL_::Color::WHITE);
+			drawItem( 5, 0, 'D', "Zschokke",      SDL_::Color::WHITE);
+			drawItem( 6, 0, 'E', "White Dragon",  SDL_::Color::WHITE);
+			drawItem( 7, 0, 'F', "Bogres",        SDL_::Color::WHITE);
+			drawItem( 8, 0, 'G', "Red Dragon",    SDL_::Color::WHITE);
+			drawItem( 9, 0, 'H', "Guin",          SDL_::Color::WHITE);
+			drawItem(10, 0, 'I', "Hydra",         SDL_::Color::WHITE);
+			drawItem(11, 0, 'J', "Buzzati",       SDL_::Color::WHITE);
+			drawItem(12, 0, 'K', "Boiardo",       SDL_::Color::WHITE);
+			drawItem(13, 0, 'L', "King Dragon",   SDL_::Color::WHITE);
+			drawItem(14, 0, 'R', "Return back",   SDL_::Color::RED);
+		}
+		break;
+
+	case State::Version:
+		drawText( 1,  8, "XANADU", SDL_::Color::WHITE);
+		drawText( 3,  1, "REVISION:", SDL_::Color::RED);
+		drawText( 3, 10, "1.1.4", SDL_::Color::WHITE);
+		drawText( 4,  1, "  SYSTEM:", SDL_::Color::RED);
+#ifdef __WIN32__
+		drawText( 4, 10, "Win32", SDL_::Color::WHITE);
+#else
+		drawText( 4, 10, "X11R6", SDL_::Color::WHITE);
+#endif
+		drawText( 5,  1, " DISPLAY:", SDL_::Color::RED);
+		drawText( 5, 10, "32bpp", SDL_::Color::WHITE);
+		drawText( 6,  1, "     BGM:", SDL_::Color::RED);
+		drawText( 6, 10, bgm_enabled() ? "OK" : "Disable", SDL_::Color::WHITE);
+		drawText( 7,  1, "     S.E:", SDL_::Color::RED);
+		drawText( 7, 10, se_enabled() ? "OK" : "Disable", SDL_::Color::WHITE);
+
+		drawText(10,  0, "XANADU WAS ORIGINALLY", SDL_::Color::WHITE);
+		drawText(11,  0, "RELEASED IN 1985", SDL_::Color::WHITE);
+		drawText(12,  0, "BY FALCOM.", SDL_::Color::WHITE);
+
+		drawItem(14,  0, 'R', "Return back", SDL_::Color::RED);
+		break;
+
+	case State::Generic:
+	default:
+		drawText(0, 4, "Start menu", SDL_::Color::RED);
+		drawItem( 2, 0, 'L', "Load game",  SDL_::Color::WHITE);
+		drawItem( 3, 0, '1', "SCENARIO 1", pixel1);
+		drawItem( 4, 0, '2', "SCENARIO 2", pixel2);
+		drawItem( 5, 0, 'N', "New game",   SDL_::Color::WHITE);
+		drawItem( 6, 0, 'D', "Debug mode", SDL_::Color::WHITE);
+		drawItem( 7, 0, 'B', "Boss stage", SDL_::Color::WHITE);
+		drawItem( 8, 0, 'O', "Opening", SDL_::Color::WHITE);
+		drawItem( 9, 0, 'E', "Ending(LONG)", SDL_::Color::WHITE);
+		drawItem(10, 0, 'V', "Version info", SDL_::Color::WHITE);
+		drawText(12, 0, "Please Num-Lock *OFF*", SDL_::Color::RED);
+	}
+	update(rect_main);
 }
 
 void MenuScene::onLeave()
 {
-	menu_leave();
+}
+
+void MenuScene::drawText(int row, int col, const char *s, const SDL_::Color &pixel)
+{
+	draw_text(clip_main, col * 16, row * 16, s, pixel);
+}
+
+void MenuScene::drawItem(int row, int col, int key, const char *s, const SDL_::Color &pixel)
+{
+	char buf[3] = "*:";
+	buf[0] = key;
+	draw_text(clip_main, col * 16, row * 16, buf, SDL_::Color::RED);
+	col += 2;
+	draw_text(clip_main, col * 16, row * 16, s, pixel);
+}
+
+void MenuScene::onGenericKey(const SDL_Keysym &keysym)
+{
+	switch (keysym.sym) {
+	case SDLK_l: state_ = State::Load; onEnter(); break;
+	case SDLK_1: user.environment.scenario = 0; onEnter(); break;
+	case SDLK_2: user.environment.scenario = 1; onEnter(); break;
+	case SDLK_n:
+		state_ = State::Game;
+		extend_context(init_opening());
+		return;
+	case SDLK_d: state_ = State::Debug; onEnter(); break;
+	case SDLK_b: state_ = State::Boss; onEnter(); break;
+	case SDLK_o: extend_context(init_opening()); break;
+	case SDLK_e: extend_context(init_ending());  break;
+	case SDLK_v: state_ = State::Version; onEnter(); break;
+	default: return;
+	}
+	update(rect_main);
+}
+
+void MenuScene::onDebugKey(const SDL_Keysym &keysym)
+{
+	const bool shift = (keysym.mod & KMOD_SHIFT) != 0;
+
+	switch (keysym.sym) {
+	// SCENARIO 1: USキー配列ではShift+'='(=SDLK_EQUALS)が'+'になる。
+	// JIS配列など、レイアウトによっては'+'やSDLK_SEMICOLON自体が
+	// 素で送出される場合もあるため両方を受理する。
+	case SDLK_SEMICOLON: user.environment.scenario = shift ? 1 : 0; break;
+	case SDLK_PLUS:      user.environment.scenario = 0; break;
+	case SDLK_EQUALS:    if (shift) { user.environment.scenario = 0; } break;
+	case SDLK_COLON:     user.environment.scenario = 1; break;
+	case SDLK_ASTERISK:  user.environment.scenario = 1; break;
+	case SDLK_1: user.environment.dungeon_level =  0; break;
+	case SDLK_2: user.environment.dungeon_level =  1; break;
+	case SDLK_3: user.environment.dungeon_level =  2; break;
+	case SDLK_4: user.environment.dungeon_level =  3; break;
+	case SDLK_5: user.environment.dungeon_level =  4; break;
+	case SDLK_6: user.environment.dungeon_level =  5; break;
+	case SDLK_7: user.environment.dungeon_level =  6; break;
+	case SDLK_8:
+		// SCENARIO 2: USキー配列のShift+'8'('*')もここで受理する。
+		if (shift) { user.environment.scenario = 1; } else { user.environment.dungeon_level = 7; }
+		break;
+	case SDLK_9: user.environment.dungeon_level =  8; break;
+	case SDLK_a: user.environment.dungeon_level =  9; break;
+	case SDLK_b: user.environment.dungeon_level = 10; break;
+	case SDLK_f:
+		init_level(user.environment.dungeon_level, nullptr);
+		switch_context(CONTEXT_FIELD);
+		return;
+	case SDLK_t:
+		init_level(user.environment.dungeon_level, nullptr);
+		user.x = 0;
+		user.y = 4 * 40;
+		switch_context(CONTEXT_TOWER);
+		return;
+	case SDLK_o:
+		init_level(-1, nullptr);
+		user.point = field_offset_XY(4, 3);
+		switch_context(CONTEXT_FIELD);
+		return;
+	case SDLK_r:
+		state_ = State::Generic;
+		break;
+	}
+	onEnter();
+}
+
+void MenuScene::onLoadKey(const SDL_Keysym &keysym)
+{
+	switch (keysym.sym) {
+	case SDLK_a: case SDLK_b: case SDLK_c: case SDLK_d:
+	case SDLK_e: case SDLK_f: case SDLK_g: case SDLK_h:
+		if (loadGame(keysym.sym - SDLK_a) == 0) {
+			// ゲームを再開する
+			load_user_image();
+			init_level(user.environment.dungeon_level, user_path);
+			if (in_tower())
+				switch_context(init_tower());
+			else
+				switch_context(init_field());
+		}
+		break;
+	case SDLK_r:
+		state_ = State::Generic;
+		onEnter();
+		break;
+	}
+}
+
+void MenuScene::onBossKey(const SDL_Keysym &keysym)
+{
+	int bossId = 0;
+	switch (keysym.sym) {
+	case SDLK_a: bossId =  0; break;
+	case SDLK_b: bossId =  1; break;
+	case SDLK_c: bossId =  2; break;
+	case SDLK_d: bossId =  3; break;
+	case SDLK_e: bossId =  4; break;
+	case SDLK_f: bossId =  5; break;
+	case SDLK_g: bossId =  6; break;
+	case SDLK_h: bossId =  7; break;
+	case SDLK_i: bossId =  8; break;
+	case SDLK_j: bossId =  9; break;
+	case SDLK_k: bossId = 10; break;
+	case SDLK_l: bossId = 11; break;
+	case SDLK_r:
+		state_ = State::Generic;
+		onEnter();
+		return;
+	default:
+		return;
+	}
+	extend_context(init_boss(bossId));
+}
+
+void MenuScene::onVersionKey(const SDL_Keysym &keysym)
+{
+	if (keysym.sym == SDLK_r) {
+		state_ = State::Generic;
+		onEnter();
+	}
+}
+
+void MenuScene::initDebug()
+{
+	free((void *)user_path);
+	user_path = nullptr;
+
+	user.environment.in_battle = 0;
+
+	strcpy(user.status.name, "Nobody");
+	user.status.max_HP = 6000000;
+	user.status.HP     = 6000000;
+	user.status.gold   = 6000000;
+	user.status.food   = 1000000;
+
+	for (int i = 0; i < MAX_GOODS; i++) {
+		user.inventory[GOODS_WEAPON][i].stock = 1;
+		user.inventory[GOODS_WEAPON][i].skill = 255;
+		user.inventory[GOODS_SCROLL][i].stock = 1;
+		user.inventory[GOODS_SCROLL][i].skill = 255;
+		user.inventory[GOODS_ARMOUR][i].stock = 1;
+		user.inventory[GOODS_ARMOUR][i].skill = 200;
+		user.inventory[GOODS_SHIELD][i].stock = 1;
+		user.inventory[GOODS_SHIELD][i].skill = 200;
+		user.inventory[GOODS_MAGIC_ITEM][i].stock = 255;
+		user.inventory[GOODS_MAGIC_ITEM][i].skill = 0;
+	}
+	user.inventory[GOODS_MAGIC_ITEM][1].skill = 255;
+	user.inventory[GOODS_MAGIC_ITEM]
+		[user.equipment[GOODS_MAGIC_ITEM]].skill = 30;
+
+	user.status.STR = 100;
+	user.status.INT = 100;
+	user.status.WIS =  50;
+	user.status.DEX = 100;
+	user.status.AGL = 100;
+	user.status.CHR = 100;
+	user.status.MGR =  95;
+	user.status.KEY = 200;
+	user.status.ELX = 100;
+	user.status.CRN =   4;
+	user.status.KRM =   0;
+
+	user.equipment[GOODS_WEAPON] = 15;
+	user.equipment[GOODS_SCROLL] = 15;
+	user.equipment[GOODS_ARMOUR] = 16;
+	user.equipment[GOODS_SHIELD] = 16;
+
+	user.status.fighter.rank = 15;
+	user.status.wizard .rank = 15;
+
+	user.environment.lighting = 255;
+	user.environment.in_training_ground = 0;
+
+	user.point = 0;
+	user.x = 0;
+	user.y = 0;
+
+	match_user_name("Debugger");
+}
+
+int MenuScene::initLoadMenu()
+{
+	int n = 0;
+
+#ifdef __BORLANDC__
+	int done;
+	struct ffblk ffblk;
+
+	done = findfirst(USERS_DIR "/*", &ffblk, FA_DIREC);
+	while (!done) {
+		if (ffblk.ff_attrib == FA_DIREC &&
+		    strcmp(ffblk.ff_name, "." ) != 0 &&
+		    strcmp(ffblk.ff_name, "..") != 0 &&
+		    strlen(ffblk.ff_name) < sizeof(userEntries_[n].name) - 1) {
+			strcpy(userEntries_[n].name, ffblk.ff_name);
+			n++;
+		}
+		done = findnext(&ffblk);
+	}
+#elif __FreeBSD__
+	DIR *dir;
+	struct dirent *dirent;
+
+	dir = opendir(USERS_DIR);
+	if (!dir) {
+		perror(USERS_DIR);
+		return 0;
+	}
+	while ((dirent = readdir(dir)) != nullptr) {
+		if (dirent->d_type == DT_DIR &&
+		    strcmp(dirent->d_name, "." ) != 0 &&
+		    strcmp(dirent->d_name, "..") != 0 &&
+		    strlen(dirent->d_name) < sizeof(userEntries_[n].name) - 1) {
+			strcpy(userEntries_[n].name, dirent->d_name);
+			n++;
+		}
+	}
+#endif
+	for (int i = n; i < kMaxUserEntry; i++) {
+		memset(&userEntries_[i], 0, sizeof(userEntries_[i]));
+	}
+	return n;
+}
+
+int MenuScene::loadGame(int index)
+{
+	if (0 <= index && index < kMaxUserEntry && strlen(userEntries_[index].name) > 0) {
+		char path[BUFSIZ];
+
+		sprintf(path, "%s/%s", USERS_DIR, userEntries_[index].name);
+		free((void *)user_path);
+		user_path = strdup(path);
+
+		if (load_user()) {
+			// 失敗
+			emit_error("Can't load user.dat!");
+			free((void *)user_path);
+			user_path = nullptr;
+			return 1;
+		}
+		return 0; // 成功
+	}
+	return 1;
 }

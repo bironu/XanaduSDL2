@@ -25,11 +25,12 @@ Application::Application(Uint32 flags)
 	, return_code_(0)
 {
 	if (is_application_) {
-		// SDL enables IME text-composition input by default. The game only
-		// ever reads raw key codes (no text fields), and leaving it on makes
-		// every keystroke round-trip through the macOS Input Method Kit,
-		// which for an unbundled executable can stall or spam
-		// "error messaging the mach port for IMKCFRunLoopWakeUpReliable".
+        // SDLはデフォルトでIMEによるテキスト入力（文字合成）を有効にしています。
+        // しかし、このゲームは生のキーコードのみを読み取り（テキスト入力フィールドは使用しません）、
+        // この機能を有効のままにすると、すべてのキー入力がmacOSのInput Method Kitを経由することになります。
+        // バンドル化されていない実行ファイルの場合、これにより処理が停止したり、
+        // 「error messaging the mach port for IMKCFRunLoopWakeUpReliable」という
+        // エラーメッセージが大量に発生したりする可能性があります。
 		::SDL_StopTextInput();
 	}
 	audio_->allocateChannels(MIX_CHANNELS);

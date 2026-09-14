@@ -41,7 +41,6 @@ set(XANADU_CORE_SOURCES
   goods.cpp
   graphics.cpp
   inventory.cpp
-  menu.cpp
   message.cpp
   numinous.cpp
   opening.cpp
