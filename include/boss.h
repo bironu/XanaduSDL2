@@ -1,11 +1,11 @@
 #ifndef boss_H
 #define boss_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void boss_enter(void);
 extern void boss_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_boss(int boss_id);
 
-#endif /* boss_H */
+#endif // boss_H

@@ -20,31 +20,31 @@ int make_user_dir(void)
   char path[BUFSIZ];
   int i, error = 0;
             
-  /* $BL>A0$,$J$$!)(B */
+  // 名前がない？
   if (user.status.name[0] == '\0')
     return 1;
 
-  /* $B%G%#%l%/%H%j$N:n@.(B */
+  // ディレクトリの作成
   sprintf(path, USERS_DIR "/%s", user.status.name);
   mkdir(USERS_DIR);
   mkdir(path);
   
-  /* $B%f!<%6!<%G%#%l%/%H%j(B */
+  // ユーザーディレクトリ
   free((void *)user_path);
   user_path = strdup(path);
 
-  /* $B3,AX%G!<%?%U%!%$%k$r%3%T!<(B */
+  // 階層データファイルをコピー
   for (i = 0; i < MAX_DUNGEON_LEVEL - 1; i++) {
     error |= load_level(i, NULL);
     error |= save_level(i, user_path);
   }
-  /* scenario 2 */
+  // scenario 2
   if (in_scenario2()) {
     error |= load_level(MAX_DUNGEON_LEVEL - 1, NULL);
     error |= save_level(MAX_DUNGEON_LEVEL - 1, user_path);
   }
 
-  error |= save_user_data(); /* $B%f!<%6!<>pJs$NJ]B8(B */
+  error |= save_user_data(); // ユーザー情報の保存
   return error;
 }
 
@@ -64,7 +64,7 @@ int save_user_data(void)
     return 1;
   }
   
-  /* $B%f!<%6!<>pJs$NJ]B8(B */
+  // ユーザー情報の保存
   error = fwrite(&user, sizeof(user), 1, fp) != 1;
   fclose(fp);
 
@@ -87,7 +87,7 @@ int load_user(void)
     return 1;
   }
   
-  /* $B%f!<%6!<>pJs$NFI$_9~$_(B */
+  // ユーザー情報の読み込み
   error = fread(&user, sizeof(user), 1, fp) != 1;
   fclose(fp);
 
@@ -102,7 +102,7 @@ int save_user(void)
     return 1;
 }
 
-/* $B1#$7L>%-%c%i%/%?!<(B */
+// 隠し名キャラクター
 
 static int find_name(FILE *fp, const char *name)
 {
@@ -111,7 +111,7 @@ static int find_name(FILE *fp, const char *name)
   while (fgets(buffer, sizeof(buffer), fp)) {
     for (p = buffer; isspace(*p); p++)
       ;
-    /* $B6u9T!)(B */
+    // 空行？
     if (*p == '#' || *p == '\0')
       continue;
 
@@ -120,27 +120,27 @@ static int find_name(FILE *fp, const char *name)
     if (stricmp(tag, "NAME") == 0) {
       p = (strtok(NULL, "\""), strtok(NULL, "\""));
 
-      /* $B0lCW$9$k!)(B */
+      // 一致する？
       if (p != NULL && strcmp(p, name) == 0)
         return 1;
     }
 
-    /* $B<!$N6u9T$^$GFI$_Ht$P$9(B */
+    // 次の空行まで読み飛ばす
     while (fgets(buffer, sizeof(buffer), fp)) {
       for (p = buffer; isspace(*p); p++)
         ;
-      /* $B6u9T!)(B */
+      // 空行？
       if (*p == '#' || *p == '\0')
         break;
     }
   }
-  return 0; /* $B8+$D$+$i$J$$(B */
+  return 0; // 見つからない
 }
 
 static void parse_tags(FILE *fp)
 {
   static const struct {
-    char *	tag;
+    const char *	tag;
     int *	location;
   } tags_status[] = {
     { "HP",	&user.status.max_HP	},
@@ -167,7 +167,7 @@ static void parse_tags(FILE *fp)
   while (fgets(buffer, sizeof(buffer), fp)) {
     for (p = buffer; isspace(*p); p++)
       ;
-    /* $B6u9T!)(B */
+    // 空行？
     if (*p == '#' || *p == '\0')
       break;
 

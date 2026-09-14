@@ -1,11 +1,11 @@
 #ifndef cave_H
 #define cave_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void cave_enter(void);
 extern void cave_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_cave(int to_level);
 
-#endif /* cave_H */
+#endif // cave_H

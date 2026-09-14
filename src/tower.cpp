@@ -5,15 +5,15 @@
 
 static int tower_battle_escape(int);
 
-/* $B=i4|2=4X?t(B: menu.c $B$+$i8F$P$l$k(B */
+// 初期化関数: menu.c から呼ばれる
 int init_tower(void)
 {
-  /* BGM */
+  // BGM
   bgm_play(bgm_data.dungeon[user.environment.scenario]
            .tower[user.environment.dungeon_level]);
-  bgm_tempo(0); /* $B%F%s%](B */
+  bgm_tempo(0); // テンポ
   
-  /* $B@oF.Cf$@$C$?!)(B */
+  // 戦闘中だった？
   if (in_battle())
     return init_battle(&level_data.tower[user.point],
                        &user.battle,
@@ -26,17 +26,17 @@ void tower_enter(void)
 {
   room_t *room = &level_data.tower[user.point];
 
-  /* $B%\%9!)(B */
+  // ボス？
   if (room->boss_id >= 0) {
     int boss_id = room->boss_id;
     
-    room->boss_id = -1; /* $B@84T$7$?>l9g$KHw$($FB`<#$5$l$?$3$H$K$9$k(B */
+    room->boss_id = -1; // 生還した場合に備えて退治されたことにする
     extend_context(init_boss(boss_id));
   } else {
-    /* BGM */
+    // BGM
     bgm_play(bgm_data.dungeon[user.environment.scenario]
              .tower[user.environment.dungeon_level]);
-    bgm_tempo(0); /* $B%F%s%](B */
+    bgm_tempo(0); // テンポ
 
     user.environment.in_tower = 1;
     
@@ -54,7 +54,7 @@ int tower_battle_escape(int dir)
 {
   room_t *room = &level_data.tower[user.point];
   const int *move;
-  /* $B0\F0I=(B */
+  // 移動表
   static const int move1[4] = {
     TOWER_WIDTH1, TOWER_SIZE - 1, 1, TOWER_SIZE - TOWER_WIDTH1 };
   static const int move2[4] = {
@@ -65,11 +65,11 @@ int tower_battle_escape(int dir)
   else
     move = move2;
   
-  /* $BEc$+$iH4$1$k!)(B */
+  // 塔から抜ける？
   if (room->barrier[dir / 2 - 1] == BARRIER_EXIT) {
-    user.point = room->entrance_point; /* $B%U%#!<%k%I>e$N0LCV(B */
+    user.point = room->entrance_point; // フィールド上の位置
     if (user.environment.lighting > 0) {
-      user.environment.lighting--;     /* $B%i%s%W$r>C$9(B */
+      user.environment.lighting--;     // ランプを消す
     }
     switch_context(CONTEXT_FIELD);
     
@@ -78,11 +78,11 @@ int tower_battle_escape(int dir)
     room = &level_data.tower[point];
     
     if (room->boss_id >= 0) {
-      init_battle_monsters(NULL); /* battle.c */
-      save_user(); /* $B%\%9@o$KGTKL$7$?>l9g$K8eLa$j$9$k>uBV(B */
+      init_battle_monsters(NULL); // battle.c
+      save_user(); // ボス戦に敗北した場合に後戻りする状態
     }
 
-    /* $BNY$NIt20$K0\F0(B: $BJ]B8$9$kA0$K99?7$7$F$O$$$1$J$$(B */
+    // 隣の部屋に移動: 保存する前に更新してはいけない
     user.point = point;
     
     switch (dir) {
@@ -90,11 +90,11 @@ int tower_battle_escape(int dir)
     case 4: user.x = 360 - 40; break;
     case 6: user.x = 0;        break;
     case 8: user.y = 360 - 40; break;
-    default: return 0; /* $B$?$V$s%(%i!<(B */
+    default: return 0; // たぶんエラー
     }
     
     if (room->boss_id >= 0) {
-      /* CONTEXT_TOWER $B$KLa$k(B: $B8=:_$O$*$=$i$/(B CONTEXT_BATTLE */
+      // CONTEXT_TOWER に戻る: 現在はおそらく CONTEXT_BATTLE
       switch_context(CONTEXT_TOWER);
     } else {
       switch_context(init_battle(room, NULL, tower_battle_escape));

@@ -10,7 +10,6 @@ int init_cave(int to_level)
   user.environment.dungeon_level = to_level;
   init_level(to_level, user_path);
 
-  free(visual_image);
   visual_image = load_image(IMAGE_DIR "/picture/cave.bmp");
   
   emit_message("Enter-Cave");
@@ -22,9 +21,9 @@ void cave_enter(void)
   static animation_frame_t frames[20];
   int i;
   
-  /* $BJb$$$F$$$/%f!<%6!<$N8e$m;Q(B */
+  // 歩いていくユーザーの後ろ姿
   for (i = 0; i < 20; i++) {
-    frames[i].image = &frame_user[battle_frame_user[8] + i % 2];
+    frames[i].image = frame_user[battle_frame_user[8] + i % 2];
     frames[i].x = 160;
     frames[i].y = 320 - i * 8;
   }
@@ -38,7 +37,7 @@ void cave_leave(void)
 void update_background(void)
 {
   if (!visual_image) {
-    fill_image(clip_main, 0, 0, clip_main->width, clip_main->height, black_pixel);
+    fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
   } else {
     draw_image(clip_main, 0, 0, visual_image);
   }

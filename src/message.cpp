@@ -11,17 +11,17 @@
 
 void (*thunk_key_event)(int c);
 
-/* $B%a%C%;!<%82hLL$N8=:_$N9T(J */
+// メッセージ画面の現在の行
 static int current_line;
 
-void display_message(const char *s, pixel_t pixel)
+void display_message(const char *s, SDL_::Color pixel)
 {
   int n_rows;
 
-  /* $B%a%C%;!<%8%S%e!<$KI=<($G$-$k9T?t(J */
+  // メッセージビューに表示できる行数
   n_rows = rect_message.height / 16;
   while (*s) {
-    /* $B0lHV2<$N9T$rD6$($F$$$k!)(J */
+    // 一番下の行を超えている？
     if (current_line >= n_rows) {
       scroll_image(clip_message, -16);
       current_line = n_rows - 1;
@@ -41,25 +41,25 @@ void format_message(const char *fmt, ...)
   vsprintf(buf, fmt, args);
   va_end(args);
   
-  display_message(buf, white_pixel);
+  display_message(buf, SDL_::Color::WHITE);
 }
 
 void flush_message(void)
 {
-  fill_image(clip_message, 0, 0, clip_message->width, clip_message->height,
-             black_pixel);
+  fill_image(clip_message, 0, 0, clip_message->getWidth(), clip_message->getHeight(),
+             SDL_::Color::BLACK);
   current_line = 0;
   update(rect_message);
 }
 
-/* $B%a%C%;!<%8%S%e!<$r2p$7$?%-!<F~NO(J */
+// メッセージビューを介したキー入力
 
 #define MAX_BUFFER 14
 
-static char enter_buffer[MAX_BUFFER];	/* $BF~NOJ8;zNs%P%C%U%!(J */
-static int enter_n_characters;		/* $BF~NOJ8;z$N?t(J */
-static void message_key(int vkey);	/* $B%-!<F~NO%$%Y%s%H(J */
-static void (*thunk_consumer)(char *s);	/* $BF~NOJ8;zNs$r<u$1<h$k4X?t(J */
+static char enter_buffer[MAX_BUFFER];	// 入力文字列バッファ
+static int enter_n_characters;		// 入力文字の数
+static void message_key(int vkey);	// キー入力イベント
+static void (*thunk_consumer)(char *s);	// 入力文字列を受け取る関数
 
 int init_enter_buffer(int context_id, void (*consumer)(char *s))
 {
@@ -71,7 +71,7 @@ int init_enter_buffer(int context_id, void (*consumer)(char *s))
   memset(enter_buffer, 0, sizeof(enter_buffer));
     
   if (context_id != CONTEXT_ENTER_CHARACTER) {
-    /* $B0lHV2<$N9T$rD6$($F$$$k!)(J */
+    // 一番下の行を超えている？
     if (current_line >= n_rows) {
       scroll_image(clip_message, -16);
       current_line = n_rows - 1;
@@ -85,7 +85,7 @@ static void call_consumer(int last_key)
   if (current_context_id() != CONTEXT_ENTER_CHARACTER) {
     current_line++;
   }
-  /* $BKvHx$K=*C<Id$rIUM?$7$F%5%s%/$KAw$k(J */
+  // 末尾に終端符を付与してサンクに送る
   enter_buffer[enter_n_characters] = '\0';
   if (thunk_consumer) {
     (*thunk_consumer)(enter_buffer);
@@ -100,8 +100,8 @@ static void call_consumer(int last_key)
 static void update_enter_buffer(void)
 {
   int row = current_line * 16;
-  fill_image(clip_message, 0, row, 16, 16, black_pixel);
-  draw_text(clip_message, 0, row, enter_buffer, white_pixel);
+  fill_image(clip_message, 0, row, 16, 16, SDL_::Color::BLACK);
+  draw_text(clip_message, 0, row, enter_buffer, SDL_::Color::WHITE);
   update(rect_message);
 }
 
@@ -119,7 +119,7 @@ void message_key(int c)
 {
   switch (current_context_id()) {
   case CONTEXT_ENTER_NUMBER:
-    /* $B?tCM(J */
+    // 数値
     if (c == '\r' || c == '\n') {
       call_consumer(c);
     } else
@@ -134,7 +134,7 @@ void message_key(int c)
     break;
 
   case CONTEXT_ENTER_STRING:
-    /* $BJ8;zNs(J */
+    // 文字列
     if (c == '\r' || c == '\n') {
       call_consumer(c);
     } else

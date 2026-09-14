@@ -3,47 +3,47 @@
 
 #include "dungeon.h"
 
-/* $B@oF.;~$NKbK!$K4X$9$k>pJs$rJ];}$9$k9=B$BN(J */
+// 戦闘時の魔法に関する情報を保持する構造体
 typedef struct {
-  short		lifetime;		/* $B<wL?(J */
-  short		x;			/* $B?eJ?0LCV(J */
-  short		y;			/* $B?bD>0LCV(J */
-  short		frame;			/* $B%U%l!<%`(J */
-  short		dir;			/* $BJ}8~(J */
-  short		scroll_type;		/* $BKbK!<oJL(J */
+  short		lifetime;		// 寿命
+  short		x;			// 水平位置
+  short		y;			// 垂直位置
+  short		frame;			// フレーム
+  short		dir;			// 方向
+  short		scroll_type;		// 魔法種別
 } magic_t;
 
-/* $B@oF.;~$N%b%s%9%?!<$K4X$9$k>pJs$rJ];}$9$k9=B$BN(J */
+// 戦闘時のモンスターに関する情報を保持する構造体
 typedef struct {
-  member_t *	member;			/* $B%a%s%P!<>pJs(J */
-  int		HP;			/* $B%R%C%H%]%$%s%H(J */
-  short		state;			/* $B>uBV(J */
-  short		dir;			/* $BJ}8~(J */
-  short		monster_timer;		/* $B%?%$%^!<(J */
-  short		phantom_timer;		/* $B%F%l%]!<%H%?%$%^!<(J */
-  magic_t *	magic;			/* $BKbK!(J */
+  member_t *	member;			// メンバー情報
+  int		HP;			// ヒットポイント
+  short		state;			// 状態
+  short		dir;			// 方向
+  short		monster_timer;		// タイマー
+  short		phantom_timer;		// テレポートタイマー
+  magic_t *	magic;			// 魔法
 } monster_t;
 
-/* $B%5%9%Z%s%I$7$?@oF.;~$N>pJs$rJ];}$9$k9=B$BN(J */
+// サスペンドした戦闘時の情報を保持する構造体
 typedef struct {
-  int		max_monsters;		/* $B%b%s%9%?!<$N?t(J */
-  monster_t	monsters[MAX_MEMBER];	/* $B%b%s%9%?!<>pJs(J */
-  magic_t	magics[MAX_MEMBER + 1];	/* $BKbK!>pJs(J */
+  int		max_monsters;		// モンスターの数
+  monster_t	monsters[MAX_MEMBER];	// モンスター情報
+  magic_t	magics[MAX_MEMBER + 1];	// 魔法情報
 } battle_t;
 
 extern const int battle_frame_user[10];
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void battle_enter(void);
 extern void battle_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_battle(room_t *room, const battle_t *suspended,
                        int (*thunk_escape)(int dir));
 extern void init_battle_monsters(const battle_t *suspended);
 extern void save_battle_monsters(void);
 
-/* $B@o>l%^%C%W$N=$@5(J */
+// 戦場マップの修正
 extern int replace_battle_map(int x, int y, int tile);
 
-#endif /* battle_H */
+#endif // battle_H

@@ -1,11 +1,11 @@
 #ifndef equip_H
 #define equip_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void equip_enter(void);
 extern void equip_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_equip(void);
 
-#endif /* equip_H */
+#endif // equip_H

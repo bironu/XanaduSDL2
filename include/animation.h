@@ -4,23 +4,23 @@
 #include "graphics.h"
 #include "dungeon.h"
 
-/* $B%"%K%a!<%7%g%s%U%l!<%`$K4X$9$k>pJs$rJ];}$9$k9=B$BN(J */
+// アニメーションフレームに関する情報を保持する構造体
 typedef struct {
-  image_t *	image;			/* $B%$%a!<%8(J */
-  short		x;			/* $B?eJ?:BI8(J */
-  short		y;			/* $B?bD>:BI8(J */
+  SDL_::SubImage image;			// イメージ
+  short		x;			// 水平座標
+  short		y;			// 垂直座標
 } animation_frame_t;
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void animation_enter(void);
 extern void animation_leave(void);
 
-/* $B=i4|2=4X?t(J */
-extern int init_animation(image_t *clip, animation_frame_t *frames, int n_frames,
+// 初期化関数
+extern int init_animation(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames, int n_frames,
                           void (*update_background)(void));
 
-/* $BCO7A%?%$%k%"%K%a!<%7%g%s$N=i4|2=(J */
+// 地形タイルアニメーションの初期化
 int init_animation_tile(map_t *tiles, int n_frames, int x, int y,
                         void (*update_background)(void));
 
-#endif /* animation_H */
+#endif // animation_H

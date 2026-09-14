@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 
-/* $BCm0U(J: WEAPON..MAGICITEM $B$O(J GOODS_ $BDj?t$K0lCW$9$k$3$H!*(J */
+// 注意: WEAPON..MAGICITEM は GOODS_ 定数に一致すること！
 #define STATE_WEAPON		GOODS_WEAPON
 #define STATE_SCROLL		GOODS_SCROLL
 #define STATE_ARMOUR		GOODS_ARMOUR
@@ -43,7 +43,7 @@ void equip_enter(void)
     break;
     
   default:
-    /* $B?7$7$$%f!<%6!<%$%a!<%8$r%m!<%I(J */
+    // 新しいユーザーイメージをロード
     load_user_image();
     resume_context();
   }
@@ -76,11 +76,11 @@ void equip_which(char *s)
     
     emit_message(goods_data[goods_type][n].name);
     
-    /* $B:_8K$"$k!)(J */
+    // 在庫ある？
     if (user.inventory[goods_type][n].stock > 0) {
       user.inventory[goods_type][n].stock--;
 
-      /* $B=i$a$FAuHw$9$k$b$N$KBP$7$F=i4|=ON}EY$rM?$($k(J */
+      // 初めて装備するものに対して初期熟練度を与える
       if (user.inventory[goods_type][n].skill == 0) {
         user.inventory[goods_type][n].skill = 30;
       }
@@ -90,7 +90,7 @@ void equip_which(char *s)
       equip_state = STATE_EXIT;
       return;
     } else {
-      /* $B:_8K$J$$(J */
+      // 在庫ない
       emit_message("Not owned !");
     }
   }

@@ -1,9 +1,9 @@
 #include "user.h"
 #include "status.h"
 
-/* $B@o;N$N>N9f(B */
+// 戦士の称号
 const rank_data_t fighter_rank[MAX_RANK + 1] = {
-  /* $B>N9f(B		$B7P83(B */
+  // 称号		経験
   { "Novice Fighter",	      0 },	
   { "Aspirant",		   3000 },
   { "Battler",		  10000 },
@@ -21,12 +21,12 @@ const rank_data_t fighter_rank[MAX_RANK + 1] = {
   { "Paladin",		1000000 },
   { "Lord",		1250000 },
   { "Master-Lord",	1500000 },
-  { "",			      0 } /* $BHVJ<(B */
+  { "",			      0 } // 番兵
 };
 
-/* $BKbK!;H$$$N>N9f(B */
+// 魔法使いの称号
 const rank_data_t wizard_rank[MAX_RANK + 1] = {
-  /* $B>N9f(B		$B7P83(B */
+  // 称号		経験
   { "Novice Wizard",	      0 },
   { "Initiate",		   2000 },
   { "Trickster",	   5000 },
@@ -44,21 +44,21 @@ const rank_data_t wizard_rank[MAX_RANK + 1] = {
   { "Illusionist",	 811000 },
   { "Wizard-Lv.15",	1067000 },
   { "Master-Wizard",	1230000 },
-  { "",			      0 } /* $BHVJ<(B */
+  { "",			      0 } // 番兵
 };
 
 const char *user_path;
 user_t user;
 int user_hidden;
 
-static image_t *user_base;
-static image_t *user_base_0;
+static std::shared_ptr<SDL_::Image> user_base;
+static std::shared_ptr<SDL_::Image> user_base_0;
 
 static int current_page;
 
 static int load_page0(int row);
 
-/* $B8=:_$N%f!<%6!<$NAuHw$K$U$5$o$7$$%$%a!<%8$r%m!<%I$9$k(B */
+// 現在のユーザーの装備にふさわしいイメージをロードする
 int load_user_image(void)
 {
   int weapon_type;
@@ -74,22 +74,22 @@ int load_user_image(void)
   magic_item_type =
     goods_data[GOODS_MAGIC_ITEM][user.equipment[GOODS_MAGIC_ITEM]].type;
   
-  /* $B8z2L2;$NFI$_9~$_(B */
+  // 効果音の読み込み
   se_load(SE_USER_HIT, se_data.user_hit[weapon_type]);
   se_load(SE_USE_ITEM, se_data.item[magic_item_type]);
   
   if (using_demons_ring()) {
-    /* $B;Q$O8+$($J$$(B */
+    // 姿は見えない
     return load_page0(0);
   }
   if (using_candle()) {
-    /* $B%b%s%9%?!<$KJQ?H(B */
+    // モンスターに変身
     return load_page0(1); 
   }
 
   page = armour_type + 1;
 
-  /* $B8=:_FI$_9~$s$G$$$k%Z!<%8!)(B */
+  // 現在読み込んでいるページ？
   if (current_page != page) {
     char path[BUFSIZ];
     
@@ -98,15 +98,15 @@ int load_user_image(void)
     current_page = page;
   }
   
-  /* $B2?9T$a!)(B */
+  // 何行め？
   row = (weapon_type + shield_type * MAX_WEAPON_TYPE) * 40;
   for (i = 0; i < 10; i++) {
-    subsection_image(user_base, i * 40, row, 40, 40, &frame_user[i]);
+    frame_user[i] = SDL_::SubImage{user_base, Rect(i * 40, row, 40, 40)};
   }
   return 0;
 }
 
-/* $B%f!<%6!<$r4]9x>uBV$K$9$k(B */
+// ユーザーを丸腰状態にする
 int load_user_unarmed(void)
 {
   return load_page0(2);
@@ -120,7 +120,7 @@ int load_page0(int row)
     user_base_0 = load_image(IMAGE_DIR "/user/user0.bmp");
   }
   for (i = 0; i < 10; i++) {
-    subsection_image(user_base_0, i * 40, row * 40, 40, 40, &frame_user[i]);
+    frame_user[i] = SDL_::SubImage{user_base_0, Rect(i * 40, row * 40, 40, 40)};
   }
   return 0;
 }
@@ -135,22 +135,22 @@ static int elapse_time(short *p)
 
 static int user_time, user_lunch_time;
 
-/* $B;~4V$N7P2a(B */
+// 時間の経過
 void user_time_elapse(int interval)
 {
-  /* $B%7%J%j%*(B 1 $B$G$O@oF.Cf$K;~4V$O7P2a$7$J$$(B */
+  // シナリオ 1 では戦闘中に時間は経過しない
   if (!in_scenario2() && in_battle())
     return;
   
   user_time += interval;
 
-  /* 1 $BIC7P2a!)(B */
+  // 1 秒経過？
   if (user_time >= 1000) {
     int i, time_up, decrement_food;
 
     user_time = 0;
 
-    /* $BJQ?H$N8z2L$,@Z$l$?!)(B */
+    // 変身の効果が切れた？
     time_up = elapse_time(&user.environment.effect[0]) |
               elapse_time(&user.environment.effect[1]);
     if (time_up) {
@@ -160,7 +160,7 @@ void user_time_elapse(int interval)
       elapse_time(&user.environment.effect[i]);
     }
 
-    /* $B?)NA$N>CHq(B */    
+    // 食料の消費    
     if (!in_battle()) {
       user_lunch_time++;
       if ((user.environment.in_tower && user_lunch_time % 4 == 0) ||
@@ -172,27 +172,27 @@ void user_time_elapse(int interval)
         
         if (user.status.food < 0) {
           user.status.HP -= (user.status.max_HP + 50) / 100;
-          bgm_random(1); /* BGM */
+          bgm_random(1); // BGM
         } else {
           user.status.HP += decrement_food;
           user.status.HP = min(user.status.max_HP, user.status.HP);
           user.status.food -= decrement_food;
-          bgm_random(0); /* BGM */          
+          bgm_random(0); // BGM          
         }
       }
       
-      /* $B%9%F!<%?%9$NI=<($r99?7(B */
-      status_update_HP(white_pixel);
+      // ステータスの表示を更新
+      status_update_HP(SDL_::Color::WHITE);
       status_update_food();
     }
   }
 }
 
-/* $B80(B */
+// 鍵
 int user_use_key(void)
 {
   if (in_scenario2()) {
-    /* $B%7%J%j%*(B2$B$G$O80$O%Z%s%@%s%H$N0LCV$K$"$k$Y$-(B */
+    // シナリオ2では鍵はペンダントの位置にあるべき
     if (user.inventory[GOODS_MAGIC_ITEM][ITEM_PENDANT].stock > 0) {
       user.inventory[GOODS_MAGIC_ITEM][ITEM_PENDANT].stock--;
       return 1;

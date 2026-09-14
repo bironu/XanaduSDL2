@@ -22,13 +22,13 @@
 #include "pause.h"
 #include "numinous.h"
 
-/* $B%G%#%l%/%H%j(B */
+// ディレクトリ
 #define IMAGE_DIR		"../bmp"
 #define LEVEL_DIR		"../map"
 #define AUDIO_DIR		"../audio"
 #define USERS_DIR		"../users"
 
-/* $B5<;wMp?t(B */
+// 擬似乱数
 #define random_integer(n)	(rand() % (n))
 #define random_direction()	(random_integer(10))
 
@@ -44,54 +44,51 @@ typedef struct {
   short		height;
 } rectangle_t;
 
-#define SQUARE_CHARACTER	40	/* $B%-%c%i%/%?$NI}$H9b$5(B */
-#define SQUARE_TILE		40	/* $BCO7A$NI}$H9b$5(B */
-#define SQUARE_MAGIC		16	/* $BKbK!$NI}$H9b$5(B */
-#define SQUARE_BOSS		120	/* $B%\%9$NI}$H9b$5(B */
-#define SQUARE_BREATH		80	/* $B%V%l%9$NI}$H9b$5(B */
+#define SQUARE_CHARACTER	40	// キャラクタの幅と高さ
+#define SQUARE_TILE		40	// 地形の幅と高さ
+#define SQUARE_MAGIC		16	// 魔法の幅と高$5
+#define SQUARE_BOSS		120	// ボスの幅と高さ
+#define SQUARE_BREATH		80	// ブレスの幅と高さ
 
-#define N_MONSTERS		8	/* 1$B%l%Y%k$"$?$j$N%b%s%9%?!<(B($B<oN`(B) */
-#define N_MAGICS		9	/* $BKbK!$N?t(B */
-#define N_TILES			64	/* $BCO7A%?%$%k$N?t(B */
-#define N_GOODS			64	/* $BJ*IJ$N?t(B */
-#define N_SPECIALS		4	/* $BFC<l%$%a!<%8(B */
+#define N_MONSTERS		8	// 1レベルあたりのモンスター(種類)
+#define N_MAGICS		9	// 魔法の数
+#define N_TILES			64	// 地形タイルの数
+#define N_GOODS			64	// 物品の数
+#define N_SPECIALS		4	// 特殊イメージ
 
-#define SPECIAL_DEAD		0	/* $B;`K4(B */
-#define SPECIAL_DISAPPEAR	1	/* $B>CLG(B */
-#define SPECIAL_GRAVE		2	/* $BJhI8(B */
-#define SPECIAL_HEAVEN		3	/* $B>:E7(B */
+#define SPECIAL_DEAD		0	// 死亡
+#define SPECIAL_DISAPPEAR	1	// 消滅
+#define SPECIAL_GRAVE		2	// 墓標
+#define SPECIAL_HEAVEN		3	// 昇天
 
-#define MIN_INTERVAL		50	/* $B:G>.$N%$%s%?!<%P%k(B(msec) */
-#define MAX_INTERVAL		1000	/* $B:GBg$N%$%s%?!<%P%k(B(msec) */
+#define MIN_INTERVAL		50	// 最小のインターバル(msec)
+#define MAX_INTERVAL		1000	// 最大のインターバル(msec)
 
-/* $B%U%)%s%H(B */
-extern image_t fonts[128];
+// イメージ
+extern SDL_::SubImage frame_user[10];
+extern SDL_::SubImage frame_monsters[N_MONSTERS][4];
+extern std::shared_ptr<SDL_::Image> frame_magics[N_MAGICS * 2];
+extern SDL_::SubImage frame_tiles[N_TILES];
+extern std::shared_ptr<SDL_::Image> frame_goods[N_GOODS];
+extern std::shared_ptr<SDL_::Image> frame_brownbox[4];
+extern std::shared_ptr<SDL_::Image> frame_whitebox[4];
+extern std::shared_ptr<SDL_::Image> frame_specials[N_SPECIALS];
+extern std::shared_ptr<SDL_::Image> mask_damaged;		// ダメージマスク
+extern std::shared_ptr<SDL_::Image> pattern_guage;		// ボス戦のHPゲージ背景
+extern std::shared_ptr<SDL_::Image> pattern_status;		// ステータス領域背景
 
-/* $B%$%a!<%8(B */
-extern image_t frame_user[10];
-extern image_t frame_monsters[N_MONSTERS][4];
-extern image_t frame_magics[N_MAGICS * 2];
-extern image_t frame_tiles[N_TILES];
-extern image_t frame_goods[N_GOODS];
-extern image_t frame_brownbox[4];
-extern image_t frame_whitebox[4];
-extern image_t frame_specials[N_SPECIALS];
-extern image_t mask_damaged;		/* $B%@%a!<%8%^%9%/(B */
-extern image_t pattern_guage;		/* $B%\%9@o$N(BHP$B%2!<%8GX7J(B */
-extern image_t pattern_status;		/* $B%9%F!<%?%9NN0hGX7J(B */
+// ビジュアル用イメージ
+extern std::shared_ptr<SDL_::Image> visual_image;
 
-/* $B%S%8%e%"%kMQ%$%a!<%8(B */
-extern image_t *visual_image;
-
-/* $B%/%j%C%WNN0h(B */
-extern image_t *clip_overall;		/* $B%a%$%s%&%#%s%I%&A40h(B */
-extern image_t *clip_main;		/* $B%a%$%s%^%C%W(B */
-extern image_t *clip_message;		/* $B%a%C%;!<%8(B */
-extern image_t *clip_status;		/* $B%9%F!<%?%9(B */
-extern image_t *clip_shrine;		/* $B%o%$%I%9%/%j!<%s(B($B?@EB(B) */
-extern image_t *clip_user_guage;	/* $B@8L?NO%2!<%8(B($B%f!<%6(B) */
-extern image_t *clip_boss_guage;	/* $B@8L?NO%2!<%8(B($B%\%9(B) */
-extern image_t *clip_endingroll;
+// クリップ領域
+extern std::shared_ptr<SDL_::Image> clip_overall;		// メインウィンドウ全域
+extern std::shared_ptr<SDL_::Image> clip_main;		// メインマップ
+extern std::shared_ptr<SDL_::Image> clip_message;		// メッセージ
+extern std::shared_ptr<SDL_::Image> clip_status;		// ステータス
+extern std::shared_ptr<SDL_::Image> clip_shrine;		// ワイドスクリーン(神殿)
+extern std::shared_ptr<SDL_::Image> clip_user_guage;	// 生命力ゲージ(ユーザ)
+extern std::shared_ptr<SDL_::Image> clip_boss_guage;	// 生命力ゲージ(ボス)
+extern std::shared_ptr<SDL_::Image> clip_endingroll;
 
 extern const rectangle_t rect_overall;
 extern const rectangle_t rect_main;
@@ -108,18 +105,18 @@ extern int load_background(const char *filename);
 
 #define update(r) (update_region((r).x, (r).y, (r).width, (r).height))
 
-/* $B%"%W%j%1!<%7%g%s$N:F%9%?!<%H(B */
+// アプリケーションの再スタート
 extern void restart_application(void);
 
-/* $B%?%$%^!<(B */
+// タイマー
 extern void set_timer(int interval, void (*timer_proc)(void));
 extern void kill_timer(void);
 extern void set_timer_proc(void (*timer_proc)(void));
 
 extern void beep(void);
 
-/* $B4D6-(B */
+// 環境
 extern int bgm_enabled(void);
 extern int se_enabled(void);
 
-#endif /* xanadu_H */
+#endif // xanadu_H

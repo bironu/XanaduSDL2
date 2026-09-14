@@ -1,14 +1,14 @@
 #ifndef pause_H
 #define pause_H
 
-/* $B$3$N%b%8%e!<%k$O%-!<%\!<%I$NO@M}>uBV$,99?7$5$l$k$^$G(J
- * $B$7$P$i$/(J($B:GBg$G(J 1 $BIC4V(J)$BBT$D$H$-$K;H$o$l$k(J */
+/* このモジュールはキーボードの論理状態が更新されるまで
+ * しばらく(最大で 1 秒間)待つときに使われる */
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void pause_enter(void);
 extern void pause_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_pause(int interval, int clearkey);
 
-#endif /* pause_H */
+#endif // pause_H

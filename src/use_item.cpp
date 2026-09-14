@@ -5,23 +5,23 @@
 #include "use_item.h"
 #include "animation.h"
 
-#define STATE_USE		0	/* $B=i4|>uBV(B */
-#define STATE_CONTINUE		1	/* $B7QB3(B */
-#define STATE_WARPED		2	/* $B%o!<%W40N;(B */
-#define STATE_EXIT_SUCCESS	-1	/* $B@.8y(B */
-#define STATE_EXIT_FAILURE	-2	/* $B<:GT(B */
+#define STATE_USE		0	// 初期状態
+#define STATE_CONTINUE		1	// 継続
+#define STATE_WARPED		2	// ワープ完了
+#define STATE_EXIT_SUCCESS	-1	// 成功
+#define STATE_EXIT_FAILURE	-2	// 失敗
 
-/* $B%?%$%^!<%$%s%?!<%P%k(B */
+// タイマーインターバル
 #define INTERVAL_SPECTACLES	100
 #define INTERVAL_BALANCE	100
 
-/* $B%o!<%W%U%l!<%`(B */
+// ワープフレーム
 #define MAX_WARP_FRAME		16
 
-/* $B2hLL99?74XO"(B */
+// 画面更新関連
 static void (*thunk_update_background)(void);
 
-/* $B%"%$%F%`A4HL(B */
+// アイテム全般
 static room_t *use_item_room;
 static int use_item_state;
 static void restore_context(int comsumed);
@@ -31,7 +31,7 @@ static void use_item_wait(void);
 static void use_item_flash(void);
 #endif
 
-/* $B%9%Z%/%?%/%k%:4XO"(B */
+// スペクタクルズ関連
 static void use_item_spectacles(void);
 static int spectacles_dir;
 static int spectacles_x;
@@ -39,7 +39,7 @@ static int spectacles_y;
 static void loop_spectacles_in_field(void);
 static void inspect_monster_status(int monster_id);
 
-/* $BFCDj$N%"%$%F%`4XO"(B */
+// 特定のアイテム関連
 static void use_item_healing(int skill);
 static void use_item_ignited(void);
 static void use_item_mattock(void);
@@ -50,26 +50,26 @@ static void use_item_silver_rose(void);
 static void use_item_acid(void);
 static void use_item_ladder(void);
 
-/* $B;}B3$9$k8z2L$,$"$k$b$N(B */
+// 持続する効果があるもの
 static void use_item_continuance(int effect_id, int skill);
 static void use_item_doping(int effect_id, int skill);
 static void use_item_metamorphosis(int effect_id, int skill);
 
-/* $B%l%Y%k4V%o!<%W(B */
+// レベル間ワープ
 static animation_frame_t warp_frames[MAX_WARP_FRAME];
 static void use_item_warp_level(int up_down);
 static void use_item_past_level(void);
 
-extern const point_t room_door_position[4]; /* battle.c */
-extern const point_t move_table[10]; /* field.c */
+extern const point_t room_door_position[4]; // battle.c
+extern const point_t move_table[10]; // field.c
 
-/* $BH?1~%a%C%;!<%8(B */
+// 反応メッセージ
 static const char *use_item_response[MAX_ITEM_TYPE] = {
   "Examine Enemy", "Healing", "Ignite Lamp", "Warp-Up", "Warp-Down",
   "Dig ground", "Negate time", "Can fly", "Pass Wall", "Fade you",
   "Open box", "Unlock door", "Transform", "STR-up", "INT-up", "AGL-up",
   "CHR-up",
-  /* scenario 2 */
+  // scenario 2
   "Make Wall", "Unlock door", "Melted wall", "Put ladder", "CHR-up"
 };
 
@@ -91,11 +91,11 @@ void use_item_enter(void)
                               [user.equipment[GOODS_MAGIC_ITEM]].skill;
     
     if (0 <= item_type && item_type < MAX_ITEM_TYPE) {
-      /* $BH?1~%a%C%;!<%8$rI=<((B */
+      // 反応メッセージを表示
       emit_message(use_item_response[item_type]);
     }
     
-    se_play(SE_USE_ITEM); /* se */
+    se_play(SE_USE_ITEM); // se
     
     switch (item_type) {
     case ITEM_SPECTACLES:   use_item_spectacles(); break;
@@ -134,7 +134,7 @@ void use_item_enter(void)
       break;
     case ITEM_MIRROR:       use_item_doping(EFFECT_MIRROR, skill); break;
     case ITEM_BOTTLE:       use_item_doping(EFFECT_BOTTLE, skill); break;
-      /* scenario 2 */
+      // scenario 2
     case ITEM_SILVER_ROSE:  use_item_silver_rose(); break;
     case ITEM_KEY:          use_item_pendant(); break;
     case ITEM_ACID:         use_item_acid(); break;
@@ -144,7 +144,7 @@ void use_item_enter(void)
       resume_context();
     }
   } else if (use_item_state == STATE_WARPED) {
-    /* $B%o!<%W@h%l%Y%k$G$N=hM}(B */
+    // ワープ先レベルでの処理
     use_item_past_level();
   } else {
     restore_context(use_item_state == STATE_EXIT_SUCCESS);
@@ -156,7 +156,7 @@ void use_item_leave(void)
   kill_timer();
 }
 
-/* $B0JA0$N%3%s%F%-%9%H$rI|85$9$k(B */
+// 以前のコンテキストを復元する
 void restore_context(int consumed)
 {
   if (consumed) {
@@ -164,19 +164,19 @@ void restore_context(int consumed)
     int *stock = &user.inventory[GOODS_MAGIC_ITEM][magic_item].stock;
     int *skill = &user.inventory[GOODS_MAGIC_ITEM][magic_item].skill;
 
-    /* $B=ON}EY%"%C%W(B */
+    // 熟練度アップ
     *skill = min(*skill + 10, 255);
 
-    /* $B>CHq!&=<E6(B */
+    // 消費・充填
     if (*stock > 0) {
       (*stock)--;
     } else {
-      /* $B=<E6$G$-$J$$(B */
+      // 充填できない
       user.equipment[GOODS_MAGIC_ITEM] = GOODS_NULL_MAGIC_ITEM;
       status_update_equipment();
     }
   }
-  user_hidden = 0; /* $B%f!<%6!<$r8+$($k$h$&$K$9$k(B */
+  user_hidden = 0; // ユーザーを見えるようにする
 
 #ifdef NO_PAUSE
   resume_context();
@@ -190,13 +190,13 @@ void use_item_no_response(void)
   emit_message("No response");
 }
 
-/* $B%9%Z%/%?%/%k%:(B */
+// スペクタクルズ
 void use_item_spectacles(void)
 {
   if (use_item_room != NULL) {
     int i, consumed = 0;
     
-    /* $BIt20$NCf$K%b%s%9%?!<$,$$$k$+$I$&$+!)(B */
+    // 部屋の中にモンスターがいるかどうか？
     for (i = 0; i < MAX_MEMBER; i++) {
       if (member_monster(&use_item_room->members[i])) {
         consumed = 1;
@@ -223,7 +223,7 @@ void use_item_spectacles(void)
   }
 }
 
-/* $B%U%#!<%k%I$K$*$1$k%9%Z%/%?%/%k%:%S!<%`(B */
+// フィールドにおけるスペクタクルズビーム
 void loop_spectacles_in_field(void)
 {
   int dir = spectacles_dir;
@@ -252,13 +252,13 @@ void loop_spectacles_in_field(void)
 
   if (spectacles_x <= -40  || 360 <= spectacles_x ||
       spectacles_y <= -40 || 360 <= spectacles_y) {
-    /* $B%"%&%H%*%V%P%&%s%:(B */
+    // アウトオブバウンズ
     use_item_no_response();
     restore_context(0);
     return;
   }
 
-  /* $B%^%9L\$K$-$C$A$j9g$C$?$H$-$K!"$=$N>l=j$K$$$k%b%s%9%?!<$rD4$Y$k(B */
+  // マス目にきっちり合ったときに、その場所にいるモンスターを調べる
   if (spectacles_x % 40  == 0 &&
       spectacles_y % 40 == 0) {
     int i, point;
@@ -276,16 +276,16 @@ void loop_spectacles_in_field(void)
       }
   }
   (*thunk_update_background)();
-  inverse_image(clip_main, spectacles_x, spectacles_y, &mask_damaged);
+  inverse_image(clip_main, spectacles_x, spectacles_y, mask_damaged);
 }
 
-/* $B%b%s%9%?!<$N%9%F!<%?%9$rI=<($9$k(B */
+// モンスターのステータスを表示する
 void inspect_monster_status(int monster_id)
 {
   monster_status_t *mo;
   
   if (monster_id < 0 || MAX_MONSTER * MAX_VARIETY <= monster_id) {
-    /* $B$*$=$i$/%P%0(B */
+    // おそらくバグ
     use_item_no_response();
     return;
   }
@@ -312,23 +312,23 @@ void inspect_monster_status(int monster_id)
   }
 }
 
-/* $B2sI|Lt(B */
+// 回復薬
 void use_item_healing(int skill)
 {
   int point = (user_WIS() * skill / 10000.0) * user.status.max_HP;
   user.status.HP = min(user.status.HP + point, user.status.max_HP);
-  status_update_HP(white_pixel);
+  status_update_HP(SDL_::Color::WHITE);
   restore_context(1);
 }
 
-/* $B%i%s%W(B */
+// ランプ
 void use_item_ignited(void)
 {
   user.environment.lighting++;
   restore_context(1);
 }
 
-/* $B%^%H%C%/(B */
+// マトック
 void use_item_mattock(void)
 {
   if (use_item_room == NULL) {
@@ -341,14 +341,14 @@ void use_item_mattock(void)
 
     if (0 <= point && point < FIELD_SIZE &&
         (tile_data.flags[level_data.field[point]] & TILE_WALL_DIG) != 0) {
-      /* $B7!$k(B */
+      // 掘る
       int top = user.point + user_sight_XY();
       int x = (point - top) % FIELD_WIDTH * 40;
       int y = (point - top) / FIELD_WIDTH * 40;
       
       level_data.field[point] = tile_data.pattern1;
       
-      use_item_state = STATE_EXIT_SUCCESS; /* $B@.8yN"$KH4$1$k(B */
+      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
       extend_context(init_animation_tile(tile_data.digging, 3, x, y,
                                          thunk_update_background));
       return;
@@ -358,14 +358,14 @@ void use_item_mattock(void)
   restore_context(0);
 }
 
-/* $B%P%i%s%9(B */
+// バランス
 void use_item_balance(void)
 {
   if (use_item_room != NULL) {
     member_t *mm;
     int i;
     
-    /* $BJuH"$,$"$k$+$I$&$+!)(B */
+    // 宝箱があるかどうか？
     for (i = 0, mm = use_item_room->members; i < MAX_MEMBER; i++, mm++) {
       if (mm->type == MEMBER_BOX) {
         set_timer(INTERVAL_BALANCE, loop_balance);
@@ -396,10 +396,10 @@ void loop_balance(void)
         }
         mm->type = MEMBER_GOODS;
         if (mm->value == 1) {
-          /* $B@VH"(B */
+          // 赤箱
           mm->value = goods;
         } else {
-          /* $BGrH"(B */
+          // 白箱
           mm->value = goods == GOODS_FOOD ? GOODS_FOOD : GOODS_GOLD;
         }
         mm->frame = index_goods[mm->value];
@@ -411,19 +411,19 @@ void loop_balance(void)
   (*thunk_update_background)();
   
   if (!something_opening) {
-    /* $B$9$Y$F3+$$$?(B */
+    // すべて開いた
     restore_context(1);
   } 
 }
 
-/* $B%Z%s%@%s%H(B */
+// ペンダント
 void use_item_pendant(void)
 {
   if (use_item_room == NULL) {
     int point[2];
     int i, map;
 
-    /* $B%f!<%6!<$NA08e(B */
+    // ユーザーの前後
     if (user.dir == 0 || user.dir == 2 ||
         user.dir == 5 || user.dir == 8) {
       point[0] = user.point - FIELD_WIDTH;
@@ -441,7 +441,7 @@ void use_item_pendant(void)
       map = point_map(point[i]);
 
       if (map == tile_data.locked) {
-        /* $BHb$r3+$1$k(B */
+        // 扉を開ける
         level_data.field[point[i]] = point[i] != 0
           ? tile_data.pattern0
           : tile_data.pattern1;
@@ -454,28 +454,28 @@ void use_item_pendant(void)
       }
     }
 
-    /* $B%f!<%6!<$N>l=j(B: $B%7%J%j%*(B1 */
+    // ユーザーの場所: シナリオ1
     if (point_map(user.point) == tile_data.cave_closed &&
         !in_scenario2()) {
       
-      /* $BF67"$NHb$r3+$1$k(B */
+      // 洞窟の扉を開ける
       level_data.field[user.point] = tile_data.cave_next;
       
       use_item_state = STATE_CONTINUE;
       se_play(SE_LOST_KEY);
     }
   } else {
-    /* $B$?$V$s%?%o!<FbIt(B */
+    // たぶんタワー内部
     int i;
 
     for (i = 0; i < 4; i++) {
       if (use_item_room->barrier[i] == BARRIER_LOCK) {
         int x, y;
           
-        /* $BHb$r3+$1$k(B */
+        // 扉を開ける
         use_item_room->barrier[i] = BARRIER_OPEN;
         
-        /* $B@oF.%^%C%W$N99?7(B */
+        // 戦闘マップの更新
         replace_battle_map(room_door_position[i].x,
                            room_door_position[i].y, tile_data.floor);
 
@@ -489,7 +489,7 @@ void use_item_pendant(void)
       }
     }
   }
-  /* $B0l2s0J>e$3$3$rDL$C$?!)(B */
+  // 一回以上ここを通った？
   if (use_item_state != STATE_CONTINUE) {
     use_item_no_response();
     restore_context(0);
@@ -497,13 +497,13 @@ void use_item_pendant(void)
     restore_context(1);
 }
 
-/* $B;}B3;~4V(B */
+// 持続時間
 static int use_item_time_period(int skill)
 {
   return user_WIS() * skill / 100;
 }
 
-/* $B:=;~7W!&1)>~$j$D$-%V!<%D!&30Ee(B */
+// 砂時計・羽飾りつきブーツ・外套
 void use_item_continuance(int effect_id, int skill)
 {
   if (user.environment.effect[effect_id] < 255) {
@@ -518,7 +518,7 @@ void use_item_continuance(int effect_id, int skill)
   }
 }
 
-/* $B%k%S!<!&Cc?'Lt!&$+$,$_!&$D$\(B */
+// ルビー・茶色薬・かがみ・つぼ
 void use_item_doping(int effect_id, int skill)
 {
   if (user.environment.effect[effect_id] < 255) {
@@ -533,7 +533,7 @@ void use_item_doping(int effect_id, int skill)
   }
 }
 
-/* $BJQBV(B */
+// 変態
 void use_item_metamorphosis(int effect_id, int skill)
 {
   int second = use_item_time_period(skill);
@@ -543,7 +543,7 @@ void use_item_metamorphosis(int effect_id, int skill)
   restore_context(1);
 }
 
-/* $B%l%Y%k4V%o!<%W(B */
+// レベル間ワープ
 void use_item_warp_level(int up_down)
 {
   if (use_item_room != NULL) {
@@ -555,15 +555,15 @@ void use_item_warp_level(int up_down)
     int to_level = user.environment.dungeon_level + up_down;
 
     for (i = 0; i < MAX_WARP_FRAME; i++) {
-      warp_frames[i].image = i % 2 == 0 ? null_image : &frame_user[user.frame];
+      warp_frames[i].image = i % 2 == 0 ? SDL_::SubImage() : frame_user[user.frame];
       warp_frames[i].x = user.x;
       warp_frames[i].y = user.y;
     }
 
-    /* $B%f!<%6!<%G!<%?$NJ]B8(B */
+    // ユーザーデータの保存
     save_user();
 
-    /* scenario 2 */
+    // scenario 2
     max_dungeon_level = 10;
     
     if(0 <= to_level && to_level < max_dungeon_level) {
@@ -572,7 +572,7 @@ void use_item_warp_level(int up_down)
     } else
       use_item_state = STATE_EXIT_FAILURE;
     
-    user_hidden = 1; /* $B%f!<%6!<$r8+$($J$/$9$k(B */
+    user_hidden = 1; // ユーザーを見えなくする
     extend_context(init_animation(clip_main, warp_frames, MAX_WARP_FRAME,
                                   thunk_update_background));
   }
@@ -585,7 +585,7 @@ void use_item_past_level(void)
 
   format_message("Level %d", user.environment.dungeon_level + 1);
   
-  /* $B%o!<%W40N;(B */
+  // ワープ完了
   extend_context(init_animation(clip_main, warp_frames, MAX_WARP_FRAME,
                                 thunk_update_background));
 }
@@ -596,20 +596,20 @@ void use_item_silver_rose(void)
   int dy = move_table[user.dir].y;
   short making[3];
 
-  /* $B!V7!$k!W$N5U=g(B */
+  // 「掘る」の逆順
   making[0] = tile_data.digging[2];
   making[1] = tile_data.digging[1];
   making[2] = tile_data.digging[0];
   
-  /* $B%U%#!<%k%I!)(B */
+  // フィールド？
   if (use_item_room == NULL) {
     int point = user.point + field_offset_XY(dx, dy);
 
-    /* $B%f!<%6!<$N8~$$$F$$$kJ}8~$K?MLL@P$r:n$k(B */
+    // ユーザーの向いている方向に人面石を作る
     if (0 <= point && point < FIELD_SIZE) {
       level_data.field[point] = tile_data.stone;
 
-      use_item_state = STATE_EXIT_SUCCESS; /* $B@.8yN"$KH4$1$k(B */
+      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
       extend_context(init_animation_tile(making, 3,
                                          user.x + dx * 40,
                                          user.y + dy * 40,
@@ -617,13 +617,13 @@ void use_item_silver_rose(void)
       return;
     }
   } else {
-    /* $BIt20$NCf(B */
+    // 部屋の中
     int x = dx + (user.x / 40);
     int y = dy + (user.y / 40);
 
-    /* $B@o>l$N99?7(B */
+    // 戦場の更新
     if (replace_battle_map(x, y, tile_data.stone)) {
-      /* $B@.8y(B */
+      // 成功
       int i;
       for (i = 0; i < 4; i++) {
         if (room_door_position[i].x == x &&
@@ -632,7 +632,7 @@ void use_item_silver_rose(void)
           break;
         }
       }
-      use_item_state = STATE_EXIT_SUCCESS; /* $B@.8yN"$KH4$1$k(B */
+      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
       extend_context(init_animation_tile(making, 3, x * 40, y * 40,
                                          thunk_update_background));
       return;
@@ -644,20 +644,20 @@ void use_item_silver_rose(void)
 
 void use_item_acid(void)
 {
-  /* $B%?%o!<FbIt!)(B */
+  // タワー内部？
   if (in_tower() && use_item_room != NULL) {
     int i, done;
     
-    /* scenario 2: $B:G=*%l%Y%k$G$O;H$($J$$(B */
+    // scenario 2: 最終レベルでは使えない
     if (in_scenario2() && user.environment.dungeon_level == 10) {
       goto failure;
     }
 
     for (i = 0, done = 0; i < 4; i++) {
-      /* $BJI$K7j$r3+$1$k(B */
+      // 壁に穴を開ける
       if (use_item_room->barrier[i] == BARRIER_WALL) {
         use_item_room->barrier[i] = BARRIER_OPEN;
-        /* $B@o>l%^%C%W$N99?7(B */
+        // 戦場マップの更新
         replace_battle_map(room_door_position[i].x,
                            room_door_position[i].y, tile_data.floor);
         done = 1;
@@ -675,13 +675,13 @@ failure:
 
 void use_item_ladder(void)
 {
-  /* $B%U%#!<%k%I!)(B */
+  // フィールド？
   if (use_item_room == NULL) {
     int dx = move_table[user.dir].x;
     int dy = move_table[user.dir].y;
     int point = user.point + field_offset_XY(dx, dy);
 
-    /* $B%f!<%6!<$N8~$$$F$$$kJ}8~$K$O$7$4$r:n$k(B */
+    // ユーザーの向いている方向にはしごを作る
     if (0 <= point && point < FIELD_SIZE &&
         (level_data.field[point] == tile_data.pattern0 ||
          level_data.field[point] == tile_data.pattern1)) {

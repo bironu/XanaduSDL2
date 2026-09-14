@@ -1,11 +1,11 @@
 #ifndef opening_H
 #define opening_H
 
-/* $B%3%s%F%-%9%HJ]8n4X?t(J */
+// コンテキスト保護関数
 extern void opening_enter(void);
 extern void opening_leave(void);
 
-/* $B=i4|2=4X?t(J */
+// 初期化関数
 extern int init_opening(void);
 
-#endif /* opening_H */
+#endif // opening_H

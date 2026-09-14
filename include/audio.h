@@ -1,90 +1,90 @@
 #ifndef audio_H
 #define audio_H
 
-/* $BDj5A:Q$_$N8z2L2;HV9f(B */
-#define SE_USER_HIT		0	/* $B%f!<%6!<%R%C%H(B */
-#define SE_MAGIC_HIT		1	/* $BKbK!%R%C%H(B */
-#define SE_MAGIC_FAILED		2	/* $BKbK!<:GT(B */
-#define SE_DAMAGED		3	/* $B%@%a!<%8(B */
-#define SE_TRAPPED		4	/* $B$*$C$H!*(B */
-#define SE_MONSTER_DEAD		5	/* $B%b%s%9%?!<;`K4(B */
+// 定義済みの効果音番号
+#define SE_USER_HIT		0	// ユーザーヒット
+#define SE_MAGIC_HIT		1	// 魔法ヒット
+#define SE_MAGIC_FAILED		2	// 魔法失敗
+#define SE_DAMAGED		3	// ダメージ
+#define SE_TRAPPED		4	// おっと！
+#define SE_MONSTER_DEAD		5	// モンスター死亡
 
-#define SE_OPEN_LOCKED		6	/* $BHb$r3+$1$k(B */
-#define SE_OPEN_BOX		7	/* $BJuH"$r3+$1$k(B */
-#define SE_TREASURE		8	/* $B$*Ju=P8=(B */
-#define SE_GET			9	/* $B$*Ju%2%C%H(B */
-#define SE_GET_POISON		10	/* $B$&$2FG$@!*(B */
-#define SE_LOST_KEY		11	/* $B%m%9%H%-!<(B */
+#define SE_OPEN_LOCKED		6	// 扉を開ける
+#define SE_OPEN_BOX		7	// 宝箱を開ける
+#define SE_TREASURE		8	// お宝出現
+#define SE_GET			9	// お宝ゲット
+#define SE_GET_POISON		10	// うげ毒だ！
+#define SE_LOST_KEY		11	// ロストキー
 
-#define SE_CAST_NEEDLE		12	/* $BKbK!(B($B?K6b(B) */
-#define SE_CAST_MITTAR		13	/* $BKbK!(B($BGzCF(B) */
-#define SE_CAST_DELUGE		14	/* $BKbK!(B($B9??e(B) */
-#define SE_CAST_FIRE		15	/* $BKbK!(B($B2P1j(B) */
-#define SE_CAST_THUNDER		16	/* $BKbK!(B($BMk7b(B) */
-#define SE_CAST_POISON		17	/* $BKbK!(B($BFG1U(B) */
-#define SE_CAST_CORROSION	18	/* $BKbK!(B($BIe?)(B) */
-#define SE_CAST_TILTE		19	/* $BKbK!(B($BJ,2r(B) */
-#define SE_CAST_DEATH		20	/* $BKbK!(B($B%G%9(B) */
+#define SE_CAST_NEEDLE		12	// 魔法(針金)
+#define SE_CAST_MITTAR		13	// 魔法(爆弾)
+#define SE_CAST_DELUGE		14	// 魔法(洪水)
+#define SE_CAST_FIRE		15	// 魔法(火炎)
+#define SE_CAST_THUNDER		16	// 魔法(雷撃)
+#define SE_CAST_POISON		17	// 魔法(毒液)
+#define SE_CAST_CORROSION	18	// 魔法(腐食)
+#define SE_CAST_TILTE		19	// 魔法(分解)
+#define SE_CAST_DEATH		20	// 魔法(デス)
 
-#define SE_USE_ITEM		21	/* $BF;6q(B */
+#define SE_USE_ITEM		21	// 道具
 
-#define SE_SOMEWHAT1		22	/* $B2?$+#1(B */
-#define SE_SOMEWHAT2		23	/* $B2?$+#2(B */
-#define SE_SOMEWHAT3		24	/* $B2?$+#3(B */
-#define SE_SOMEWHAT4		25	/* $B2?$+#4(B */
+#define SE_SOMEWHAT1		22	// 何か１
+#define SE_SOMEWHAT2		23	// 何か２
+#define SE_SOMEWHAT3		24	// 何か３
+#define SE_SOMEWHAT4		25	// 何か４
 
-/* $B8z2L2;%U%!%$%k$rJ];}$9$k9=B$BN(B */
+// 効果音ファイルを保持する構造体
 typedef struct {
-  char *		user_hit[4];	/* $B%f!<%6!<%R%C%H(B */
-  char *		magic_hit;	/* $BKbK!%R%C%H(B */
-  char *		magic_failed;	/* $BKbK!<:GT(B */
-  char *		damaged;	/* $B%@%a!<%8(B */
-  char *		trapped;	/* $B$*$C$H!*(B */
-  char *		user_dead;	/* $B%f!<%6!<;`K4(B */
-  char *		boss_dead;	/* $B%\%9;`K4(B */
-  char *		monster_dead;	/* $B%b%s%9%?!<;`K4(B */
-  char *		open_box;	/* $BJuH"$r3+$1$k(B */
-  char *		treasure;	/* $B$*Ju=P8=(B */
-  char *		get;		/* $B$*Ju%2%C%H(B */
-  char *		get_poison;	/* $B$&$2FG$@!*(B */
-  char *		use_elixer;	/* $BNnLt$r0{$`(B */
-  char *		lost_key;	/* $B%m%9%H%-!<(B */
-  char *		cast[9];	/* $BKbK!(B */
-  char *		item[22];	/* $BF;6q(B */
-  char *		boss_hit;	/* $B%\%9%R%C%H(B */
-  char *		boss_breath;	/* $B%\%9%V%l%9(B */
-  char *		opening0;	/* $B%*!<%W%K%s%0(B0 */
-  char *		opening1;	/* $B%*!<%W%K%s%0(B1 */
-  char *		opening2;	/* $B%*!<%W%K%s%0(B2 */
+  char *		user_hit[4];	// ユーザーヒット
+  char *		magic_hit;	// 魔法ヒット
+  char *		magic_failed;	// 魔法失敗
+  char *		damaged;	// ダメージ
+  char *		trapped;	// おっと！
+  char *		user_dead;	// ユーザー死亡
+  char *		boss_dead;	// ボス死亡
+  char *		monster_dead;	// モンスター死亡
+  char *		open_box;	// 宝箱を開ける
+  char *		treasure;	// お宝出現
+  char *		get;		// お宝ゲット
+  char *		get_poison;	// うげ毒だ！
+  char *		use_elixer;	// 霊薬を飲む
+  char *		lost_key;	// ロストキー
+  char *		cast[9];	// 魔法
+  char *		item[22];	// 道具
+  char *		boss_hit;	// ボスヒット
+  char *		boss_breath;	// ボスブレス
+  char *		opening0;	// オープニング0
+  char *		opening1;	// オープニング1
+  char *		opening2;	// オープニング2
 } se_data_t;
 
-#define BGM_EXTRA_XA2_HEALERS	0	/* $B%7%J%j%*(B2: $BIB1!(B */
-#define BGM_EXTRA_XA2_TEMPLE	1	/* $B%7%J%j%*(B2: $B;{1!(B */
+#define BGM_EXTRA_XA2_HEALERS	0	// シナリオ2: 病院
+#define BGM_EXTRA_XA2_TEMPLE	1	// シナリオ2: 寺院
 
-/* $B%F!<%^6J(B */
+// テーマ曲
 typedef struct {
-  char *		opening;	/* $B%*!<%W%K%s%0(B */
-  char *		ending;		/* $B%(%s%G%#%s%0(B */
-  char *		main;		/* $B%a%$%s%F!<%^(B */
+  char *		opening;	// オープニング
+  char *		ending;		// エンディング
+  char *		main;		// メインテーマ
 } theme_song_t;
 
-/* $BLB5\Fb$N(BBGM$B%U%!%$%k$rJ];}$9$k9=B$BN(B */
+// 迷宮内のBGMファイルを保持する構造体
 typedef struct {
-  char *		field[11];	/* $B%U%#!<%k%I(B */
-  char *		tower[11];	/* $B%?%o!<FbIt(B */
-  char *		boss[16];	/* $B%\%9(B */
+  char *		field[11];	// フィールド
+  char *		tower[11];	// タワー内部
+  char *		boss[16];	// ボス
 } dungeon_bgm_t;
 
 typedef struct {
-  char *		start_menu;	/* $B%9%?!<%H%a%K%e!<(B */
-  char *		default_shop;	/* $B%7%g%C%WA4HL(B */
-  char *		shop[10];	/* $B%7%g%C%W(B */
-  dungeon_bgm_t		dungeon[2];	/* $BLB5\(B */
-  theme_song_t		theme[2];	/* $B%F!<%^(B */
-  char *		extra[8];	/* $B$=$NB>(B */
+  char *		start_menu;	// スタートメニュー
+  char *		default_shop;	// ショップ全般
+  char *		shop[10];	// ショップ
+  dungeon_bgm_t		dungeon[2];	// 迷宮
+  theme_song_t		theme[2];	// テーマ
+  char *		extra[8];	// その他
 } bgm_data_t;
 
-/* $B8z2L2;$*$h$S(B BGM $B%G!<%?%Y!<%9(B */
+// 効果音および BGM データベース
 extern se_data_t se_data;
 extern bgm_data_t bgm_data;
 
@@ -94,13 +94,13 @@ extern void bgm_pause(void);
 extern void bgm_restart(void);
 extern void bgm_tempo(int tempo);
 extern void bgm_random(int random_pitch_bend);
-extern int bgm_mute(void); /* 0:SOUND ON 1:SOUND OFF */
+extern int bgm_mute(void); // 0:SOUND ON 1:SOUND OFF
 
 extern void se_play(int id);
 extern void se_load(int id, const char *filename);
 
-/* $B=i4|2=4X?t(B */
+// 初期化関数
 extern int init_se(void);
 extern int init_bgm(void);
 
-#endif /* audio_H */
+#endif // audio_H

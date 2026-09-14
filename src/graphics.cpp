@@ -1,68 +1,132 @@
 #include "graphics.h"
+#include <SDL2/SDL_surface.h>
+#include <algorithm>
+#include <cstring>
+#include <cstdint>
 
-color_t colors[256];
-graphic_methods_t graphic_methods;
-
-pixel_t black_pixel;
-pixel_t white_pixel;
-pixel_t red_pixel;
-pixel_t blue_pixel;
-
-static image_t _null_image;
-image_t *null_image = &_null_image;
-
-void subsection_image(image_t *orig, int x, int y, int w, int h, image_t *img)
+std::shared_ptr<SDL_::Image> create_image(int width, int height)
 {
-  if (!orig || !orig->data) {
-    *img = *null_image;
+  return std::make_shared<SDL_::Image>(width, height);
+}
+
+std::shared_ptr<SDL_::Image> load_image(const char *filename)
+{
+  auto img = std::make_shared<SDL_::Image>(filename);
+  return img->isEnabled() ? img : nullptr;
+}
+
+void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
+{
+  if (!dst || !src) {
+    return;
+  }
+  // draw_imageは常に不透明合成(旧tmpl_drawはmaskを一切見ない)。
+  // srcにcolorkeyが設定済みでも、一時的に無効化してから合成する
+  Uint32 savedKey;
+  const bool hadKey = (SDL_GetColorKey(src->get(), &savedKey) == 0);
+  if (hadKey) {
+    SDL_SetColorKey(src->get(), SDL_FALSE, 0);
+  }
+  dst->blit(src, x, y);
+  if (hadKey) {
+    SDL_SetColorKey(src->get(), SDL_TRUE, savedKey);
+  }
+}
+
+void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, const SDL_::Color &color)
+{
+  if (dst) {
+    dst->fillRect(Rect(x, y, w, h), color);
+  }
+}
+
+void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
+{
+  // 透過はsrcにロード/複製時点で設定済みのcolorkeyにより実現される
+  draw_image(dst, x, y, src);
+}
+
+void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
+{
+  if (!dst || !src.sheet) {
+    return;
+  }
+  // draw_image(shared_ptr<Image>版)と同様、常に不透明合成する
+  Uint32 savedKey;
+  const bool hadKey = (SDL_GetColorKey(src.sheet->get(), &savedKey) == 0);
+  if (hadKey) {
+    SDL_SetColorKey(src.sheet->get(), SDL_FALSE, 0);
+  }
+  dst->blit(src.sheet, src.rect, x, y);
+  if (hadKey) {
+    SDL_SetColorKey(src.sheet->get(), SDL_TRUE, savedKey);
+  }
+}
+
+void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
+{
+  draw_image(dst, x, y, src);
+}
+
+void scroll_image(std::shared_ptr<SDL_::Image> dst, int dot)
+{
+  if (!dst || dot == 0) {
+    return;
+  }
+
+  SDL_Surface *surf = dst->get();
+  const int width = surf->w;
+  const int height = surf->h;
+  const int pitch = surf->pitch;
+
+  dst->lock();
+  uint8_t *pixels = static_cast<uint8_t *>(surf->pixels);
+  if (dot > 0) {
+    std::memmove(pixels + dot * pitch, pixels, (height - dot) * pitch);
   } else {
-    *img = *orig;
-    x = max(0, x);
-    y = max(0, y);
-    w = min(orig->width  - x, w);
-    h = min(orig->height - y, h);
-    if (w <= 0 || h <= 0) {
-      *img = *null_image;
-    } else {
-      img->width  = w;
-      img->height = h;
-      img->data = pixel_at(orig, x, y);
-    }
+    const int shift = -dot;
+    std::memmove(pixels, pixels + shift * pitch, (height - shift) * pitch);
+  }
+  dst->unlock();
+
+  if (dot > 0) {
+    fill_image(dst, 0, 0, width, dot, SDL_::Color::BLACK);
+  } else {
+    fill_image(dst, 0, height + dot, width, -dot, SDL_::Color::BLACK);
   }
 }
 
-pixel_t find_nearest_color(unsigned red, unsigned green, unsigned blue)
+void inverse_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> mask)
 {
-  unsigned min_error = ~0;
-  unsigned long pixel = 0;
-  int i;
-  for (i = 0; i < 256; i++) {
-    unsigned error = abs((int)(colors[i].red - red)) + abs((int)(colors[i].green - green))
-      + abs((int)(colors[i].blue - blue));
-    if (error == 0) {
-      pixel = colors[i].pixel;
-      break;
-    } else if (error < min_error) {
-      min_error = error;
-      pixel = colors[i].pixel;
+  if (!dst || !mask) {
+    return;
+  }
+
+  const int w = min(dst->getWidth() - x, mask->getWidth());
+  const int h = min(dst->getHeight() - y, mask->getHeight());
+  if (w <= 0 || h <= 0) {
+    return;
+  }
+
+  const Uint32 colorKey = mask->getColorKey();
+
+  dst->lock();
+  mask->lock();
+  SDL_Surface *dstSurf = dst->get();
+  SDL_Surface *maskSurf = mask->get();
+  for (int row = 0; row < h; ++row) {
+    auto *dd = reinterpret_cast<Uint32 *>(static_cast<uint8_t *>(dstSurf->pixels)
+                                           + (y + row) * dstSurf->pitch) + x;
+    auto *ss = reinterpret_cast<Uint32 *>(static_cast<uint8_t *>(maskSurf->pixels)
+                                           + row * maskSurf->pitch);
+    for (int col = 0; col < w; ++col) {
+      if (ss[col] != colorKey) {
+        /* アルファは保持したままRGBのみ反転する(SDL_::Image(int,int)が作る
+           サーフェスのバイト順は下位からR,G,B,Aなのでアルファは最上位バイト) */
+        dd[col] = (dd[col] & 0xFF000000u) | (~dd[col] & 0x00FFFFFFu);
+      }
     }
   }
-  return pixel;
-}
-
-int init_graphics(int bits_per_pixel)
-{
-  extern graphic_methods_t graphic_methods__8bpp;
-  extern graphic_methods_t graphic_methods_16bpp;
-  extern graphic_methods_t graphic_methods_24bpp;
-  extern graphic_methods_t graphic_methods_32bpp;
-
-  switch (bits_per_pixel) {
-  case  8: graphic_methods = graphic_methods__8bpp; break;
-  case 16: graphic_methods = graphic_methods_16bpp; break;
-  case 24: graphic_methods = graphic_methods_24bpp; break;
-  case 32: graphic_methods = graphic_methods_32bpp; break;
-  default: return 1;
-  }
-  return 0;
+  mask->unlock();
+  dst->unlock();
 }

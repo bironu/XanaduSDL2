@@ -1,7 +1,7 @@
 #include "xanadu.h"
 #include "shop.h"
 #include "status.h"
-#include "field.h" /* for field_cave_open() */
+#include "field.h" // for field_cave_open()
 
 #include <ctype.h>
 
@@ -16,17 +16,17 @@
 #define STATE_TEMPLE		7
 #define STATE_CASTLE		8
 #define STATE_TRAINING		9
-/* scenario 2 */
+// scenario 2
 #define STATE_MENU_TRADE	10
 #define STATE_MENU_BUY		11
 #define STATE_MENU_SELL		12
 #define STATE_MENU_BUY_GOODS	13
 #define STATE_MENU_SELL_GOODS	14
 
-/* $B%7%g%C%W%G!<%?%Y!<%9(B */
+// ショップデータベース
 static struct {
-  const char *		picture_file;	/* $B%$%a!<%8(B */
-  const char *		name;		/* $BL>A0(B */
+  const char *		picture_file;	// イメージ
+  const char *		name;		// 名前
 } shop_data1[MAX_SHOP] = {  
   { "weapon.bmp",	"Weapon Shop"	 },
   { "scroll.bmp",	"The Oracle"	 },
@@ -39,32 +39,32 @@ static struct {
   { "healers.bmp",	"The Healers"	 },
   { "temple.bmp",	"Temple"	 },
   { "castle.bmp",	"Enter-Castle"	 },
-  { "str.bmp",		"10 STR"	 },	/* Barrack */
-  { "int.bmp",		"10 INT"	 },	/* Academy */
-  { "wis.bmp",		"10 WIS"	 },	/* Zen Temple */
-  { "dex.bmp",		"10 DEX"	 },	/* Workplace */
-  { "agl.bmp",		"5 AGL"		 },	/* Gymnasium */
-  { "chr.bmp",		"10 CHR"	 },	/* Salon */
-  { "mgr.bmp",		"5 MGR"		 }	/* A Witch */
+  { "str.bmp",		"10 STR"	 },	// Barrack
+  { "int.bmp",		"10 INT"	 },	// Academy
+  { "wis.bmp",		"10 WIS"	 },	// Zen Temple
+  { "dex.bmp",		"10 DEX"	 },	// Workplace
+  { "agl.bmp",		"5 AGL"		 },	// Gymnasium
+  { "chr.bmp",		"10 CHR"	 },	// Salon
+  { "mgr.bmp",		"5 MGR"		 }	// A Witch
 };
 
-static int shop_id;			/* $B%7%g%C%WHV9f(B */
-static int shop_state;			/* $B>uBV(B */
-static int shop_price;			/* $B2A3J(B */
-static int shop_goods;			/* $BIJJ*HV9f(B */
+static int shop_id;			// ショップ番号
+static int shop_state;			// 状態
+static int shop_price;			// 価格
+static int shop_goods;			// 品物番号
 
-/* scenario 2 */
-static int shop_count;			/* $BIJJ*$N?t(B */
-#define MAX_SHOP_DATA2		80	/* $B%7%g%C%W$N:GBg?t(B */
-#define MAX_SHOP_TEXT		512	/* $B%F%-%9%H$N%5%$%:(B */
+// scenario 2
+static int shop_count;			// 品物の数
+#define MAX_SHOP_DATA2		80	// ショップの最大数
+#define MAX_SHOP_TEXT		512	// テキストのサイズ
 
-static int shop_loaded;			/* $BFI$_9~$s$@%7%g%C%W$N?t(B */
+static int shop_loaded;			// 読み込んだショップの数
 static shop_data_t shop_data2[MAX_SHOP_DATA2];
 
-/* $BIp4o!&KbK!!&3;!&=b%7%g%C%W$NIJB7$((B */
+// 武器・魔法・鎧・盾ショップの品揃え
 static int shop_num_goods[5] = { 10, 17, 11, 3, 17 };
 
-/* $B%f!<%6!<1~Ez4XO"(B */
+// ユーザー応答関連
 static void shop_trade(char *s);
 static void shop_buy(char *s);
 static void shop_buy_goods(char *s);
@@ -76,29 +76,29 @@ static void shop_enter_name(char *s);
 static void shop_hit_any_key(char *s);
 static void shop_pay_fee(char *s);
 static void shop_temple(void);
-/* scenario 2 */
+// scenario 2
 static void shop_trade2(char *s);
 static void shop_buy2(char *s);
 static void shop_buy_goods2(char *s);
 static void shop_sell2(char *s);
 static void shop_sell_goods2(char *s);
 
-/* $BCMCJ(B */
+// 値段
 static int shop_ask_price(int base_price);
 
-/* $BIJJ*(B */
+// 品物
 static int shop_dealing_goods_type(void);
 
-/* $B:_8KI=<(4XO"(B */
+// 在庫表示関連
 static void status_shop_goods(void);
 
-/* $B71N}>l4XO"(B */
+// 訓練場関連
 static int training_initiated_all(void);
 
-/* $B%S%8%e%"%kI=<(4XO"(B */
+// ビジュアル表示関連
 static void shop_show_visual(const char *filename);
 
-/* scenario 2 */
+// scenario 2
 static int load_shop(void);
 static void shop_show_menu(const char *text);
 
@@ -106,7 +106,7 @@ int init_shop(int id)
 {
   shop_id = id;
 
-  /* BGM */
+  // BGM
   if (in_scenario2()) {
     if (shop_id == SHOP_HEALERS && bgm_data.extra[BGM_EXTRA_XA2_HEALERS]) {
       bgm_play(bgm_data.extra[BGM_EXTRA_XA2_HEALERS]);
@@ -124,7 +124,7 @@ int init_shop(int id)
   }
 done_bgm:
   
-  /* $B=i4|>uBV$r7h$a$k(B */
+  // 初期状態を決める
   switch (id) {
   case SHOP_WEAPON:
   case SHOP_SCROLL:
@@ -138,7 +138,7 @@ done_bgm:
 
   case SHOP_GUILDS:
     emit_message(shop_data1[shop_id].name);
-    /* $B80$NCMCJ(B */
+    // 鍵の値段
     shop_price = (user_higher_rank() + 1) * 100;
     shop_price = shop_ask_price(shop_price);
     format_message("1 key %d gp", shop_price);
@@ -163,16 +163,16 @@ done_bgm:
     emit_message(shop_data1[shop_id].name);
     shop_state = STATE_HEALERS;
 
-    /* $B<#NEHq$N7W;;(B */
+    // 治療費の計算
     if (user.status.HP < user.status.max_HP) {
       int to_heal;
       if (!in_scenario2()) {
         to_heal = user.status.max_HP;
       } else {
-        /* scenario 2 */
+        // scenario 2
         to_heal = user.status.max_HP - user.status.HP;
       }
-      /* $B:GDc(B1GP$B$O;YJ'$&(B */
+      // 最低1GPは支払う
       shop_price = max(1, shop_ask_price((8 * to_heal) / 100));
     } else {
       shop_price = 0;
@@ -207,8 +207,8 @@ done_bgm:
     break;
     
   default:
-    /* scenario 2 */
-    /* $B$^$@FI$_9~$s$G$$$J$1$l$P%7%g%C%W%G!<%?$rFI$_9~$`(B */
+    // scenario 2
+    // まだ読み込んでいなければショップデータを読み込む
     if (shop_loaded == 0) {
       shop_loaded = load_shop();
     }
@@ -222,31 +222,31 @@ done_bgm:
     }
   }
 
-  /* $B3($NFI$_9~$_(B */
+  // 絵の読み込み
   if (shop_state != STATE_MENU_TRADE &&
       shop_id < sizeof(shop_data1)/sizeof(shop_data1[0])) {
     
-    /* scenario 2: $B;{1!(B */
+    // scenario 2: 寺院
     if (in_scenario2() && shop_id == SHOP_TEMPLE) {
-      /* $B%l%Y%k%"%C%W=hM}8e$K0\F0(B */
+      // レベルアップ処理後に移動
     } else {
       char path[BUFSIZ];
 
       if (shop_id == SHOP_TEMPLE &&
           user.status.fighter.rank > 12 && user.status.wizard.rank > 12) {
-        /* $B%R%s%H(B */
+        // ヒント
         strcpy(path, IMAGE_DIR "/picture/slayer.bmp");
       } else {
         sprintf(path, IMAGE_DIR "/picture/%s", shop_data1[shop_id].picture_file);
       }
       
-      /* $B%S%8%e%"%kI=<((B */
+      // ビジュアル表示
       shop_show_visual(path);
     }
   }
-  /* scenario 2 */
+  // scenario 2
   else if (shop_id < shop_loaded) { 
-    /* $B%F%-%9%H%a%K%e!<(B */
+    // テキストメニュー
     shop_show_menu(shop_data2[shop_id].text);
   }
   return CONTEXT_SHOP;
@@ -255,44 +255,44 @@ done_bgm:
 void shop_enter(void)
 {
   switch (shop_state) {
-  case STATE_TRADE: /* $B%f!<%6!<$,Gd$k$N$+Gc$&$N$+?R$M$k(B */
+  case STATE_TRADE: // ユーザーが売るのか買うのか尋ねる
     emit_message("Sell or Buy ?");
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, shop_trade));
     break;
     
-  case STATE_BUY: /* $B%f!<%6!<$,Gc$&IJJ*$r?R$M$k(B */
+  case STATE_BUY: // ユーザーが買う品物を尋ねる
     status_shop_goods();
     emit_message("Select ?");
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, shop_buy));
     break;
     
-  case STATE_BUY_GOODS: /* $BIJJ*$rGc$&$+$I$&$+?R$M$k(B */
+  case STATE_BUY_GOODS: // 品物を買うかどうか尋ねる
     format_message("%dgp ok?(y/n)", shop_price);
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
                                      shop_buy_goods));
     break;
 
-  case STATE_SELL: /* $B%f!<%6!<$,Gd$kIJJ*$r?R$M$k(B */
+  case STATE_SELL: // ユーザーが売る品物を尋ねる
     status_user_goods(shop_dealing_goods_type());
     emit_message("Select ?");
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, shop_sell));
     break;
     
-  case STATE_SELL_GOODS: /* $B%f!<%6!<$,IJJ*$rGd$k$+$I$&$+?R$M$k(B */
+  case STATE_SELL_GOODS: // ユーザーが品物を売るかどうか尋ねる
     format_message("%d gp ok?(y/n)", shop_price);
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
                                      shop_sell_goods));
     break;
     
-  case STATE_HOW_MANY: /* $B$$$/$i!)(B */
-    status_update_HP(white_pixel);
+  case STATE_HOW_MANY: // いくら？
+    status_update_HP(SDL_::Color::WHITE);
     status_update_gold();
     status_update_food();
     emit_message("How many?(1-99)");
     extend_context(init_enter_buffer(CONTEXT_ENTER_NUMBER, shop_how_many));
     break;
     
-  case STATE_HEALERS: /* $BIB1!(B */
+  case STATE_HEALERS: // 病院
     if (shop_price > 0) {
       format_message("%dgp ok?(y/n)", shop_price);
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
@@ -304,22 +304,22 @@ void shop_enter(void)
     }
     break;
 
-  case STATE_TEMPLE: /* $B;{1!(B */
+  case STATE_TEMPLE: // 寺院
     shop_temple();
     emit_message("Hit any key");
     extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
                                      shop_hit_any_key));
     break;
 
-  case STATE_CASTLE: /* $B2&>k(B */
+  case STATE_CASTLE: // 王城
     emit_message("Your name ?");
     extend_context(init_enter_buffer(CONTEXT_ENTER_STRING, shop_enter_name));
     break;
 
-  case STATE_TRAINING: /* $B71N}>l(B */
+  case STATE_TRAINING: // 訓練場
     status_user_status();
     
-    /* $B$9$Y$F3X$S=*$($?!)(B($B$^$?$O$*6b$,$J$$(B) */
+    // すべて学び終えた？(またはお金がない)
     if (training_initiated_all() || user.status.gold < shop_price) {
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER,
@@ -331,9 +331,9 @@ void shop_enter(void)
     }
     break;
 
-    /* scenario 2 */
+    // scenario 2
   case STATE_MENU_TRADE:
-    /* $B07$&IJJ*$,$"$k!)(B */
+    // 扱う品物がある？
     if (shop_data2[shop_id].articles[0].price > 0) {
       emit_message("Sell or Buy ?");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, shop_trade2));
@@ -368,7 +368,7 @@ void shop_enter(void)
     
   default:
     if (shop_id == SHOP_CASTLE) {
-      /* $B%f!<%6!<$N0aAu$rJQ$($k(B */
+      // ユーザーの衣装を変える
       load_user_image();
     }      
     if (shop_id == SHOP_CASTLE ||
@@ -385,21 +385,21 @@ void shop_leave(void)
 {
 }
 
-/* $B%f!<%6!<$N=j;}6b$rI=<((B */
+// ユーザーの所持金を表示
 static void emit_user_gold(void)
 {
   format_message("%dgp left", user.status.gold);
 }
 
-/* $B%7%g%C%W$,<h$j07$&IJJ*$N<oN`(B */
+// ショップが取り扱う品物の種類
 int shop_dealing_goods_type(void)
 {
   return SHOP_WEAPON <= shop_id && shop_id <= SHOP_SECRET
     ? shop_id
-    : 0; /* $B$(!)(B */
+    : 0; // え？
 }
 
-/* $BGdGc(B */
+// 売買
 void shop_trade(char *s)
 {
   switch (toupper(*s)) {
@@ -409,7 +409,7 @@ void shop_trade(char *s)
   }
 }
 
-/* $BGc$&IJJ*$rA*$V(B */
+// 買う品物を選ぶ
 void shop_buy(char *s)
 {
   int c = toupper(*s);
@@ -435,7 +435,7 @@ void shop_buy(char *s)
   }
 }
 
-/* $BIJJ*$rGc$&!)(B */
+// 品物を買う？
 void shop_buy_goods(char *s)
 {
   if (*s == ' ' || *s == 'Y' || *s == 'y') {
@@ -443,7 +443,7 @@ void shop_buy_goods(char *s)
       int goods_type = shop_goods / GOODS_FACTOR;
       int goods_numb = shop_goods % GOODS_FACTOR;
       
-      /* $B<h$j0z$-$O@.N)(B */
+      // 取り引きは成立
       user.inventory[goods_type][goods_numb].stock++;
       user.status.gold -= shop_price;
       emit_message("Thanks");
@@ -455,7 +455,7 @@ void shop_buy_goods(char *s)
   shop_state = STATE_BUY;
 }
 
-/* $BGd$kIJJ*$rA*$V(B */
+// 売る品物を選ぶ
 void shop_sell(char *s)
 {
   int c = toupper(*s);
@@ -479,14 +479,14 @@ void shop_sell(char *s)
   }
 }
 
-/* $BIJJ*$rGd$k!)(B */
+// 品物を売る？
 void shop_sell_goods(char *s)
 {
   if (*s == ' ' || *s == 'Y' || *s == 'y') {
     int goods_type = shop_goods / GOODS_FACTOR;
     int goods_numb = shop_goods % GOODS_FACTOR;
     
-    /* $B<h$j0z$-$O@.N)(B */
+    // 取り引きは成立
     user.inventory[goods_type][goods_numb].stock--;
     user.status.gold += shop_price;
     emit_message("Thanks");
@@ -495,7 +495,7 @@ void shop_sell_goods(char *s)
   shop_state = STATE_SELL;
 }
 
-/* $B$$$/$DGc$&!)(B */
+// いくつ買う？
 void shop_how_many(char *s)
 {
   int n = atoi(s);
@@ -528,7 +528,7 @@ void shop_how_many(char *s)
   }
 }
 
-/* $B<#NEHq$rJ'$&!)(B */
+// 治療費を払う？
 void shop_healers(char *s)
 {
   if (*s == ' ' || *s == 'Y' || *s == 'y') {
@@ -536,7 +536,7 @@ void shop_healers(char *s)
       user.status.gold -= shop_price;
       user.status.HP = user.status.max_HP;
 
-      /* $B8z2L2;(B */
+      // 効果音
       se_load(SE_SOMEWHAT1, se_data.item[1]);
       se_play(SE_SOMEWHAT1);
     } else
@@ -568,7 +568,7 @@ int shop_ask_price(int price)
     return price * (400 - CHR) / 400;
 }
 
-/* $B$*>k(B */
+// お城
 void shop_enter_name(char *s)
 {
   if (strlen(s) > 0) {
@@ -599,7 +599,7 @@ void shop_enter_name(char *s)
     user.inventory[GOODS_MAGIC_ITEM][0].skill = 50;
     user.inventory[GOODS_MAGIC_ITEM][1].stock =  1;
 
-    /* $B1#$7L>$K0lCW$9$k!)(B */
+    // 隠し名に一致する？
     match_user_name(user.status.name);
     
     shop_state = STATE_EXIT;
@@ -651,7 +651,7 @@ static int increase_max_HP(void)
 
   dungeon_level = user.environment.dungeon_level;
   
-  /* $B8=:_$N%i%s%/$N9b$$J}(B */
+  // 現在のランクの高い方
   rank = user_higher_rank();
   return (abs(rank - dungeon_level) + 1) * 2500;
 }
@@ -659,11 +659,11 @@ static int increase_max_HP(void)
 void shop_temple(void)
 {
   if (user.status.KRM > 0) {
-    emit_message("Hmm..."); /* $B2?$F8@$&$N!)(B */
+    emit_message("Hmm..."); // 何て言うの？
     goto done;
   }
   
-  /* $B@o;N$N7P83(B */
+  // 戦士の経験
   if (user.status.fighter.rank < MAX_RANK - 1) {
     int rank = user.status.fighter.rank;
     int EXP  = user.status.fighter.EXP;
@@ -673,23 +673,23 @@ void shop_temple(void)
       emit_message("Fighter Level");
       emit_message(fighter_rank[rank + 1].name);
       
-      /* $B%l%Y%k%"%C%W(B */
+      // レベルアップ
       user.status.max_HP += increase_max_HP();
       user.status.STR += 5;
       user.status.DEX += 5;
       user.status.AGL += 5;
-      user.status.fighter.rank += 1; /* max_HP $B$NA}2C8e$K$d$k$3$H(B */
+      user.status.fighter.rank += 1; // max_HP の増加後にやること
 
       se_play(SE_GET);
       status_update_rank();
 
-      /* $BIu0u$5$l$F$$$?F67"$,3+$/(B($B$3$H$,$"$k(B) */
+      // 封印されていた洞窟が開く(ことがある)
       field_cave_open();
       goto done;
     }
   }
   
-  /* $BKbK!;H$$$N7P83(B */
+  // 魔法使いの経験
   if (user.status.wizard.rank < MAX_RANK - 1) {
     int rank = user.status.wizard.rank;
     int EXP  = user.status.wizard.EXP;
@@ -699,17 +699,17 @@ void shop_temple(void)
       emit_message("Wizard Level");
       emit_message(wizard_rank[rank + 1].name);
       
-      /* $B%l%Y%k%"%C%W(B */
+      // レベルアップ
       user.status.max_HP += increase_max_HP();
       user.status.INT += 5;
       user.status.WIS += 5;
       user.status.MGR += 5;
-      user.status.wizard.rank += 1; /* max_HP $B$NA}2C8e$K$d$k$3$H(B */
+      user.status.wizard.rank += 1; // max_HP の増加後にやること
 
       se_play(SE_GET);
       status_update_rank();
 
-      /* $BIu0u$5$l$F$$$?F67"$,3+$/(B($B$3$H$,$"$k(B) */
+      // 封印されていた洞窟が開く(ことがある)
       field_cave_open();
       goto done;
     }
@@ -741,7 +741,7 @@ done:
   }
 }
 
-/* scenario 2 */
+// scenario 2
 static int lookup_goods(const char *name);
 
 int load_shop(void)
@@ -765,13 +765,13 @@ int load_shop(void)
       if (!fgets(buf, sizeof(buf), fp)) {
         goto done;
       }
-      /* $B%3%a%s%H$rFI$_<N$F$k(B */
+      // コメントを読み捨てる
       if (buf[0] != '#') {
         break;
       }
     }
 
-    /* $B%F%-%9%H(B */
+    // テキスト
     for (;;) {
       if (buf[0] == '$')
         break;
@@ -788,7 +788,7 @@ int load_shop(void)
     shop_data2[n].text = (char *)malloc(top - text);
     strcpy(shop_data2[n].text, text);
 
-    /* $B>&IJ(B */
+    // 商品
     i = 0;
     for (;;) {
       if (!fgets(buf, sizeof(buf), fp))
@@ -804,7 +804,7 @@ int load_shop(void)
         count = strtok(NULL, " ");
         goods = strtok(NULL, "\"");
 
-        /* $B@5$7$/@Z$jJ,$1$i$l$?!)(B */
+        // 正しく切り分けられた？
         if (price != NULL && count != NULL && goods != NULL) {
           int goods_id = lookup_goods(goods);
           if (goods_id >= 0) {
@@ -828,7 +828,7 @@ int lookup_goods(const char *name)
 {
   int goods_type, n;
 
-  /* $B?)NA!)(B */
+  // 食料？
   if (strcmp(name, "Food") == 0)
     return GOODS_FOOD;
 
@@ -840,7 +840,7 @@ int lookup_goods(const char *name)
   return -1;
 }
 
-/* $BGdGc(B */
+// 売買
 void shop_trade2(char *s)
 {
   switch (toupper(*s)) {
@@ -873,7 +873,7 @@ void shop_buy2(char *s)
   }
 }
 
-/* $BIJJ*$rGc$&!)(B */
+// 品物を買う？
 void shop_buy_goods2(char *s)
 {
   if (*s == ' ' || *s == 'Y' || *s == 'y') {
@@ -883,19 +883,19 @@ void shop_buy_goods2(char *s)
       int goods_type = shop_goods / GOODS_FACTOR;
       int goods_numb = shop_goods % GOODS_FACTOR;
       
-      /* $B<h$j0z$-$O@.N)(B */      
+      // 取り引きは成立      
       user.status.gold -= shop_price;
       
-      /* $B?)NA!)(B */
+      // 食料？
       if (shop_goods == GOODS_FOOD) {
         user.status.food += shop_count;
         status_update_food();
       }
-      /* $B:_8K!)(B */
+      // 在庫？
       else if (goods_type < GOODS_OTHER_ITEM) {
         user.inventory[goods_type][goods_numb].stock += shop_count;
       }
-      /* $B$=$NB>$NF;6q(B */
+      // その他の道具
       else if (goods_data[goods_type][goods_numb].type == OTHER_ELIXIR) {
         user.status.ELX += shop_count;
       } else {
@@ -931,14 +931,14 @@ void shop_sell2(char *s)
   }
 }
 
-/* $BIJJ*$rGd$k!)(B */
+// 品物を売る？
 void shop_sell_goods2(char *s)
 {
   if (*s == ' ' || *s == 'Y' || *s == 'y') {
     int goods_type = shop_goods / GOODS_FACTOR;
     int goods_numb = shop_goods % GOODS_FACTOR;
 
-    /* $B?)NA!)(B */
+    // 食料？
     if (shop_goods == GOODS_FOOD) {
       if (user.status.food < shop_count) {
       not_enough:
@@ -948,14 +948,14 @@ void shop_sell_goods2(char *s)
       user.status.food -= shop_count;
       status_update_food();
     }
-    /* $B:_8K!)(B */
+    // 在庫？
     else if (goods_type < GOODS_OTHER_ITEM) {
       if (user.inventory[goods_type][goods_numb].stock < shop_count) {
         goto not_enough;
       }
       user.inventory[goods_type][goods_numb].stock -= shop_count;
     }
-    /* $B$=$NB>$NF;6q(B */
+    // その他の道具
     else if (goods_data[goods_type][goods_numb].type == OTHER_ELIXIR) {
       if (user.status.ELX < shop_count) {
         goto not_enough;
@@ -966,7 +966,7 @@ void shop_sell_goods2(char *s)
       goto done;
     }
       
-    /* $B<h$j0z$-$O@.N)(B */
+    // 取り引きは成立
     user.status.gold += shop_price;
     status_update_gold();
   }
@@ -976,7 +976,6 @@ done:
 
 void shop_show_visual(const char *filename)
 {
-  free(visual_image);
   visual_image = load_image(filename);
   if (visual_image) {
     draw_image(clip_main, 0, 0, visual_image);
@@ -984,19 +983,18 @@ void shop_show_visual(const char *filename)
   }
 }
 
-/* scenario 2: $B%F%-%9%H7A<0$N%a%K%e!<$rI=<($9$k(B */
+// scenario 2: テキスト形式のメニューを表示する
 void shop_show_menu(const char *text)
 {
   char buf[32];
   int row;
   const char *p = text;
 
-  free(visual_image);
   visual_image = load_image(IMAGE_DIR "/picture/shop.bmp");
   if (visual_image) {
     draw_image(clip_main, 0, 0, visual_image);
   } else {
-    fill_image(clip_main, 0, 0, clip_main->width, clip_main->height, black_pixel);
+    fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
   }
 
   for (row = 3; row < 22; row++) {
@@ -1007,7 +1005,7 @@ void shop_show_menu(const char *text)
       *top++ = *p++;
     }
     *top = '\0';
-    draw_text(clip_main, 16 + 16 / 2, row * 16, buf, white_pixel);
+    draw_text(clip_main, 16 + 16 / 2, row * 16, buf, SDL_::Color::WHITE);
     if (*p++ == '\0')
       break;
   }

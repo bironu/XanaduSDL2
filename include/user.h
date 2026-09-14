@@ -5,94 +5,94 @@
 #include "goods.h"
 #include "battle.h"
 
-/* $B%f!<%6!<$N7P83$K4X$9$k>pJs$rJ];}$9$k9=B$BN(B */
+// ユーザーの経験に関する情報を保持する構造体
 typedef struct {
-  int		EXP;			/* $B7P83CM(B */
-  int		rank;			/* $B%i%s%/(B */
+  int		EXP;			// 経験値
+  int		rank;			// ランク
 } experience_t;
 
-/* $B%f!<%6!<$N:_8K$K4X$9$k>pJs$rJ];}$9$kG[Ns(B */
+// ユーザーの在庫に関する情報を保持する配列
 typedef struct {
-  int		stock;			/* $B:_8KNL(B */
-  int		skill;			/* $B=ON}EY(B */
+  int		stock;			// 在庫量
+  int		skill;			// 熟練度
 } inventory_t[5][GOODS_FACTOR];
 
-/* $B%f!<%6!<$N%9%F!<%?%9>pJs$rJ];}$9$k9=B$BN(B */
+// ユーザーのステータス情報を保持する構造体
 typedef struct {
-  char		name[16];		/* $BL>A0(B */
-  int		HP;			/* $BBQ5WNO(B */
-  int		max_HP;			/* $B:GBg@8L?NO(B */
-  int		STR;			/* $BOSNO(B */
-  int		INT;			/* $BCN<1(B */
-  int		WIS;			/* $B8-$5(B */
-  int		AGL;			/* $BIR>9(B */
-  int		DEX;			/* $B4oMQ(B */
-  int		CHR;			/* $BL%NO(B */
-  int		MGR;			/* $BKbK!Dq93NO(B */
-  int		KEY;			/* $B80(B */
-  int		KRM;			/* $B%+%k%^(B */
-  int		ELX;			/* $BNnLt(B */
-  int		CRN;			/* $B2&4'(B */
-  int		gold;			/* $B6b2_(B */
-  int		food;			/* $B?)NA(B */
-  experience_t	fighter, wizard;	/* $B@o;N!&KbK!;H$$$N7P83(B */
+  char		name[16];		// 名前
+  int		HP;			// 耐久力
+  int		max_HP;			// 最大生命力
+  int		STR;			// 腕力
+  int		INT;			// 知識
+  int		WIS;			// 賢さ
+  int		AGL;			// 敏捷
+  int		DEX;			// 器用
+  int		CHR;			// 魅力
+  int		MGR;			// 魔法抵抗力
+  int		KEY;			// 鍵
+  int		KRM;			// カルマ
+  int		ELX;			// 霊薬
+  int		CRN;			// 王冠
+  int		gold;			// 金貨
+  int		food;			// 食料
+  experience_t	fighter, wizard;	// 戦士・魔法使いの経験
 } user_status_t;
 
-#define MAX_EFFECT		9	/* $BF;6q$N;~8B8z2L$N<oN`(B */
+#define MAX_EFFECT		9	// 道具の時限効果の種類
 
-#define EFFECT_DEMONS_RING	0	/* $B;XNX(B */
-#define EFFECT_CANDLE		1	/* $BO9?$(B */
-#define EFFECT_HOURGLASS	2	/* $B:=;~7W(B */
-#define EFFECT_MANTLE		3	/* $B30Ee(B */
-#define EFFECT_WINGED_BOOTS	4	/* $B1)>~$jIU$-%V!<%D(B */
-#define EFFECT_RUBY		5	/* $B%k%S!<(B */
-#define EFFECT_BROWN_POTION	6	/* $BCc?'Lt(B */
-#define EFFECT_MIRROR		7	/* $B6@(B */
-#define EFFECT_BOTTLE		8	/* $BD[(B */
-/* scenario 2 */
-#define EFFECT_CROSS		8	/* $B==;z2M(B */
+#define EFFECT_DEMONS_RING	0	// 指輪
+#define EFFECT_CANDLE		1	// 蝋燭
+#define EFFECT_HOURGLASS	2	// 砂時計
+#define EFFECT_MANTLE		3	// 外套
+#define EFFECT_WINGED_BOOTS	4	// 羽飾り付きブーツ
+#define EFFECT_RUBY		5	// ルビー
+#define EFFECT_BROWN_POTION	6	// 茶色薬
+#define EFFECT_MIRROR		7	// 鏡
+#define EFFECT_BOTTLE		8	// 壷
+// scenario 2
+#define EFFECT_CROSS		8	// 十字架
 
-/* $B%f!<%6!<$N@_Dj$rJ];}$9$k9=B$BN(B */
+// ユーザーの設定を保持する構造体
 typedef struct {
-  short		mute;			/* $B>C2;(B */
+  short		mute;			// 消音
 } config_t;
 
-/* $B%f!<%6!<$N4D6-$rJ];}$9$k9=B$BN(B */
+// ユーザーの環境を保持する構造体
 typedef struct {
-  short		scenario;		/* $B%7%J%j%*(B */
-  short		dungeon_level;		/* $BLB5\$N3,AX(B */
-  short		in_training_ground;	/* $B71N}>l(B */
-  short		in_tower;		/* $B%?%o!<FbIt!)(B */
-  short		in_battle;		/* $B@oF.Cf!)(B */
-  short		lighting;		/* $B%i%s%W(B */
-  short		effect[MAX_EFFECT];	/* $BF;6q$N;~8B8z2L(B */
-  short		field_encountered;	/* $B%U%#!<%k%IMQAx6x%b%s%9%?!<(B */
-  room_t	field_room;		/* $B%U%#!<%k%IMQ$N@o>l(B */
+  short		scenario;		// シナリオ
+  short		dungeon_level;		// 迷宮の階層
+  short		in_training_ground;	// 訓練場
+  short		in_tower;		// タワー内部？
+  short		in_battle;		// 戦闘中？
+  short		lighting;		// ランプ
+  short		effect[MAX_EFFECT];	// 道具の時限効果
+  short		field_encountered;	// フィールド用遭遇モンスター
+  room_t	field_room;		// フィールド用の戦場
 } environment_t;
 
-/* $B%f!<%6!<>pJs$rJ];}$9$k9=B$BN(B */
+// ユーザー情報を保持する構造体
 typedef struct {
-  short		point;			/* $B%^%C%W0LCV(B($B6&MQ(B) */
-  short		x;			/* $B?eJ?0LCV(B */
-  short		y;			/* $B?bD>0LCV(B */
-  short		frame;			/* $B%U%l!<%`(B */
-  short		dir;			/* $BJ}8~(B */
-  user_status_t status;			/* $B%9%F!<%?%9(B */
-  short		equipment[5];		/* $BAuHw(B */
-  inventory_t	inventory;		/* $B:_8K(B */
-  environment_t	environment;		/* $B4D6-(B */
-  battle_t	battle;			/* $B@oF.;~$N>pJs(B */
-  config_t	config;			/* $B@_Dj(B */
+  short		point;			// マップ位置(共用)
+  short		x;			// 水平位置
+  short		y;			// 垂直位置
+  short		frame;			// フレーム
+  short		dir;			// 方向
+  user_status_t status;			// ステータス
+  short		equipment[5];		// 装備
+  inventory_t	inventory;		// 在庫
+  environment_t	environment;		// 環境
+  battle_t	battle;			// 戦闘時の情報
+  config_t	config;			// 設定
 } user_t;
 
-/* $BJXMx$J%^%/%m#1(B */
+// 便利なマクロ１
 #define in_training_ground()	(user.environment.in_training_ground)
 #define in_tower()		(user.environment.in_tower)
 #define in_battle()		(user.environment.in_battle)
 #define in_darkness()		(in_tower() && user.environment.lighting == 0)
 #define in_scenario2()		(user.environment.scenario != 0)
 
-/* $BJXMx$J%^%/%m#2(B */
+// 便利なマクロ２
 #define using_demons_ring()	(user.environment.effect[EFFECT_DEMONS_RING])
 #define using_candle()		(user.environment.effect[EFFECT_CANDLE])
 #define using_hourglass()	(user.environment.effect[EFFECT_HOURGLASS])
@@ -112,46 +112,46 @@ typedef struct {
 #define user_MGR()	(user.status.MGR)
 #define user_KRM()	(user.status.KRM)
 
-/* $B9b$$J}$N%i%s%/%l%Y%k(B */
+// 高い方のランクレベル
 #define user_higher_rank() (max(user.status.fighter.rank, \
                                 user.status.wizard.rank))
 
-#define MAX_RANK		17	/* $B%i%s%/$N<oN`(B */
+#define MAX_RANK		17	// ランクの種類
 #define NULL_RANK		MAX_RANK
 
-/* $B%i%s%/%G!<%?$rJ];}$9$k9=B$BN(B */
+// ランクデータを保持する構造体
 typedef struct {
-  char *	name;			/* $B>N9f(B */
-  int		require_EXP;		/* $BI,MW7P83CM(B */
+  char *	name;			// 称号
+  int		require_EXP;		// 必要経験値
 } rank_data_t;
 
-/* $B%i%s%/%G!<%?%Y!<%9(B */
+// ランクデータベース
 extern const rank_data_t fighter_rank[MAX_RANK + 1];
 extern const rank_data_t wizard_rank[MAX_RANK + 1];
 
-/* $B%f!<%6!<>pJs(B */
+// ユーザー情報
 extern user_t user;
 
-/* $B%f!<%6!<I=<(%U%i%0(B */
+// ユーザー表示フラグ
 extern int user_hidden;
 
-/* $B%f!<%6!<%G%#%l%/%H%j(B */
+// ユーザーディレクトリ
 extern const char *user_path;
 
-/* $B%f!<%6!<%$%a!<%8$NFI$_9~$_(B */
+// ユーザーイメージの読み込み
 extern int load_user_image(void);
 extern int load_user_unarmed(void);
 
-/* $B;~4V$N7P2a(B */
+// 時間の経過
 extern void user_time_elapse(int interval);
 
-/* $B80(B */
+// 鍵
 extern int user_use_key(void);
 
-/* user_io.c */
+// user_io.c
 extern int save_user(void);
 extern int load_user(void);
 extern int make_user_dir(void);
 extern void match_user_name(const char *name);
 
-#endif /* user_H */
+#endif // user_H

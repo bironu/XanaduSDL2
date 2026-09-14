@@ -12,72 +12,72 @@
 #define PACKED
 #endif
 
-#define MAX_WAVE_DATA		26	/* $B%P%C%U%!$N:GBg?t(B */
+#define MAX_WAVE_DATA		26	// バッファの最大数
 
 #define SIGNATURE_BEGIN		('A')
 #define SIGNATURE_END		(SIGNATURE_BEGIN + MAX_WAVE_DATA)
 
-#define MAX_MIXER_PLAYING	8	/* $BF1;~:F@8?t$N>e8B(B */
-#define MAX_MIXER_BUFFER	1024	/* $B%_%-%5!<MQ%P%C%U%!(B */
+#define MAX_MIXER_PLAYING	8	// 同時再生数の上限
+#define MAX_MIXER_BUFFER	1024	// ミキサー用バッファ
 
-#define PCM_SILENCE		0x80	/* $B@E<d(B */
+#define PCM_SILENCE		0x80	// 静寂
 
 #pragma option -a1
 typedef struct _FORMATHEADER {
-  unsigned char		magic[4];	/* "fmt " */
-  unsigned		chunk_size;	/* $B%X%C%@!<$r4^$^$J$$(B */
+  unsigned char		magic[4];	// "fmt "
+  unsigned		chunk_size;	// ヘッダーを含まない
   WAVEFORMATEX		wf;
 } PACKED FORMATHEADER;
 
 typedef struct _DATAHEADER {
-  unsigned char		magic[4];	/* "data" */
-  unsigned		chunk_size;	/* $B%X%C%@!<$r4^$^$J$$(B */
+  unsigned char		magic[4];	// "data"
+  unsigned		chunk_size;	// ヘッダーを含まない
 } PACKED DATAHEADER;
 #pragma option -a
 
-/* WAVE $B%G!<%?$r3JG<$9$k9=B$BN(B */
+// WAVE データを格納する構造体
 typedef struct _WAVEDATA {
-  unsigned char *	top;		/* $B%G!<%?$N@hF,(B */
-  unsigned char *	end;		/* $B%G!<%?$NKvHx(B */
-  char *		filename;	/* $B%U%!%$%kL>(B */
-  int			refcount;	/* $B1iAUCf$N;2>H%+%&%s%H(B */
+  unsigned char *	top;		// データの先頭
+  unsigned char *	end;		// データの末尾
+  char *		filename;	// ファイル名
+  int			refcount;	// 演奏中の参照カウント
 } WAVEDATA;
 
-/* $B1iAUCf$N(B WAVE $B%G!<%?$r3JG<$9$k9=B$BN(B */
+// 演奏中の WAVE データを格納する構造体
 typedef struct _WAVEPLAYING {
-  unsigned char *	top;		/* $B<!$N:F@80LCV(B */
-  unsigned char *	end;		/* $B%G!<%?$N=*C<(B */
-  int			data_id;	/* $B%G!<%?HV9f(B */
+  unsigned char *	top;		// 次の再生位置
+  unsigned char *	end;		// データの終端
+  int			data_id;	// データ番号
 } WAVEPLAYING;
 
-static HWAVEOUT		wave_device;	/* WAVE $B%G%P%$%9(B */
+static HWAVEOUT		wave_device;	// WAVE デバイス
 static char *		wave_file[MAX_WAVE_DATA];
 static WAVEDATA 	wave_data[MAX_WAVE_DATA];
 static WAVEPLAYING	wave_playing[MAX_MIXER_PLAYING];
 static int		wave_num_playing;
 static unsigned char	wave_mixer_buffer[MAX_MIXER_BUFFER];
 
-/* WAVEHDR */
+// WAVEHDR
 static WAVEHDR wave_wh = {
-  wave_mixer_buffer,	/* $B:F@8MQ%P%C%U%!(B */
+  wave_mixer_buffer,	// 再生用バッファ
   sizeof(wave_mixer_buffer),
   sizeof(wave_mixer_buffer),
-  0,			/* $B%f!<%6!<%G!<%?(B */
-  0,			/* $B%U%i%0(B */
-  0,			/* $B%k!<%W2s?t(B */
-  NULL,			/* $BM=Ls$5$l$F$$$k(B; $B%<%m$G$J$1$l$P$J$i$J$$(B */
-  0			/* $BM=Ls$5$l$F$$$k(B; $B%<%m$G$J$1$l$P$J$i$J$$(B */
+  0,			// ユーザーデータ
+  0,			// フラグ
+  0,			// ループ回数
+  NULL,			// 予約されている; ゼロでなければならない
+  0			// 予約さ$l$F$$$k; ゼロでなければならない
 };
 
-/* $B%5%]!<%H$9$k7A<0(B */
+// サポートする形式
 static const WAVEFORMATEX wave_format = {
   WAVE_FORMAT_PCM,
-  1,			/* $B%b%N%i%k(B */
-  11025,		/* 1 $BICEv$?$j$N%5%s%W%k?t(B */
-  11025,		/* 1 $BICEv$?$j$N%P%$%H?t(B */
-  1,			/* 1 $B%5%s%W%k2?%P%$%H!)(B */
-  8,			/* 1 $B%5%s%W%k2?%S%C%H!)(B */
-  sizeof(WAVEFORMATEX)	/* $B$?$V$sL5;k$5$l$k(B */
+  1,			// モノラル
+  11025,		// 1 秒当たりのサンプル数
+  11025,		// 1 秒当たりのバイト数
+  1,			// 1 サンプル何バイト？
+  8,			// 1 サンプル何ビット？
+  sizeof(WAVEFORMATEX)	// たぶん無視される
 };
 
 static int wave_mixer(void);
@@ -97,7 +97,7 @@ static int wave_load(const char *filename, WAVEDATA *wave_data)
     return 1;
   }
 
-  /* RIFF */
+  // RIFF
   if (fread(magic, sizeof(magic), 1, fp) != 1 ||
       memcmp(magic, "RIFF", 4) != 0 ||
       fread(&size, sizeof(size), 1, fp) != 1) {
@@ -105,27 +105,27 @@ static int wave_load(const char *filename, WAVEDATA *wave_data)
     goto done;
   }
 
-  /* WAVE */
+  // WAVE
   if (fread(magic, sizeof(magic), 1, fp) != 1 ||
       memcmp(magic, "WAVE", 4) != 0) {
     error = 1;
     goto done;
   }
 
-  /* fmt  */
+  // fmt
   if (fread(&fmt_, sizeof(fmt_)-sizeof(WORD), 1, fp) != 1 ||
       memcmp(fmt_.magic, "fmt ", 4) != 0) {
     error = 1;
     goto done;
   }
 
-  /* 8$B%S%C%H!"%b%N%i%k!"(B11000KHz$B!)(B */
+  // 8ビット、モノラル、11000KHz？
   if (memcmp(&fmt_.wf, &wave_format, sizeof(WAVEFORMATEX)-sizeof(WORD)) != 0) {
     error = 1;
     goto done;
   }
   
-  /* data */
+  // data
   if (fread(&data, sizeof(data), 1, fp) != 1 ||
       memcmp(data.magic, "data", 4) != 0) {
     error = 1;
@@ -182,14 +182,14 @@ static void wave_error_why(int error)
   printf("Why?\n");
 }
 
-/* $B8=:_1iAUCf$N%G!<%?$r%_%-%7%s%0$7$F7k2L$N%P%$%H?t$rJV$9(B */
+// 現在演奏中のデータをミキシングして結果のバイト数を返す
 static int wave_mixer(void)
 {
   unsigned char *src_top, *src_end;
   unsigned char *dst_top, *dst_end;
   int i, max_n;
   
-  /* $B0lHVD9$$%G!<%?$O$I$l!)(B */
+  // 一番長いデータはどれ？
   for (i = 0, max_n = 0; i < wave_num_playing; i++) {
     max_n = max(max_n,
                 wave_playing[i].end - wave_playing[i].top);
@@ -199,7 +199,7 @@ static int wave_mixer(void)
   else
     max_n = min(max_n, MAX_MIXER_BUFFER);
 
-  /* $B:G=i$N%G!<%?(B */
+  // 最初のデータ
   src_top = wave_playing[0].top;
   src_end = min(wave_playing[0].end, src_top + MAX_MIXER_BUFFER);
   dst_top = wave_mixer_buffer;
@@ -214,7 +214,7 @@ static int wave_mixer(void)
     *dst_top++ = PCM_SILENCE;
   }
  
-  /* $B0J9_$N%G!<%?(B */
+  // 以降のデータ
   for (i = 1; i < wave_num_playing; i++) {
     src_top = wave_playing[i].top;
     src_end = min(wave_playing[i].end, src_top + MAX_MIXER_BUFFER);
@@ -229,11 +229,11 @@ static int wave_mixer(void)
     wave_playing[i].top = src_top;
   }
 
-  /* $B1iAU$r=*N;$7$?%G!<%?$r%P%C%U%!$+$i=|5n$9$k(B */
+  // 演奏を終了したデータをバッファから除去する
   for (i = wave_num_playing - 1; i >= 0; i--) {
-    /* $B=*C<$KE~C#$7$?!)(B */
+    // 終端に到達した？
     if (wave_playing[i].top >= wave_playing[i].end) {
-      /* $B;2>H%+%&%s%H$r8:$8$k(B */
+      // 参照カウントを減じる
       wave_data[wave_playing[i].data_id].refcount--;
       
       wave_num_playing--;
@@ -245,11 +245,11 @@ static int wave_mixer(void)
 
 static void wave_play(int data_id)
 {
-  /* $B$^$@6u$-$,$"$k!)(B */
+  // まだ空きがある？
   if (wave_num_playing < MAX_MIXER_PLAYING) {
     int n = wave_num_playing;
 
-    /* $B%G!<%?$,B8:_$9$k!)(B */
+    // データが存在する？
     if (wave_data[data_id].top == NULL)
       return;
     
@@ -259,7 +259,7 @@ static void wave_play(int data_id)
     wave_playing[n].top = wave_data[data_id].top;
     wave_playing[n].end = wave_data[data_id].end;
 
-    /* $B:F@8$r3+;O$9$k!)(B */
+    // 再生を開始する？
     if (wave_num_playing++ == 0) {
       n = wave_mixer();
 
@@ -271,14 +271,14 @@ static void wave_play(int data_id)
   }
 }
 
-/* $B;XDj$5$l$?%G!<%?$N:F@8$r;_$a$k(B */
+// 指定されたデータの再生を止める
 void wave_stop_playing(int data_id)
 {
   int i;
   
   for (i = wave_num_playing - 1; i >= 0; i--) {
     if (wave_playing[i].data_id == data_id) {
-      /* $B;2>H%+%&%s%H$r8:$8$k(B */
+      // 参照カウントを減じる
       wave_data[wave_playing[i].data_id].refcount--;
       
       wave_num_playing--;
@@ -323,7 +323,7 @@ int main(void)
       {
         char *p, *path = &buf[1];
         
-        /* $B2~9T%3!<%I$r=|5n$9$k(B */
+        // 改行コードを除去する
         for (p = path; *p != '\0' && *p != '\n'; p++);
         *p = '\0';
 
@@ -340,20 +340,20 @@ int main(void)
           int data_id = c - SIGNATURE_BEGIN;
           WAVEDATA *wd = &wave_data[data_id];
         
-          /* $B2~9T%3!<%I$r=|5n$9$k(B */
+          // 改行コードを除去する
           for (p = filename; *p != '\0' && *p != '\n'; p++);
           *p = '\0';
           
           if (filename[0] == '\0')
             goto junk;
           
-          /* $BF1$8%U%!%$%k!)(B */
+          // 同じファイル？
           if (wd->filename != NULL && strcmp(wd->filename, filename) == 0)
             continue;
           
-          /* $B:F@8Cf!)(B */
+          // 再生中？
           if (wd->refcount > 0) {
-            /* $B8=:_:F@8Cf$N%G!<%?$r=|5n$9$k(B */
+            // 現在再生中のデータを除去する
             wave_stop_playing(data_id);
           }
           
@@ -361,8 +361,8 @@ int main(void)
             free(wd->filename);
             wd->filename = strdup(filename);
           } else {
-            /* $BFI$_9~$_$K<:GT$7$F$b0JA0$N%G!<%?$O$=$N$^$^;D$C$F$$$k$,!"(B
-             * $B;H$($J$$$h$&$K$9$k(B */
+            /* 読み込みに失敗しても以前のデータはそのまま残っているが、
+             * 使えないようにする */
           junk:
             free(wd->top);
             wd->top = NULL;
