@@ -23,4 +23,15 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
+# Luaスクリプティング（リソース定義等）用の依存ライブラリ
+find_package(Lua REQUIRED)
+if(NOT TARGET Lua::Lua)
+  add_library(Lua::Lua INTERFACE IMPORTED)
+  set_target_properties(Lua::Lua PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES "${LUA_LIBRARIES}"
+  )
+endif()
+find_package(sol2 REQUIRED)
+
 add_subdirectory(src)
