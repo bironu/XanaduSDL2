@@ -24,6 +24,11 @@ target_link_libraries(sdl       PUBLIC SDL2::SDL2)
 target_link_libraries(app PUBLIC SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)
 target_link_libraries(sdl PUBLIC SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)
 
+# リソース定義（文字列・画像テーブル等）およびMenuSceneの描画レイアウトを
+# Luaスクリプトから読み込むための依存
+target_link_libraries(resources PRIVATE Lua::Lua sol2::sol2)
+target_link_libraries(scene     PRIVATE Lua::Lua sol2::sol2)
+
 # 移植済みゲームロジック本体（C -> C++、プラットフォーム非依存部分）
 # main.c / 旧 src/win32, src/x11 の画面・入力・音声実装層は未移植
 set(XANADU_CORE_SOURCES
