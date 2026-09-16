@@ -41,19 +41,15 @@ BitmapFont::BitmapFont(const Image &atlas)
 
 BitmapFont::~BitmapFont() = default;
 
-std::shared_ptr<Image> BitmapFont::renderSolidText(const char *text, const Color &fg) const
+void BitmapFont::drawText(std::shared_ptr<Image> dst, int x, int y, const char *text, const Color &fg) const
 {
-	const std::size_t len = std::strlen(text);
-	if (len == 0) {
-		return nullptr;
+	if (!dst) {
+		return;
 	}
-
-	auto dest = std::make_shared<Image>(static_cast<int>(len) * GlyphSize, GlyphSize);
-	dest->setBlendMode(SDL_BLENDMODE_BLEND);
-	dest->fillRect(Color(0, 0, 0, 0));
 
 	mask_->setColorMod(fg.getRed(), fg.getGreen(), fg.getBlue());
 
+	const std::size_t len = std::strlen(text);
 	for (std::size_t i = 0; i < len; ++i) {
 		const unsigned char ch = static_cast<unsigned char>(text[i]);
 		// Matches the original draw_text(): control characters and spaces
@@ -62,10 +58,8 @@ std::shared_ptr<Image> BitmapFont::renderSolidText(const char *text, const Color
 			continue;
 		}
 		const Rect src(ch * GlyphSize, 0, GlyphSize, GlyphSize);
-		dest->blit(mask_, src, static_cast<Sint16>(i * GlyphSize), 0);
+		dst->blit(mask_, src, static_cast<Sint16>(x + static_cast<int>(i) * GlyphSize), static_cast<Sint16>(y));
 	}
-
-	return dest;
 }
 
 } // namespace SDL_

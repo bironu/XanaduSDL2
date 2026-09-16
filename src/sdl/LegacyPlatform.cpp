@@ -176,10 +176,7 @@ void presentLegacyFrame()
 int draw_text(std::shared_ptr<SDL_::Image> dst, int x, int y, const char *s, const SDL_::Color &color)
 {
 	if (dst && legacyFont) {
-		auto text = legacyFont->renderSolidText(s, color);
-		if (text) {
-			draw_sprite(dst, x, y, text);
-		}
+		legacyFont->drawText(dst, x, y, s, color);
 	}
 	return static_cast<int>(strlen(s));
 }
