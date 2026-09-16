@@ -13,12 +13,8 @@ Application *Application::instance_ = nullptr;
 Application::Application(Uint32 flags)
 	: is_application_(::SDL_Init(flags))
 	, is_ttf_(::TTF_Init())
-	// SDL3_imageはIMG_Init/IMG_Quitのような明示的な初期化を廃止し、
-	// フォーマット判定・デコーダは読み込み時に自動で解決されるようになったため常にtrue扱いとする
 	, is_image_(true)
-	// MIX_Init/MIX_Quitの対応する呼び出しはSDL_::Mix_::Mixer(直後に構築)が
-	// 自身のコンストラクタ/デストラクタで担うため、ここでは重複init/quitを避ける
-	, is_mixer_(true)
+	, is_mixer_(MIX_Init())
 	, mixer_(std::make_unique<SDL_::Mix_::Mixer>())
 	, currentScene_()
 	, stackResumeScene_()
@@ -34,8 +30,10 @@ Application::~Application()
 {
 	instance_ = nullptr;
 	listWindow_.clear();
-	// Mix_::MixerのデストラクタがMIX_DestroyMixer/MIX_Quitまで担う
 	mixer_.reset();
+    if (isMixer()){
+        ::MIX_Quit();
+    }
 	if (isTtf()){
 		::TTF_Quit();
 	}

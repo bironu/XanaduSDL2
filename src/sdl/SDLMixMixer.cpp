@@ -10,7 +10,7 @@ namespace Mix_
 {
 
 Mixer::Mixer()
-	: mixer_(::MIX_Init() ? ::MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr) : nullptr)
+	: mixer_(::MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr))
 	, seTracks_()
 	, musicTrack_(std::make_unique<Track>(mixer_))
 {
@@ -23,7 +23,6 @@ Mixer::~Mixer()
 	musicTrack_.reset();
 	seTracks_.clear();
 	::MIX_DestroyMixer(mixer_);
-	::MIX_Quit();
 }
 
 int Mixer::allocateChannels(int size)
