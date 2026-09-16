@@ -1,9 +1,9 @@
 #ifndef JOYSTICK_H_
 #define JOYSTICK_H_
 
-#include <SDL2/SDL_joystick.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_log.h>
+#include <SDL3/SDL_joystick.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_log.h>
 #include <map>
 #include <vector>
 #include <tuple>
@@ -14,59 +14,54 @@ namespace SDL_
 
 class Joystick {
 public:
-	explicit Joystick(int);
+	explicit Joystick(SDL_JoystickID);
 	~Joystick();
 
 	bool isJoystick() const { return joystick_ != nullptr; }
 
-	static int num() { return ::SDL_NumJoysticks(); }
+	static int num() {
+		int count = 0;
+		SDL_JoystickID *ids = ::SDL_GetJoysticks(&count);
+		::SDL_free(ids);
+		return count;
+	}
 	static void lock() { ::SDL_LockJoysticks(); }
 	static void unlock() { ::SDL_UnlockJoysticks(); }
-	static void update() { ::SDL_JoystickUpdate(); }
+	static void update() { ::SDL_UpdateJoysticks(); }
 
-//	const char *getName() const { return ::SDL_JoystickNameForIndex(device_index_); }
-//	SDL_JoystickGUID getDeviceGUID() const { return ::SDL_JoystickGetDeviceGUID(device_index_); }
-//	uint16_t getDeviceVendor() const { return ::SDL_JoystickGetDeviceVendor(device_index_); }
-//	uint16_t getDeviceProduct() const { return ::SDL_JoystickGetDeviceProduct(device_index_); }
-//	uint16_t getDeviceProductVersion() const { return ::SDL_JoystickGetDeviceProductVersion(device_index_); }
-//	SDL_JoystickType getDeviceType() const { return ::SDL_JoystickGetDeviceType(device_index_); }
-//	SDL_JoystickID getDeviceInstanceID() const { return ::SDL_JoystickGetDeviceInstanceID(device_index_); }
+	//extern SDL_DECLSPEC SDL_Joystick *SDLCALL SDL_OpenJoystick(SDL_JoystickID instance_id);
+	const char *getName() const { return ::SDL_GetJoystickName(joystick_); }
+	SDL_GUID getGUID() const { return ::SDL_GetJoystickGUID(joystick_); }
+	uint16_t getVendor() const { return ::SDL_GetJoystickVendor(joystick_); }
+	uint16_t getProduct() const { return ::SDL_GetJoystickProduct(joystick_); }
+	uint16_t getProductVersion() const { return ::SDL_GetJoystickProductVersion(joystick_); }
+	SDL_JoystickType getType() const { return ::SDL_GetJoystickType(joystick_); }
+	//extern SDL_DECLSPEC void SDLCALL SDL_GetJoystickGUIDInfo(SDL_GUID guid, ...);
+	bool getAttached() const { return ::SDL_JoystickConnected(joystick_); }
+	SDL_JoystickID getInstanceID() const { return ::SDL_GetJoystickID(joystick_); }
+	int numAxes() const { return ::SDL_GetNumJoystickAxes(joystick_); }
+	int numBalls() const { return ::SDL_GetNumJoystickBalls(joystick_); }
+	int numHats() const { return ::SDL_GetNumJoystickHats(joystick_); }
+	int numButtons() const { return ::SDL_GetNumJoystickButtons(joystick_); }
 
-	//extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickOpen(int device_index);
-	//extern DECLSPEC SDL_Joystick *SDLCALL SDL_JoystickFromInstanceID(SDL_JoystickID joyid);
-	const char *getName() const { return ::SDL_JoystickName(joystick_); }
-	SDL_JoystickGUID getGUID() const { return ::SDL_JoystickGetGUID(joystick_); }
-	uint16_t getVendor() const { return ::SDL_JoystickGetVendor(joystick_); }
-	uint16_t getProduct() const { return ::SDL_JoystickGetProduct(joystick_); }
-	uint16_t getProductVersion() const { return ::SDL_JoystickGetProductVersion(joystick_); }
-	SDL_JoystickType getType() const { return ::SDL_JoystickGetType(joystick_); }
-	//extern DECLSPEC void SDLCALL SDL_JoystickGetGUIDString(SDL_JoystickGUID guid, char *pszGUID, int cbGUID);
-	//extern DECLSPEC SDL_JoystickGUID SDLCALL SDL_JoystickGetGUIDFromString(const char *pchGUID);
-	bool getAttached() const { return ::SDL_JoystickGetAttached(joystick_); }
-	SDL_JoystickID getInstanceID() const { return ::SDL_JoystickInstanceID(joystick_); }
-	int numAxes() const { return ::SDL_JoystickNumAxes(joystick_); }
-	int numBalls() const { return ::SDL_JoystickNumBalls(joystick_); }
-	int numHats() const { return ::SDL_JoystickNumHats(joystick_); }
-	int numButtons() const { return ::SDL_JoystickNumButtons(joystick_); }
+	bool isEventEnable() const { return ::SDL_JoystickEventsEnabled(); }
+	void setEventEnable() { ::SDL_SetJoystickEventsEnabled(true); }
+	void setEventDisable() { ::SDL_SetJoystickEventsEnabled(false); }
 
-	bool isEventEnable() const { return ::SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE; }
-	void setEventEnable() { ::SDL_JoystickEventState(SDL_ENABLE); }
-	void setEventDisable() { ::SDL_JoystickEventState(SDL_IGNORE); }
-
-	int16_t getAxis(int axis) const { return ::SDL_JoystickGetAxis(joystick_, axis); }
+	int16_t getAxis(int axis) const { return ::SDL_GetJoystickAxis(joystick_, axis); }
 	int16_t getAxisInitialState(int axis) const {
 		Sint16 state;
-		if (!::SDL_JoystickGetAxisInitialState(joystick_, axis, &state)) {
+		if (!::SDL_GetJoystickAxisInitialState(joystick_, axis, &state)) {
 			::SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Joystick AxisInitialState error [%s]", ::SDL_GetError());
 			state = 0;
 		}
 		return state;
 	}
 
-	uint8_t getHat(int hat) const { return ::SDL_JoystickGetHat(joystick_, hat); }
-	int getBall(int ball, int *dx, int *dy) const { return ::SDL_JoystickGetBall(joystick_, ball, dx, dy); }
-	uint8_t getButton(int button) const { return ::SDL_JoystickGetButton(joystick_, button); }
-	SDL_JoystickPowerLevel getCurrentPowerLevel() const { return ::SDL_JoystickCurrentPowerLevel(joystick_); }
+	uint8_t getHat(int hat) const { return ::SDL_GetJoystickHat(joystick_, hat); }
+	bool getBall(int ball, int *dx, int *dy) const { return ::SDL_GetJoystickBall(joystick_, ball, dx, dy); }
+	uint8_t getButton(int button) const { return ::SDL_GetJoystickButton(joystick_, button); }
+	SDL_PowerState getCurrentPowerLevel() const { return ::SDL_GetJoystickPowerInfo(joystick_, nullptr); }
 
 	void updateJoyHatState(const SDL_JoyHatEvent &);
 	void updateHoyButtonState(const SDL_JoyButtonEvent &);

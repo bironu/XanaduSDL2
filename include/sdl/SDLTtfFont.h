@@ -3,7 +3,7 @@
 
 #include "misc/Uncopyable.h"
 #include "geo/Vector2.h"
-#include <SDL2/SDL_ttf.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <memory>
 
 namespace SDL_
@@ -14,7 +14,7 @@ class TtfFont
 {
 public:
 	UNCOPYABLE(TtfFont);
-	TtfFont(const char *file, int ptsize)
+	TtfFont(const char *file, float ptsize)
 		: font_(::TTF_OpenFont(file, ptsize))
 		, fontSize_(ptsize)
 	{
@@ -25,7 +25,7 @@ public:
 		}
 	}
 
-	int getFontSize() const { return fontSize_; }
+	float getFontSize() const { return fontSize_; }
 	TTF_Font *get() const { return font_; }
 	bool is_font() const { return font_; }
 
@@ -36,7 +36,7 @@ public:
 
 private:
 	TTF_Font * const font_;
-	const int fontSize_;
+	const float fontSize_;
 };
 
 } // namespace SDL_

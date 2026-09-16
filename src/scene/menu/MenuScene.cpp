@@ -9,7 +9,7 @@
 #include "opening.h"
 #include "ending.h"
 
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -23,17 +23,17 @@ MenuScene::MenuScene()
 
 void MenuScene::dispatch(const SDL_Event &event)
 {
-	if (event.type != SDL_KEYDOWN || event.key.repeat != 0) {
+	if (event.type != SDL_EVENT_KEY_DOWN || event.key.repeat != 0) {
 		return;
 	}
 
-	const SDL_Keysym &keysym = event.key.keysym;
+	const SDL_KeyboardEvent &key = event.key;
 	switch (state_) {
-	case State::Generic: onGenericKey(keysym); break;
-	case State::Load:    onLoadKey(keysym);    break;
-	case State::Debug:   onDebugKey(keysym);   break;
-	case State::Boss:    onBossKey(keysym);    break;
-	case State::Version: onVersionKey(keysym); break;
+	case State::Generic: onGenericKey(key); break;
+	case State::Load:    onLoadKey(key);    break;
+	case State::Debug:   onDebugKey(key);   break;
+	case State::Boss:    onBossKey(key);    break;
+	case State::Version: onVersionKey(key); break;
 	case State::Game:    break; // onEnter()内で即座に遷移するため滞留しない
 	}
 }
@@ -223,31 +223,31 @@ void MenuScene::drawItem(int row, int col, int key, const char *s, const SDL_::C
 	draw_text(clip_main, col * 16, row * 16, s, pixel);
 }
 
-void MenuScene::onGenericKey(const SDL_Keysym &keysym)
+void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
 {
-	switch (keysym.sym) {
-	case SDLK_l: state_ = State::Load; onEnter(); break;
+	switch (key.key) {
+	case SDLK_L: state_ = State::Load; onEnter(); break;
 	case SDLK_1: user.environment.scenario = 0; onEnter(); break;
 	case SDLK_2: user.environment.scenario = 1; onEnter(); break;
-	case SDLK_n:
+	case SDLK_N:
 		state_ = State::Game;
 		extend_context(init_opening());
 		return;
-	case SDLK_d: state_ = State::Debug; onEnter(); break;
-	case SDLK_b: state_ = State::Boss; onEnter(); break;
-	case SDLK_o: extend_context(init_opening()); break;
-	case SDLK_e: extend_context(init_ending());  break;
-	case SDLK_v: state_ = State::Version; onEnter(); break;
+	case SDLK_D: state_ = State::Debug; onEnter(); break;
+	case SDLK_B: state_ = State::Boss; onEnter(); break;
+	case SDLK_O: extend_context(init_opening()); break;
+	case SDLK_E: extend_context(init_ending());  break;
+	case SDLK_V: state_ = State::Version; onEnter(); break;
 	default: return;
 	}
 	update(rect_main);
 }
 
-void MenuScene::onDebugKey(const SDL_Keysym &keysym)
+void MenuScene::onDebugKey(const SDL_KeyboardEvent &key)
 {
-	const bool shift = (keysym.mod & KMOD_SHIFT) != 0;
+	const bool shift = (key.mod & SDL_KMOD_SHIFT) != 0;
 
-	switch (keysym.sym) {
+	switch (key.key) {
 	// SCENARIO 1: USキー配列ではShift+'='(=SDLK_EQUALS)が'+'になる。
 	// JIS配列など、レイアウトによっては'+'やSDLK_SEMICOLON自体が
 	// 素で送出される場合もあるため両方を受理する。
@@ -268,36 +268,36 @@ void MenuScene::onDebugKey(const SDL_Keysym &keysym)
 		if (shift) { user.environment.scenario = 1; } else { user.environment.dungeon_level = 7; }
 		break;
 	case SDLK_9: user.environment.dungeon_level =  8; break;
-	case SDLK_a: user.environment.dungeon_level =  9; break;
-	case SDLK_b: user.environment.dungeon_level = 10; break;
-	case SDLK_f:
+	case SDLK_A: user.environment.dungeon_level =  9; break;
+	case SDLK_B: user.environment.dungeon_level = 10; break;
+	case SDLK_F:
 		init_level(user.environment.dungeon_level, nullptr);
 		switch_context(CONTEXT_FIELD);
 		return;
-	case SDLK_t:
+	case SDLK_T:
 		init_level(user.environment.dungeon_level, nullptr);
 		user.x = 0;
 		user.y = 4 * 40;
 		switch_context(CONTEXT_TOWER);
 		return;
-	case SDLK_o:
+	case SDLK_O:
 		init_level(-1, nullptr);
 		user.point = field_offset_XY(4, 3);
 		switch_context(CONTEXT_FIELD);
 		return;
-	case SDLK_r:
+	case SDLK_R:
 		state_ = State::Generic;
 		break;
 	}
 	onEnter();
 }
 
-void MenuScene::onLoadKey(const SDL_Keysym &keysym)
+void MenuScene::onLoadKey(const SDL_KeyboardEvent &key)
 {
-	switch (keysym.sym) {
-	case SDLK_a: case SDLK_b: case SDLK_c: case SDLK_d:
-	case SDLK_e: case SDLK_f: case SDLK_g: case SDLK_h:
-		if (loadGame(keysym.sym - SDLK_a) == 0) {
+	switch (key.key) {
+	case SDLK_A: case SDLK_B: case SDLK_C: case SDLK_D:
+	case SDLK_E: case SDLK_F: case SDLK_G: case SDLK_H:
+		if (loadGame(key.key - SDLK_A) == 0) {
 			// ゲームを再開する
 			load_user_image();
 			init_level(user.environment.dungeon_level, user_path);
@@ -307,30 +307,30 @@ void MenuScene::onLoadKey(const SDL_Keysym &keysym)
 				switch_context(init_field());
 		}
 		break;
-	case SDLK_r:
+	case SDLK_R:
 		state_ = State::Generic;
 		onEnter();
 		break;
 	}
 }
 
-void MenuScene::onBossKey(const SDL_Keysym &keysym)
+void MenuScene::onBossKey(const SDL_KeyboardEvent &key)
 {
 	int bossId = 0;
-	switch (keysym.sym) {
-	case SDLK_a: bossId =  0; break;
-	case SDLK_b: bossId =  1; break;
-	case SDLK_c: bossId =  2; break;
-	case SDLK_d: bossId =  3; break;
-	case SDLK_e: bossId =  4; break;
-	case SDLK_f: bossId =  5; break;
-	case SDLK_g: bossId =  6; break;
-	case SDLK_h: bossId =  7; break;
-	case SDLK_i: bossId =  8; break;
-	case SDLK_j: bossId =  9; break;
-	case SDLK_k: bossId = 10; break;
-	case SDLK_l: bossId = 11; break;
-	case SDLK_r:
+	switch (key.key) {
+	case SDLK_A: bossId =  0; break;
+	case SDLK_B: bossId =  1; break;
+	case SDLK_C: bossId =  2; break;
+	case SDLK_D: bossId =  3; break;
+	case SDLK_E: bossId =  4; break;
+	case SDLK_F: bossId =  5; break;
+	case SDLK_G: bossId =  6; break;
+	case SDLK_H: bossId =  7; break;
+	case SDLK_I: bossId =  8; break;
+	case SDLK_J: bossId =  9; break;
+	case SDLK_K: bossId = 10; break;
+	case SDLK_L: bossId = 11; break;
+	case SDLK_R:
 		state_ = State::Generic;
 		onEnter();
 		return;
@@ -340,9 +340,9 @@ void MenuScene::onBossKey(const SDL_Keysym &keysym)
 	extend_context(init_boss(bossId));
 }
 
-void MenuScene::onVersionKey(const SDL_Keysym &keysym)
+void MenuScene::onVersionKey(const SDL_KeyboardEvent &key)
 {
-	if (keysym.sym == SDLK_r) {
+	if (key.key == SDLK_R) {
 		state_ = State::Generic;
 		onEnter();
 	}

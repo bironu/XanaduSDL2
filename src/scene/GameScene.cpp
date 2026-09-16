@@ -1,11 +1,11 @@
 #include "scene/GameScene.h"
 #include "message.h"
 #include "keystate.h"
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
 #include <cctype>
 
 // 旧 src/x11/main.c にあった keystate_vector の実体。
-// SDL2版フロントエンドではここが唯一の定義元になる。
+// SDL3版フロントエンドではここが唯一の定義元になる。
 int keystate_vector[256];
 
 namespace {
@@ -29,7 +29,7 @@ int toKeystateIndex(SDL_Keycode sym)
 	case SDLK_END:      return VK_END;
 	case SDLK_SPACE:    return VK_SPACE;
 	default:
-		if (sym >= SDLK_a && sym <= SDLK_z) {
+		if (sym >= SDLK_A && sym <= SDLK_Z) {
 			return std::toupper(sym);
 		}
 		if (sym >= SDLK_0 && sym <= SDLK_9) {
@@ -40,31 +40,31 @@ int toKeystateIndex(SDL_Keycode sym)
 }
 
 // thunk_key_event に渡す文字コードへの変換(Shift状態を反映したUS配列相当の文字)。
-int toCharCode(const SDL_Keysym &keysym)
+int toCharCode(const SDL_KeyboardEvent &key)
 {
-	const bool shift = (keysym.mod & KMOD_SHIFT) != 0;
+	const bool shift = (key.mod & SDL_KMOD_SHIFT) != 0;
 
-	switch (keysym.sym) {
+	switch (key.key) {
 	case SDLK_RETURN: case SDLK_KP_ENTER: return '\r';
 	case SDLK_BACKSPACE:                  return '\b';
 	case SDLK_ESCAPE:                     return 27;
 	default: break;
 	}
 
-	if (keysym.sym >= SDLK_a && keysym.sym <= SDLK_z) {
-		return shift ? std::toupper(keysym.sym) : keysym.sym;
+	if (key.key >= SDLK_A && key.key <= SDLK_Z) {
+		return shift ? std::toupper(key.key) : key.key;
 	}
 
-	if (keysym.sym >= SDLK_0 && keysym.sym <= SDLK_9) {
+	if (key.key >= SDLK_0 && key.key <= SDLK_9) {
 		if (shift) {
 			static const char shifted[] = ")!@#$%^&*(";
-			return shifted[keysym.sym - SDLK_0];
+			return shifted[key.key - SDLK_0];
 		}
-		return keysym.sym;
+		return key.key;
 	}
 
-	if (keysym.sym >= 0x20 && keysym.sym <= 0x7e) {
-		return keysym.sym;
+	if (key.key >= 0x20 && key.key <= 0x7e) {
+		return key.key;
 	}
 
 	return 0;
@@ -98,16 +98,16 @@ void GameScene::onSuspend()
 void GameScene::dispatch(const SDL_Event &event)
 {
 	switch (event.type) {
-	case SDL_KEYDOWN:
-	case SDL_KEYUP:
+	case SDL_EVENT_KEY_DOWN:
+	case SDL_EVENT_KEY_UP:
 		{
-			const int index = toKeystateIndex(event.key.keysym.sym);
+			const int index = toKeystateIndex(event.key.key);
 			if (index >= 0 && index < 256) {
-				keystate_vector[index] = (event.type == SDL_KEYDOWN);
+				keystate_vector[index] = (event.type == SDL_EVENT_KEY_DOWN);
 			}
 		}
-		if (event.type == SDL_KEYDOWN && event.key.repeat == 0 && thunk_key_event) {
-			const int c = toCharCode(event.key.keysym);
+		if (event.type == SDL_EVENT_KEY_DOWN && event.key.repeat == 0 && thunk_key_event) {
+			const int c = toCharCode(event.key);
 			if (c != 0) {
 				(*thunk_key_event)(c);
 			}

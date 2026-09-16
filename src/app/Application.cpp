@@ -1,22 +1,21 @@
 #include "app/Application.h"
 #include "sdl/SDLWindow.h"
-#include "sdl/SDLMixAudio.h"
+#include "sdl/SDLMixMixer.h"
 #include "resources/Resources.h"
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_opengl.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3/SDL_log.h>
 #include <iostream>
 
 Application *Application::instance_ = nullptr;
 
 Application::Application(Uint32 flags)
-	: is_application_(::SDL_Init(flags) == 0)
-	, is_ttf_(::TTF_Init() == 0)
-	, is_image_(::IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG)
-	, is_mixer_(::Mix_Init(MIX_INIT_MP3))
-	, audio_(std::make_unique<SDL_::Mix_::Audio>())
+	: is_application_(::SDL_Init(flags))
+	, is_ttf_(::TTF_Init())
+	, is_image_(true)
+	, is_mixer_(MIX_Init())
+	, mixer_(std::make_unique<SDL_::Mix_::Mixer>())
 	, currentScene_()
 	, stackResumeScene_()
 	, listWindow_()
@@ -24,16 +23,6 @@ Application::Application(Uint32 flags)
 	, nextScene_()
 	, return_code_(0)
 {
-	if (is_application_) {
-        // SDLはデフォルトでIMEによるテキスト入力（文字合成）を有効にしています。
-        // しかし、このゲームは生のキーコードのみを読み取り（テキスト入力フィールドは使用しません）、
-        // この機能を有効のままにすると、すべてのキー入力がmacOSのInput Method Kitを経由することになります。
-        // バンドル化されていない実行ファイルの場合、これにより処理が停止したり、
-        // 「error messaging the mach port for IMKCFRunLoopWakeUpReliable」という
-        // エラーメッセージが大量に発生したりする可能性があります。
-		::SDL_StopTextInput();
-	}
-	audio_->allocateChannels(MIX_CHANNELS);
 	instance_ = this;
 }
 
@@ -41,15 +30,10 @@ Application::~Application()
 {
 	instance_ = nullptr;
 	listWindow_.clear();
-	// Mix_::Audioのデストラクタ(Mix_CloseAudio)は、下のMix_Quit()より先に
-	// 終わらせておく必要がある
-	audio_.reset();
-	if (isMixer()) {
-		::Mix_Quit();
-	}
-	if (isImage()) {
-		::IMG_Quit();
-	}
+	mixer_.reset();
+    if (isMixer()){
+        ::MIX_Quit();
+    }
 	if (isTtf()){
 		::TTF_Quit();
 	}
@@ -103,7 +87,7 @@ int Application::run(Resources &res, TaskManager &manager)
 	bool idle(false);
 	while(currentScene_) {
 		const auto tick = getTickCount();
-		if(::SDL_PollEvent(&event) != 0){
+		if(::SDL_PollEvent(&event)){
 			if (!handlePreEvent(res, manager, event)) {
 				currentScene_->dispatch(event);
 			}
@@ -113,7 +97,7 @@ int Application::run(Resources &res, TaskManager &manager)
 			idle = currentScene_->onIdle(tick);
 		}
 		else {
-			if (::SDL_WaitEvent(0) == 0){
+			if (!::SDL_WaitEvent(nullptr)){
 				::SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_WaitEvent Error!! %s", ::SDL_GetError());
 				quit(1);
 			}
@@ -157,16 +141,15 @@ void Application::clearResumeStack()
 
 void Application::quit(const int val)
 {
-	SDL_Event event = {SDL_QUIT};
+	SDL_Event event = {SDL_EVENT_QUIT};
 	return_code_ = val;
 	::SDL_PushEvent(&event);
 }
 
 void Application::updateWindow(Uint32 id)
 {
-	SDL_Event event = {SDL_WINDOWEVENT};
+	SDL_Event event = {SDL_EVENT_WINDOW_EXPOSED};
 	event.window.windowID = id;
-	event.window.event = SDL_WINDOWEVENT_EXPOSED;
 	::SDL_PushEvent(&event);
 }
 
@@ -176,87 +159,73 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 
 	switch(event.type)
 	{
-	case SDL_QUIT:
+	case SDL_EVENT_QUIT:
 		currentScene_.reset();
 		clearResumeStack();
 		nextScene_ = nullptr;
 		result = true;
 		break;
 
-	case SDL_JOYDEVICEADDED:
+	case SDL_EVENT_JOYSTICK_ADDED:
 		res.addJoyDevice(event.jdevice);
 		//currentScene_->onAddJoystick(event.jdevice.which);
 		break;
 
-	case SDL_JOYDEVICEREMOVED:
+	case SDL_EVENT_JOYSTICK_REMOVED:
 		res.removeJoyDevice(event.jdevice);
 		break;
 
-	case SDL_WINDOWEVENT:
-		switch (event.window.event)
-		{
-		case SDL_WINDOWEVENT_SHOWN:
-			SDL_Log("Window %d shown", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_HIDDEN:
-			SDL_Log("Window %d hidden", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_EXPOSED:
-			SDL_Log("Window %d exposed", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_MOVED:
-			SDL_Log("Window %d moved to %d,%d",
-					event.window.windowID, event.window.data1, event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_RESIZED:
-			res.setWindowWidth(event.window.data1);
-			res.setWindowHeight(event.window.data2);
-			SDL_Log("Window %d resized to %dx%d",
-					event.window.windowID, event.window.data1, event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_SIZE_CHANGED:
-			res.setWindowWidth(event.window.data1);
-			res.setWindowHeight(event.window.data2);
-			SDL_Log("Window %d size changed to %dx%d",
-					event.window.windowID, event.window.data1, event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_MINIMIZED:
-			SDL_Log("Window %d minimized", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_MAXIMIZED:
-			SDL_Log("Window %d maximized", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_RESTORED:
-			SDL_Log("Window %d restored", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_ENTER:
-			SDL_Log("Mouse entered window %d", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_LEAVE:
-			SDL_Log("Mouse left window %d", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_FOCUS_GAINED:
-			SDL_Log("Window %d gained keyboard focus", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_FOCUS_LOST:
-			SDL_Log("Window %d lost keyboard focus", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_CLOSE:
-			SDL_Log("Window %d closed", event.window.windowID);
-			break;
-#if SDL_VERSION_ATLEAST(2, 0, 5)
-		case SDL_WINDOWEVENT_TAKE_FOCUS:
-			SDL_Log("Window %d is offered a focus", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_HIT_TEST:
-			SDL_Log("Window %d has a special hit test", event.window.windowID);
-			break;
-#endif
-		default:
-			SDL_Log("Window %d got unknown event %d",
-					event.window.windowID, event.window.event);
-			break;
-		}
+	// SDL3ではSDL_WINDOWEVENT+ネストしたevent.window.eventによる分岐は廃止され、
+	// 個々のウィンドウイベントがトップレベルのevent.typeとして独立している
+	case SDL_EVENT_WINDOW_SHOWN:
+		SDL_Log("Window %d shown", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_HIDDEN:
+		SDL_Log("Window %d hidden", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_EXPOSED:
+		SDL_Log("Window %d exposed", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MOVED:
+		SDL_Log("Window %d moved to %d,%d",
+				event.window.windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_EVENT_WINDOW_RESIZED:
+		res.setWindowWidth(event.window.data1);
+		res.setWindowHeight(event.window.data2);
+		SDL_Log("Window %d resized to %dx%d",
+				event.window.windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+		SDL_Log("Window %d pixel size changed to %dx%d",
+				event.window.windowID, event.window.data1, event.window.data2);
+		break;
+	case SDL_EVENT_WINDOW_MINIMIZED:
+		SDL_Log("Window %d minimized", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MAXIMIZED:
+		SDL_Log("Window %d maximized", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_RESTORED:
+		SDL_Log("Window %d restored", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MOUSE_ENTER:
+		SDL_Log("Mouse entered window %d", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+		SDL_Log("Mouse left window %d", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_FOCUS_GAINED:
+		SDL_Log("Window %d gained keyboard focus", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_FOCUS_LOST:
+		SDL_Log("Window %d lost keyboard focus", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		SDL_Log("Window %d closed", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_HIT_TEST:
+		SDL_Log("Window %d has a special hit test", event.window.windowID);
 		break;
 
 	default:

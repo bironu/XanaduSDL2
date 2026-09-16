@@ -3,9 +3,9 @@
 
 #include "misc/Uncopyable.h"
 #include "SDLColor.h"
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_blendmode.h>
-#include <SDL2/SDL_render.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_blendmode.h>
+#include <SDL3/SDL_render.h>
 
 struct SDL_Texture;
 
@@ -19,7 +19,7 @@ class Texture
 public:
 	UNCOPYABLE(Texture);
 	Texture(const Renderer &renderer, const Image &surface);
-	Texture(const Renderer &renderer, Uint32 format, int access, int w, int h);
+	Texture(const Renderer &renderer, SDL_PixelFormat format, SDL_TextureAccess access, int w, int h);
 	~Texture();
 
 	int getWidth() const { return width_; }
@@ -32,7 +32,7 @@ public:
 	SDL_BlendMode getBlendMode()
 	{
 		SDL_BlendMode blendMode;
-		SDL_GetTextureBlendMode(get(), &blendMode);
+		::SDL_GetTextureBlendMode(get(), &blendMode);
 		return blendMode;
 	}
 	const Color getColor()

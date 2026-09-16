@@ -3,31 +3,28 @@
 
 #include "misc/Uncopyable.h"
 
+struct MIX_Audio;
+
 namespace SDL_
 {
 namespace Mix_
 {
-class Chunk;
-class Music;
-class Audio
-{
+
+class Mixer;
+
+// 効果音(SE)・BGM(MIDI)の両方に使う、デコード前音声データのラッパー。
+// SDL3_mixerでは旧SDL2_mixerのMix_Chunk(効果音)とMix_Music(BGM)の区別が
+// MIX_Audioという単一の型に統合されたため、SE/BGM共通でこのクラスを使う。
+class Audio {
 public:
 	UNCOPYABLE(Audio);
-	Audio();
+	Audio(Mixer &owner, const char *);
 	~Audio();
 
-	int allocateChannels(int);
-	int playSound(Chunk &, int = -1, int = 0);
-	bool playMusic(Music &, int = -1);
-	bool stopMusic();
-	void pauseMusic();
-	void resumeMusic();
-    void rewindMusic();
-    bool setSoundFonts(const char *);
+	MIX_Audio *get() const { return audio_; }
 
 private:
-	const int audioDevice_;
-
+	MIX_Audio * const audio_;
 };
 
 } // namespace Mix_

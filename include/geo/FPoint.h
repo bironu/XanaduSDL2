@@ -1,23 +1,26 @@
 #pragma once
-#if !defined(POINT_H_)
-#define POINT_H_
+#if !defined(FPOINT_H_)
+#define FPOINT_H_
 
+#include "Point.h"
 #include <SDL3/SDL_rect.h>
 
-class RectTest;
-
-class Point final : public SDL_Point
+class FPoint final : public SDL_FPoint
 {
 public:
-	Point(decltype(x) x_pos, decltype(y) y_pos)
-		: SDL_Point{x_pos, y_pos}
+	FPoint(decltype(x) x_pos, decltype(y) y_pos)
+		: SDL_FPoint{x_pos, y_pos}
 	{
 	}
-	Point()
-		: Point(0, 0)
+	FPoint()
+		: FPoint(0.0f, 0.0f)
 	{
 	}
-	~Point() = default;
+	explicit FPoint(const Point &point)
+		: FPoint(static_cast<decltype(x)>(point.get_x_pos()), static_cast<decltype(y)>(point.get_y_pos()))
+	{
+	}
+	~FPoint() = default;
 	decltype(x) get_x_pos() const { return x;}
 	decltype(y) get_y_pos() const { return y;}
 	void set_x_pos(decltype(x) x_pos){ x = x_pos;}
@@ -28,7 +31,7 @@ public:
 		set_y_pos(y_pos);
 	}
 
-	const Point &operator+=(const Point &pos)
+	const FPoint &operator+=(const FPoint &pos)
 	{
 		set_x_pos(get_x_pos()+pos.get_x_pos());
 		set_y_pos(get_y_pos()+pos.get_y_pos());
@@ -36,9 +39,9 @@ public:
 	}
 };
 
-inline const Point operator+(const Point &l, const Point &r)
+inline const FPoint operator+(const FPoint &l, const FPoint &r)
 {
 	return {l.get_x_pos()+r.get_x_pos(), l.get_y_pos()+r.get_y_pos()};
 }
 
-#endif // POINT_H_
+#endif // FPOINT_H_

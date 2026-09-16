@@ -4,8 +4,9 @@
 #include "misc/Uncopyable.h"
 #include "sdl/SDLRenderer.h"
 #include "geo/Vector2.h"
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_messagebox.h>
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_messagebox.h>
+#include <SDL3/SDL_properties.h>
 #include <map>
 #include <memory>
 
@@ -23,17 +24,18 @@ public:
 	SDL_Window *get() const { return window_; }
 
 	//float getBrightness() const { return ::SDL_GetWindowBrightness(window_); }
-	void* getUsaerData(const char* name) const { return ::SDL_GetWindowData(window_, name); }
-	int getDisplayIndex() const { return ::SDL_GetWindowDisplayIndex(window_); }
+	// SDL3ではSDL_Get/SetWindowDataが廃止され、Properties API経由になった
+	void* getUsaerData(const char* name) const { return ::SDL_GetPointerProperty(::SDL_GetWindowProperties(window_), name, nullptr); }
+	SDL_DisplayID getDisplayIndex() const { return ::SDL_GetDisplayForWindow(window_); }
 	//int getDisplayMode(SDL_DisplayMode* mode) const { return ::SDL_GetWindowDisplayMode(window_, mode); }
-	Uint32 getWindowFlag() const { return ::SDL_GetWindowFlags(window_); }
+	SDL_WindowFlags getWindowFlag() const { return ::SDL_GetWindowFlags(window_); }
 	//SDL_Window* getWindowFromID(Uint32 id) const { return ::SDL_GetWindowFromID(id); }
 	//int getGammaRamp(Uint16* red, Uint16* green, Uint16* blue) const { return ::SDL_GetWindowGammaRamp(window_, red, green, blue); }
 	//bool getGrab() const { return ::SDL_GetWindowGrab(window_); }
 	Uint32 getWindowId() const { return ::SDL_GetWindowID(window_); }
 	void getMaximumSize(int* w, int* h) const { ::SDL_GetWindowMaximumSize(window_, w, h); }
 	void getMinimumSize(int* w, int* h) const { ::SDL_GetWindowMinimumSize(window_, w, h); }
-	Uint32 getPixelFormat() const { return ::SDL_GetWindowPixelFormat(window_); }
+	SDL_PixelFormat getPixelFormat() const { return ::SDL_GetWindowPixelFormat(window_); }
 	const Point getPosition() const
 	{
 		int x, y;
@@ -54,11 +56,11 @@ public:
 	void minimize() { ::SDL_MinimizeWindow(window_); }
 	void raise() { ::SDL_RaiseWindow(window_); }
 	void restore() { ::SDL_RestoreWindow(window_); }
-	void setBordered(bool bordered) { ::SDL_SetWindowBordered(window_, bordered?SDL_TRUE:SDL_FALSE); }
+	void setBordered(bool bordered) { ::SDL_SetWindowBordered(window_, bordered); }
 	//int SDL_SetWindowBrightness(SDL_Window* window, float brightness);
-	void* setUserData(const char* name, void* userdata) { return ::SDL_SetWindowData(window_, name, userdata); }
+	bool setUserData(const char* name, void* userdata) { return ::SDL_SetPointerProperty(::SDL_GetWindowProperties(window_), name, userdata); }
 	//int SDL_SetWindowDisplayMode(SDL_Window* window, const SDL_DisplayMode* mode);
-	int setFullscreen(Uint32 flags) { return ::SDL_SetWindowFullscreen(window_, flags); }
+	bool setFullscreen(bool fullscreen) { return ::SDL_SetWindowFullscreen(window_, fullscreen); }
 	//int SDL_SetWindowGammaRamp(SDL_Window* window, const Uint16* red, const Uint16* green, const Uint16* blue);
 	//void SDL_SetWindowGrab(SDL_Window* window, SDL_bool grabbed);
 	//int SDL_SetWindowHitTest(SDL_Window* window, SDL_HitTest callback, void* callback_data);
@@ -68,8 +70,8 @@ public:
 	void setPosition(int x, int y) { ::SDL_SetWindowPosition(window_, x, y); }
 	void setSize(int w, int h) { ::SDL_SetWindowSize(window_, w, h); }
 	void setTitle(const char *title) { ::SDL_SetWindowTitle(window_, title); }
-	//int SDL_ShowMessageBox(const SDL_MessageBoxData* messageboxdata, int* buttonid);
-	int showSimpleMessageBox(Uint32 flags, const char* title, const char* message) { return ::SDL_ShowSimpleMessageBox(flags, title, message, window_); }
+	//bool SDL_ShowMessageBox(const SDL_MessageBoxData* messageboxdata, int* buttonid);
+	bool showSimpleMessageBox(Uint32 flags, const char* title, const char* message) { return ::SDL_ShowSimpleMessageBox(flags, title, message, window_); }
 	void show() { ::SDL_ShowWindow(window_); }
 	//int updateSurface() { ::SDL_UpdateWindowSurface(window_); }
 	//int updateSurfaceRects(const SDL_Rect* rects, int numrects) { ::SDL_UpdateWindowSurfaceRects(window_, rects, numrects); }

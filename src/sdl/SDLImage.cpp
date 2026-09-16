@@ -4,30 +4,18 @@ namespace SDL_
 {
 
 Image::Image(int width, int height)
-	: Image(SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN // OpenGL RGBA masks
-			0x000000FF,
-			0x0000FF00,
-			0x00FF0000,
-			0xFF000000
-#else
-			0xFF000000,
-			0x00FF0000,
-			0x0000FF00,
-			0x000000FF
-#endif
-			))
+	: Image(::SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32))
 {
 }
 Image::Image(const char * const file)
-	: Image(IMG_Load(file))
+	: Image(::IMG_Load(file))
 {
 }
 
 Image::~Image()
 {
 	if(isEnabled()){
-		SDL_FreeSurface(get());
+		::SDL_DestroySurface(get());
 	}
 }
 
@@ -35,7 +23,7 @@ bool Image::fillRoundedBox( int xo, int yo, int w, int h, int r, Uint32 color )
 {
 	SDL_Surface* dst = this->get();
 
-	const int yd = dst->pitch / dst->format->BytesPerPixel;
+	const int yd = dst->pitch / ::SDL_GetPixelFormatDetails(dst->format)->bytes_per_pixel;
 
 	const int rpsqrt2 = static_cast<int>(r / sqrt(2.0));
 	//const double r2 = r * r;
@@ -53,7 +41,7 @@ bool Image::fillRoundedBox( int xo, int yo, int w, int h, int r, Uint32 color )
 		return false;
 	}
 
-	SDL_LockSurface( dst );
+	::SDL_LockSurface( dst );
 
 	Uint32 *pixels = (Uint32*)( dst->pixels );
 
@@ -91,7 +79,7 @@ bool Image::fillRoundedBox( int xo, int yo, int w, int h, int r, Uint32 color )
 			pixels[ey+y*yd + i] = color;
 		}
 	}
-	SDL_UnlockSurface( dst );
+	::SDL_UnlockSurface( dst );
 
 	return true;
 }

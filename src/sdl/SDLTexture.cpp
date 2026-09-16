@@ -13,7 +13,7 @@ Texture::Texture(const Renderer &renderer, const Image &surface)
 }
 
 
-Texture::Texture(const Renderer &renderer, Uint32 format, int access, int w, int h)
+Texture::Texture(const Renderer &renderer, SDL_PixelFormat format, SDL_TextureAccess access, int w, int h)
 	: texture_(::SDL_CreateTexture(renderer.get(), format, access, w, h))
 	, width_(w)
 	, height_(h)

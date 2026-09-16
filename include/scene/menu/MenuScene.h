@@ -11,7 +11,7 @@ class Image;
 class Color;
 }
 
-struct SDL_Keysym;
+struct SDL_KeyboardEvent;
 
 // 旧C実装(src/menu.cpp)のstatic変数・自由関数群をクラスのメンバに移設したもの。
 // キー入力はthunk_key_event/get_keystate()のどちらも使わず、dispatch()が
@@ -46,11 +46,11 @@ private:
 	void drawText(int row, int col, const char *s, const SDL_::Color &pixel);
 	void drawItem(int row, int col, int key, const char *s, const SDL_::Color &pixel);
 
-	void onGenericKey(const SDL_Keysym &keysym);
-	void onLoadKey(const SDL_Keysym &keysym);
-	void onDebugKey(const SDL_Keysym &keysym);
-	void onBossKey(const SDL_Keysym &keysym);
-	void onVersionKey(const SDL_Keysym &keysym);
+	void onGenericKey(const SDL_KeyboardEvent &key);
+	void onLoadKey(const SDL_KeyboardEvent &key);
+	void onDebugKey(const SDL_KeyboardEvent &key);
+	void onBossKey(const SDL_KeyboardEvent &key);
+	void onVersionKey(const SDL_KeyboardEvent &key);
 
 	void initDebug();
 	int initLoadMenu();

@@ -1,5 +1,5 @@
 #include "xanadu.h"
-#include <SDL2/SDL_surface.h>
+#include <SDL3/SDL_surface.h>
 #include <algorithm>
 #include <cstdint>
 
@@ -29,7 +29,7 @@ int init_fade(std::shared_ptr<SDL_::Image> clip, int x, int y, std::shared_ptr<S
   fade_image = img;
   fade_source = nullptr;
   if (clip && img) {
-    SDL_Surface *converted = SDL_ConvertSurface(img->get(), clip->get()->format, 0);
+    SDL_Surface *converted = SDL_ConvertSurface(img->get(), clip->get()->format);
     if (converted) {
       fade_source = std::make_shared<SDL_::Image>(converted);
     }
@@ -84,7 +84,7 @@ void fade_apply(std::shared_ptr<SDL_::Image> dst, int x, int y,
 
   SDL_Surface *dstSurf = dst->get();
   SDL_Surface *srcSurf = src->get();
-  const SDL_PixelFormat *format = dstSurf->format;
+  const SDL_PixelFormatDetails *format = SDL_GetPixelFormatDetails(dstSurf->format);
   const Uint32 mask = (fade_R << format->Rshift) | (fade_G << format->Gshift)
                      | (fade_B << format->Bshift) | format->Amask;
 

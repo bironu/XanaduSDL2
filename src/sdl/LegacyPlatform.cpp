@@ -8,8 +8,7 @@
 #include "sdl/SDLRenderer.h"
 #include "sdl/SDLWindow.h"
 #include "sdl/SDLMixAudio.h"
-#include "sdl/SDLMixChunk.h"
-#include "sdl/SDLMixMusic.h"
+#include "sdl/SDLMixMixer.h"
 #include "resources/SoundFontId.h"
 #include "app/Application.h"
 #include <array>
@@ -18,7 +17,7 @@
 
 // ---- 画面バッファ ----
 // 旧main.c(Windows)/x11/main.cではOS側のウィンドウ用DIB/XImageを確保し、
-// clip_overallをその上のimage_tとして構築していた。SDL2版ではclip_overallと
+// clip_overallをその上のimage_tとして構築していた。SDL3版ではclip_overallと
 // clip_main等の各領域は、いずれも独立したSDL_::Imageとして確保する
 // (Imageはコピー不可のため、旧subsection_image()のような「親バッファの
 //  一部を指すビュー」は作れない)。各領域はpresentLegacyFrame()で
@@ -64,17 +63,17 @@ std::shared_ptr<SDL_::Image> visual_image;
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
 
-// se_play/se_loadで使う効果音チャンクのキャッシュ。SE_*の定義値をそのまま
+// se_play/se_loadで使う効果音サウンドのキャッシュ。SE_*の定義値をそのまま
 // インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
 constexpr int SE_CHUNK_COUNT = SE_SOMEWHAT4 + 1;
-std::array<std::shared_ptr<SDL_::Mix_::Chunk>, SE_CHUNK_COUNT> seChunks;
+std::array<std::shared_ptr<SDL_::Mix_::Audio>, SE_CHUNK_COUNT> seChunks;
 
-std::shared_ptr<SDL_::Mix_::Chunk> load_se_chunk(const char *filename)
+std::shared_ptr<SDL_::Mix_::Audio> load_se_chunk(const char *filename)
 {
 	if (!filename || filename[0] == '\0') {
 		return nullptr;
 	}
-	auto chunk = std::make_shared<SDL_::Mix_::Chunk>((std::string(AUDIO_DIR "/wave/") + filename).c_str());
+	auto chunk = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/wave/") + filename).c_str());
 	return chunk->get() ? chunk : nullptr;
 }
 
@@ -101,7 +100,7 @@ const char *default_se_filename(int id)
 	}
 }
 
-std::shared_ptr<SDL_::Mix_::Chunk> resolve_se_chunk(int id)
+std::shared_ptr<SDL_::Mix_::Audio> resolve_se_chunk(int id)
 {
 	if (id < 0 || id >= SE_CHUNK_COUNT) {
 		return nullptr;
@@ -112,18 +111,18 @@ std::shared_ptr<SDL_::Mix_::Chunk> resolve_se_chunk(int id)
 	return seChunks[id];
 }
 
-// 現在再生中(またはロード済み)のBGM。Mix_MusicはSDL_mixer側で同時に
-// 1曲しか再生できないため、チャンクと違いスロット配列ではなく単一の
+// 現在再生中(またはロード済み)のBGM。SDL_::Mix_::MixerはBGM用の
+// MIX_Trackを1つしか持たないため、チャンクと違いスロット配列ではなく単一の
 // キャッシュで管理する
-std::shared_ptr<SDL_::Mix_::Music> currentMusic;
+std::shared_ptr<SDL_::Mix_::Audio> currentMusic;
 std::string currentBgmFilename;
 
-std::shared_ptr<SDL_::Mix_::Music> load_bgm_music(const char *filename)
+std::shared_ptr<SDL_::Mix_::Audio> load_bgm_music(const char *filename)
 {
 	if (!filename || filename[0] == '\0') {
 		return nullptr;
 	}
-	auto music = std::make_shared<SDL_::Mix_::Music>((std::string(AUDIO_DIR "/midi/") + filename).c_str());
+	auto music = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/midi/") + filename).c_str());
 	return music->get() ? music : nullptr;
 }
 }
@@ -147,7 +146,7 @@ void initLegacyGraphics(Resources &res)
 
 void initLegacySound(Resources &res)
 {
-	Application::instance().getAudio().setSoundFonts(res.getSoundFontFileName(SoundFontId::hi_def));
+	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::hi_def));
 	init_se();
 	init_bgm();
 }
@@ -177,10 +176,7 @@ void presentLegacyFrame()
 int draw_text(std::shared_ptr<SDL_::Image> dst, int x, int y, const char *s, const SDL_::Color &color)
 {
 	if (dst && legacyFont) {
-		auto text = legacyFont->renderSolidText(s, color);
-		if (text) {
-			draw_sprite(dst, x, y, text);
-		}
+		legacyFont->drawText(dst, x, y, s, color);
 	}
 	return static_cast<int>(strlen(s));
 }
@@ -206,7 +202,7 @@ int load_background(const char *filename)
 	return 0;
 }
 
-// タイマー・音声はまだSDL2側の実装がなく、何もしない
+// タイマー・音声はまだSDL3側の実装がなく、何もしない
 // (SDL_AddTimer/Mix_*等を使ったオーディオ統合は今後の課題)
 
 void set_timer(int, void (*)(void))
@@ -252,41 +248,41 @@ void bgm_play(const char *filename)
 	}
 	currentMusic = music;
 	currentBgmFilename = filename;
-	Application::instance().getAudio().playMusic(*currentMusic, -1);
+	Application::instance().getMixer().playMusic(*currentMusic, -1);
 	if (user.config.mute) {
 		// ミュート中でも曲自体はロード・開始しておき、一時停止扱いにする
 		// (bgm_mute()で解除した際にresumeMusic()で復帰できるようにするため)
-		Application::instance().getAudio().pauseMusic();
+		Application::instance().getMixer().pauseMusic();
 	}
 }
 
 void bgm_stop(void)
 {
-	Application::instance().getAudio().stopMusic();
+	Application::instance().getMixer().stopMusic();
 	currentMusic.reset();
 	currentBgmFilename.clear();
 }
 
 void bgm_pause(void)
 {
-	Application::instance().getAudio().pauseMusic();
+	Application::instance().getMixer().pauseMusic();
 }
 
 void bgm_restart(void)
 {
 	if (currentMusic) {
-		Application::instance().getAudio().playMusic(*currentMusic, -1);
+		Application::instance().getMixer().playMusic(*currentMusic, -1);
 	}
 }
 
 void bgm_tempo(int)
 {
-	// SDL_mixerのMix_Music APIにはMIDIテンポを変更する機能がないため未対応
+	// SDL3_mixerのMIX_Track APIにはMIDIテンポを変更する機能が見当たらないため未対応
 }
 
 void bgm_random(int)
 {
-	// SDL_mixerのMix_Music APIにはMIDIのピッチをランダム化する機能がないため未対応
+	// SDL3_mixerのMIX_Track APIにはMIDIのピッチをランダム化する機能が見当たらないため未対応
 }
 
 int bgm_mute(void)
@@ -294,10 +290,10 @@ int bgm_mute(void)
 	user.config.mute = !user.config.mute;
 	if (currentMusic) {
 		if (user.config.mute) {
-			Application::instance().getAudio().pauseMusic();
+			Application::instance().getMixer().pauseMusic();
 		}
 		else {
-			Application::instance().getAudio().resumeMusic();
+			Application::instance().getMixer().resumeMusic();
 		}
 	}
 	return user.config.mute;
@@ -312,7 +308,7 @@ void se_play(int id)
 	if (!chunk) {
 		return;
 	}
-	Application::instance().getAudio().playSound(*chunk, -1, 0);
+	Application::instance().getMixer().playSound(*chunk, -1, 0);
 }
 
 void se_load(int id, const char *filename)

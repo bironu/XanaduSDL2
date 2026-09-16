@@ -27,7 +27,9 @@ public:
 	explicit BitmapFont(const Image &atlas);
 	~BitmapFont();
 
-	std::shared_ptr<Image> renderSolidText(const char *text, const Color &fg) const;
+	// Blits text directly onto an existing Image at (x, y), instead of
+	// allocating a fresh glyph-run surface per call.
+	void drawText(std::shared_ptr<Image> dst, int x, int y, const char *text, const Color &fg) const;
 
 private:
 	std::shared_ptr<Image> mask_;
