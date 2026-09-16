@@ -4,7 +4,7 @@
 
 #include "Point.h"
 #include "Vector2.h"
-#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL_rect.h>
 
 class Rect final : public SDL_Rect
 {
@@ -65,14 +65,14 @@ public:
 	void operator=(const Rect &rect){ setRect(rect.x, rect.y, rect.w, rect.h);}
 	bool operator==(const Rect &rect) const
 	{
-		return ::SDL_RectEquals(this, &rect);
+		return ::SDL_RectsEqual(this, &rect);
 	}
 	bool operator!=(const Rect &rect) const { return !(*this == rect);}
 
 	const Rect operator&(const Rect &rect) const
 	{
 		Rect result;
-		if(!::SDL_IntersectRect(this, &rect, &result)){
+		if(!::SDL_GetRectIntersection(this, &rect, &result)){
 			result.setRectEmpty();
 		}
 		return result;
@@ -80,12 +80,12 @@ public:
 	const Rect operator|(const Rect &rect) const
 	{
 		Rect result;
-		::SDL_UnionRect(this, &rect, &result);
+		::SDL_GetRectUnion(this, &rect, &result);
 		return result;
 	}
 	bool operator&&(const Rect &rect) const
 	{
-		return ::SDL_HasIntersection(this, &rect);
+		return ::SDL_HasRectIntersection(this, &rect);
 	}
 };
 

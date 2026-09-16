@@ -2,8 +2,8 @@
 #include "sdl/SDLImage.h"
 #include "sdl/SDLColor.h"
 #include "geo/Rect.h"
-#include <SDL2/SDL_surface.h>
-#include <SDL2/SDL_pixels.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_pixels.h>
 #include <cstring>
 
 namespace SDL_
@@ -13,19 +13,19 @@ namespace
 {
 std::shared_ptr<Image> buildMask(const Image &atlas)
 {
-	SDL_Surface *converted = ::SDL_ConvertSurfaceFormat(atlas.get(), SDL_PIXELFORMAT_RGBA32, 0);
+	SDL_Surface *converted = ::SDL_ConvertSurface(atlas.get(), SDL_PIXELFORMAT_RGBA32);
 	auto mask = std::make_shared<Image>(converted);
 
 	mask->lock();
 	Uint32 *pixels = static_cast<Uint32 *>(mask->get()->pixels);
 	const int count = mask->getWidth() * mask->getHeight();
-	const SDL_PixelFormat *format = mask->get()->format;
+	const SDL_PixelFormatDetails *format = ::SDL_GetPixelFormatDetails(mask->get()->format);
 	for (int i = 0; i < count; ++i) {
 		Uint8 r, g, b, a;
-		::SDL_GetRGBA(pixels[i], format, &r, &g, &b, &a);
+		::SDL_GetRGBA(pixels[i], format, nullptr, &r, &g, &b, &a);
 		pixels[i] = (r == 0 && g == 0 && b == 0)
-			? ::SDL_MapRGBA(format, 0, 0, 0, 0)
-			: ::SDL_MapRGBA(format, 255, 255, 255, 255);
+			? ::SDL_MapRGBA(format, nullptr, 0, 0, 0, 0)
+			: ::SDL_MapRGBA(format, nullptr, 255, 255, 255, 255);
 	}
 	mask->unlock();
 	mask->setBlendMode(SDL_BLENDMODE_BLEND);

@@ -5,8 +5,8 @@
 namespace SDL_
 {
 
-Joystick::Joystick(int device_index)
-	: joystick_(::SDL_JoystickOpen(device_index))
+Joystick::Joystick(SDL_JoystickID device_index)
+	: joystick_(::SDL_OpenJoystick(device_index))
 	, buttonPressInfoList_()
 	, hatPressInfoMap_()
 	, numButtons_()
@@ -27,7 +27,7 @@ Joystick::Joystick(int device_index)
 Joystick::~Joystick()
 {
 	if (getAttached()) {
-		::SDL_JoystickClose(joystick_);
+		::SDL_CloseJoystick(joystick_);
 	}
 }
 

@@ -3,11 +3,12 @@
 
 #include "sdl/SDLColor.h"
 #include "geo/Rect.h"
+#include "geo/FRect.h"
 #include "geo/Vector2.h"
 #include "misc/Uncopyable.h"
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_blendmode.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_blendmode.h>
 #include <memory>
 
 
@@ -22,7 +23,7 @@ class Renderer final
 public:
 	UNCOPYABLE(Renderer);
 	explicit Renderer(const Image &surface);
-	Renderer(const Window &window, Uint32 flags);
+	explicit Renderer(const Window &window);
 	~Renderer();
 
 	SDL_Renderer *get() const { return renderer_; }
@@ -40,69 +41,69 @@ public:
 		return Color(r, g, b, a);
 	}
 	//SDL_Texture* SDL_GetRenderTarget(SDL_Renderer* renderer);
-	//int SDL_GetRendererInfo(SDL_Renderer* renderer, SDL_RendererInfo* info);
+	//bool SDL_GetRendererInfo(SDL_Renderer* renderer, SDL_RendererInfo* info);
 	const geo::Sizei getOutputSize()
 	{
 		int w, h;
-		::SDL_GetRendererOutputSize(get(),&w, &h);
+		::SDL_GetRenderOutputSize(get(),&w, &h);
 		return {w, h};
 	}
 	void clear() { ::SDL_RenderClear(renderer_); }
-	void copy(std::shared_ptr<Texture> texture, const Rect *srcrect, const Rect *dstrect);
-	void copyEx(std::shared_ptr<Texture> texture, const Rect *srcrect, const Rect *dstrect, const double angle, const Point *center, const SDL_RendererFlip flip);
-	void drawLine(int x1, int y1, int x2, int y2) { ::SDL_RenderDrawLine(get(), x1, y1, x2, y2); }
-	//int SDL_RenderDrawLines(SDL_Renderer* renderer, const SDL_Point* points, int count);
-	void drawPoint(int x, int y) { ::SDL_RenderDrawPoint(get(), x, y); }
-	//int SDL_RenderDrawPoints(SDL_Renderer* renderer, const SDL_Point* points, int count);
-	void drawRect(const Rect &rect) { ::SDL_RenderDrawRect(get(), &rect); }
-	//int SDL_RenderDrawRects(SDL_Renderer* renderer, const SDL_Rect* rects, int count);
-	void fillRect(const Rect &rect) { ::SDL_RenderFillRect(get(), &rect); }
-	//int SDL_RenderFillRects(SDL_Renderer* renderer, const SDL_Rect* rects, int count);
+	void copy(std::shared_ptr<Texture> texture, const FRect *srcrect, const FRect *dstrect);
+	void copyEx(std::shared_ptr<Texture> texture, const FRect *srcrect, const FRect *dstrect, const double angle, const FPoint *center, const SDL_FlipMode flip);
+	void drawLine(int x1, int y1, int x2, int y2) { ::SDL_RenderLine(get(), static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(x2), static_cast<float>(y2)); }
+	//bool SDL_RenderLines(SDL_Renderer* renderer, const SDL_FPoint* points, int count);
+	void drawPoint(int x, int y) { ::SDL_RenderPoint(get(), static_cast<float>(x), static_cast<float>(y)); }
+	//bool SDL_RenderPoints(SDL_Renderer* renderer, const SDL_FPoint* points, int count);
+	void drawRect(const FRect &rect) { ::SDL_RenderRect(get(), &rect); }
+	//bool SDL_RenderRects(SDL_Renderer* renderer, const SDL_FRect* rects, int count);
+	void fillRect(const FRect &rect) { ::SDL_RenderFillRect(get(), &rect); }
+	//bool SDL_RenderFillRects(SDL_Renderer* renderer, const SDL_FRect* rects, int count);
 	const Rect getClipRect()
 	{
 		Rect clip;
-		::SDL_RenderGetClipRect(get(), &clip);
+		::SDL_GetRenderClipRect(get(), &clip);
 		return clip;
 	}
 	const geo::Sizei getLogicalSize()
 	{
 		int w, h;
-		::SDL_RenderGetLogicalSize(get(), &w, &h);
+		SDL_RendererLogicalPresentation mode;
+		::SDL_GetRenderLogicalPresentation(get(), &w, &h, &mode);
 		return {w, h};
 	}
 	const geo::Vector2f getScale()
 	{
 		float w, h;
-		::SDL_RenderGetScale(get(), &w, &h);
+		::SDL_GetRenderScale(get(), &w, &h);
 		return {w, h};
 	}
 	const Rect getViewport()
 	{
 		Rect rect;
-		::SDL_RenderGetViewport(get(), &rect);
+		::SDL_GetRenderViewport(get(), &rect);
 		return rect;
 	}
 	bool isClipEnabled()
 	{
-		//return ::SDL_RenderIsClipEnabled(get());
+		//return ::SDL_RenderClipEnabled(get());
 		return clip_enable_;
 	}
 	void present() { ::SDL_RenderPresent(get()); }
-	//int SDL_RenderReadPixels(SDL_Renderer* renderer, const SDL_Rect* rect, Uint32 format, void* pixels, int pitch);
+	//bool SDL_RenderReadPixels(SDL_Renderer* renderer, const SDL_Rect* rect, Uint32 format, void* pixels, int pitch);
 	void setClipRect(const Rect &rect) {
-		::SDL_RenderSetClipRect(get(), &rect);
+		::SDL_SetRenderClipRect(get(), &rect);
 		clip_enable_ = true;
 	}
 	void clearClipRect() {
-		::SDL_RenderSetClipRect(get(), nullptr);
+		::SDL_SetRenderClipRect(get(), nullptr);
 		clip_enable_ = false;
 	}
-	void setLogicalSize(int w, int h) { ::SDL_RenderSetLogicalSize(get(), w, h); }
-	void setLogicalSize(const geo::Sizei &size) { ::SDL_RenderSetLogicalSize(get(), size.getWidth(), size.getHeight()); }
-	void setScale(float scaleX, float scaleY) { ::SDL_RenderSetScale(get(), scaleX, scaleY); }
-	void setScale(const geo::Vector2f &scale) { ::SDL_RenderSetScale(get(), scale.getWidth(), scale.getHeight()); }
-	void setViewport(const SDL_Rect &rect) { ::SDL_RenderSetViewport(get(), &rect); }
-	bool isTargetSupported() { return ::SDL_RenderTargetSupported(get()); }
+	void setLogicalSize(int w, int h) { ::SDL_SetRenderLogicalPresentation(get(), w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX); }
+	void setLogicalSize(const geo::Sizei &size) { ::SDL_SetRenderLogicalPresentation(get(), size.getWidth(), size.getHeight(), SDL_LOGICAL_PRESENTATION_LETTERBOX); }
+	void setScale(float scaleX, float scaleY) { ::SDL_SetRenderScale(get(), scaleX, scaleY); }
+	void setScale(const geo::Vector2f &scale) { ::SDL_SetRenderScale(get(), scale.getWidth(), scale.getHeight()); }
+	void setViewport(const SDL_Rect &rect) { ::SDL_SetRenderViewport(get(), &rect); }
 	void setDrawBlendMode(SDL_BlendMode blendMode) { ::SDL_SetRenderDrawBlendMode(get(), blendMode); }
 	void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) { ::SDL_SetRenderDrawColor(get(), r, g, b, a); }
 	void setDrawColor(const Color &color) { ::SDL_SetRenderDrawColor(get(), color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()); }

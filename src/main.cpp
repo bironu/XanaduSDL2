@@ -5,10 +5,10 @@
 #include "scene/menu/MenuScene.h"
 #include "sdl/LegacyPlatform.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <memory>
 
 int main(int argc, char *argv[])
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	const int width = res.getWindowWidth();
 	const int height = res.getWindowHeight();
 
-	auto mainWindow = std::make_shared<SDL_::Window>("xanadu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+	auto mainWindow = std::make_shared<SDL_::Window>("xanadu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
 	app.registerMainWindow(mainWindow);
 
 	initLegacyGraphics(res);

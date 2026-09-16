@@ -2,6 +2,7 @@
 #define RESOURCES_H_
 
 #include "misc/Uncopyable.h"
+#include <cstdint>
 #include <memory>
 #include <map>
 #include <unordered_map>
@@ -47,7 +48,7 @@ public:
 
 	std::shared_ptr<SDL_::Image> getImage(const ImageId &) const;
 	const char *getString(const StringId &) const;
-	std::shared_ptr<SDL_::Joystick> getJoystick(int) const;
+	std::shared_ptr<SDL_::Joystick> getJoystick(uint32_t) const;
 
 	void loadString(const std::string &lang);
 	void loadImage(const std::string &lang);
@@ -63,7 +64,7 @@ private:
 	// std::unique_ptr<sol::state> luaString_;
 	// std::unique_ptr<sol::state> luaImage_;
 	mutable std::unordered_map<ImageId, std::shared_ptr<SDL_::Image>> mapImage_;
-	std::unordered_map<int32_t, std::shared_ptr<SDL_::Joystick>> mapJoystick_;
+	std::unordered_map<uint32_t, std::shared_ptr<SDL_::Joystick>> mapJoystick_;
 };
 
 #endif // RESOURCES_H_

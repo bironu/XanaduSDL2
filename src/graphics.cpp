@@ -1,5 +1,5 @@
 #include "graphics.h"
-#include <SDL2/SDL_surface.h>
+#include <SDL3/SDL_surface.h>
 #include <algorithm>
 #include <cstring>
 #include <cstdint>
@@ -23,13 +23,13 @@ void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<
   // draw_imageは常に不透明合成(旧tmpl_drawはmaskを一切見ない)。
   // srcにcolorkeyが設定済みでも、一時的に無効化してから合成する
   Uint32 savedKey;
-  const bool hadKey = (SDL_GetColorKey(src->get(), &savedKey) == 0);
+  const bool hadKey = SDL_GetSurfaceColorKey(src->get(), &savedKey);
   if (hadKey) {
-    SDL_SetColorKey(src->get(), SDL_FALSE, 0);
+    SDL_SetSurfaceColorKey(src->get(), false, 0);
   }
   dst->blit(src, x, y);
   if (hadKey) {
-    SDL_SetColorKey(src->get(), SDL_TRUE, savedKey);
+    SDL_SetSurfaceColorKey(src->get(), true, savedKey);
   }
 }
 
@@ -53,13 +53,13 @@ void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubI
   }
   // draw_image(shared_ptr<Image>版)と同様、常に不透明合成する
   Uint32 savedKey;
-  const bool hadKey = (SDL_GetColorKey(src.sheet->get(), &savedKey) == 0);
+  const bool hadKey = SDL_GetSurfaceColorKey(src.sheet->get(), &savedKey);
   if (hadKey) {
-    SDL_SetColorKey(src.sheet->get(), SDL_FALSE, 0);
+    SDL_SetSurfaceColorKey(src.sheet->get(), false, 0);
   }
   dst->blit(src.sheet, src.rect, x, y);
   if (hadKey) {
-    SDL_SetColorKey(src.sheet->get(), SDL_TRUE, savedKey);
+    SDL_SetSurfaceColorKey(src.sheet->get(), true, savedKey);
   }
 }
 

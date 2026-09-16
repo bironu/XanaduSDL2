@@ -3,7 +3,7 @@
 
 #include "misc/Uncopyable.h"
 #include "scene/Scene.h"
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <memory>
 #include <stack>
 #include <vector>
@@ -13,7 +13,7 @@ namespace SDL_
 class Window;
 namespace Mix_
 {
-class Audio;
+class Mixer;
 }
 }
 
@@ -32,13 +32,13 @@ public:
 	void unregisterWindow(std::shared_ptr<SDL_::Window> window);
 	std::shared_ptr<SDL_::Window> getWindow(int id);
 
-	bool initSubSystem(Uint32 flags) { return ::SDL_InitSubSystem(flags) == 0; }
+	bool initSubSystem(Uint32 flags) { return ::SDL_InitSubSystem(flags); }
 	void quitSubSystem(Uint32 flags) { ::SDL_QuitSubSystem(flags); }
 	bool isApplication() const { return is_application_; }
 	bool isTtf() const { return is_ttf_; }
 	bool isImage() const { return is_image_; }
 	bool isMixer() const { return is_mixer_; }
-	SDL_::Mix_::Audio &getAudio() { return *audio_; }
+	SDL_::Mix_::Mixer &getMixer() { return *mixer_; }
 	int run(Resources &, TaskManager &manager);
 	void clearResumeStack();
 
@@ -66,7 +66,7 @@ private:
 	const bool is_ttf_;
 	const bool is_image_;
 	const bool is_mixer_;
-	std::unique_ptr<SDL_::Mix_::Audio> audio_;
+	std::unique_ptr<SDL_::Mix_::Mixer> mixer_;
 	std::shared_ptr<Scene> currentScene_;
 	std::stack<std::shared_ptr<Scene>> stackResumeScene_;
 	std::vector<std::shared_ptr<SDL_::Window>> listWindow_;

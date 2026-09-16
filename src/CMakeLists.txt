@@ -1,4 +1,4 @@
-# SDL2版アプリケーションを構成するモジュール群
+# SDL3版アプリケーションを構成するモジュール群
 # （フォルダごとに OBJECT ライブラリとして管理。各フォルダの CMakeLists.txt で
 #   file(GLOB) によりそのフォルダの *.cpp を集めている）
 add_subdirectory(app)
@@ -14,15 +14,15 @@ foreach(module ${XANADU_SDL_MODULES})
   target_include_directories(${module} PUBLIC ${CMAKE_SOURCE_DIR}/include)
 endforeach()
 
-# SDL2本体はほぼ全モジュールが直接・間接に利用する
-target_link_libraries(app       PUBLIC SDL2::SDL2)
-target_link_libraries(resources PUBLIC SDL2::SDL2)
-target_link_libraries(scene     PUBLIC SDL2::SDL2)
-target_link_libraries(sdl       PUBLIC SDL2::SDL2)
+# SDL3本体はほぼ全モジュールが直接・間接に利用する
+target_link_libraries(app       PUBLIC SDL3::SDL3)
+target_link_libraries(resources PUBLIC SDL3::SDL3)
+target_link_libraries(scene     PUBLIC SDL3::SDL3)
+target_link_libraries(sdl       PUBLIC SDL3::SDL3)
 
-# 画像・フォント・音声を直接扱うモジュールのみ SDL2_image / SDL2_ttf / SDL2_mixer を追加リンク
-target_link_libraries(app PUBLIC SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)
-target_link_libraries(sdl PUBLIC SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)
+# 画像・フォント・音声を直接扱うモジュールのみ SDL3_image / SDL3_ttf / SDL3_mixer を追加リンク
+target_link_libraries(app PUBLIC SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer)
+target_link_libraries(sdl PUBLIC SDL3_image::SDL3_image SDL3_ttf::SDL3_ttf SDL3_mixer::SDL3_mixer)
 
 # リソース定義（文字列・画像テーブル等）およびMenuSceneの描画レイアウトを
 # Luaスクリプトから読み込むための依存
@@ -66,10 +66,10 @@ target_include_directories(xanadu_core PUBLIC
 )
 
 # context.cpp が Application / GameScene派生クラス群を介して
-# 画面遷移をSDL2側のシーン機構に橋渡ししているための依存
+# 画面遷移をSDL3側のシーン機構に橋渡ししているための依存
 target_link_libraries(xanadu_core PUBLIC app scene)
 
-# SDL2ベースの新フロントエンド実行ファイル
+# SDL3ベースの新フロントエンド実行ファイル
 add_executable(xanadu main.cpp)
 
 target_link_libraries(xanadu PRIVATE ${XANADU_SDL_MODULES} xanadu_core)

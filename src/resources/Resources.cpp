@@ -4,7 +4,7 @@
 #include "resources/SoundFontId.h"
 #include "sdl/SDLImage.h"
 #include "sdl/SDLJoystick.h"
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_events.h>
 #include <cstring>
 
 #define IMAGE_ROOT "../bmp/"
@@ -79,7 +79,7 @@ void Resources::removeJoyDevice(const SDL_JoyDeviceEvent &jdevice)
 	}
 }
 
-std::shared_ptr<SDL_::Joystick> Resources::getJoystick(int index) const
+std::shared_ptr<SDL_::Joystick> Resources::getJoystick(uint32_t index) const
 {
 	auto i = mapJoystick_.find(index);
 	if (i != mapJoystick_.end()) {

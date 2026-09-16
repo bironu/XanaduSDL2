@@ -17,11 +17,11 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     "directory, e.g.:\n  mkdir build && cd build && cmake .. && cmake --build .")
 endif()
 
-# SDL2版フロントエンドの依存ライブラリ
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-find_package(SDL2_mixer REQUIRED)
+# SDL3版フロントエンドの依存ライブラリ
+find_package(SDL3 REQUIRED)
+find_package(SDL3_image REQUIRED)
+find_package(SDL3_ttf REQUIRED)
+find_package(SDL3_mixer REQUIRED)
 
 # Luaスクリプティング（リソース定義等）用の依存ライブラリ
 find_package(Lua REQUIRED)

@@ -4,7 +4,7 @@
 #include "app/Application.h"
 #include "resources/Resources.h"
 #include "task/TaskManager.h"
-#include <SDL2/SDL_log.h>
+#include <SDL3/SDL_log.h>
 
 Scene::Scene()
 	: app_(nullptr)
@@ -35,7 +35,7 @@ void Scene::swap()
 bool Scene::onIdle(uint32_t tick)
 {
 	const bool stillRunning = !manager_->compute(tick);
-	/* レンダラはSDL_RENDERER_PRESENTVSYNCで生成されているため、
+	/* レンダラはSDL_SetRenderVSync()でVSync有効にして生成されているため、
 	   ここで毎回present()してもリフレッシュレートで自然にペーシングされる */
 	swap();
 	return stillRunning;

@@ -3,7 +3,7 @@
 
 #include "misc/Uncopyable.h"
 #include "geo/Vector2.h"
-#include <SDL2/SDL_ttf.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <memory>
 
 namespace SDL_
@@ -15,7 +15,7 @@ class TtfFont
 public:
 	UNCOPYABLE(TtfFont);
 	TtfFont(const char *file, int ptsize)
-		: font_(::TTF_OpenFont(file, ptsize))
+		: font_(::TTF_OpenFont(file, static_cast<float>(ptsize)))
 		, fontSize_(ptsize)
 	{
 	}
