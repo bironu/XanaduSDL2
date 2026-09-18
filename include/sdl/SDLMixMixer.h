@@ -3,6 +3,7 @@
 
 #include "misc/Uncopyable.h"
 #include <memory>
+#include <string>
 #include <vector>
 
 struct MIX_Mixer;
@@ -23,10 +24,6 @@ public:
 	Mixer();
 	~Mixer();
 
-	// SDL3_mixer(MIX_Mixer/MIX_Track/MIX_Audio)へ移行したことに伴い新設した
-	// アクセサ。AudioがMIX_LoadAudio()するために必要となる。
-	MIX_Mixer *mixer() const { return mixer_; }
-
 	int allocateChannels(int);
 	int playSound(Audio &, int = -1, int = 0);
 	bool playMusic(Audio &, int = -1);
@@ -36,10 +33,15 @@ public:
     void rewindMusic();
     bool setSoundFonts(const char *);
 
+	// AudioがMIDI読み込み時にMIX_LoadAudioWithProperties()へ
+	// デコーダ固有プロパティとして渡すために参照する
+	const std::string &getSoundFontPath() const { return soundFontPath_; }
+
 private:
 	MIX_Mixer * const mixer_;
 	std::vector<std::unique_ptr<Track>> seTracks_;
 	std::unique_ptr<Track> musicTrack_;
+	std::string soundFontPath_;
 
 };
 

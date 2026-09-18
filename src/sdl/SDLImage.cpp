@@ -3,12 +3,32 @@
 namespace SDL_
 {
 
+namespace {
+
+// IMG_Load()はファイル本来のビット深度(kanji.bmp等の4bpp索引カラーBMPなら
+// SDL_PIXELFORMAT_INDEX4MSB)のまま返す。SDL_BlitSurface()は、この4bppサーフェス
+// から矩形の一部だけを切り出してblitする際、切り出し開始x座標がバイト境界に
+// 揃っていない(=奇数)場合にピクセルが破損する(SDL3の制限)。1コマ23px×23pxの
+// ようにセル幅が奇数のスプライトシートでは列の半分がこれに該当してしまうため、
+// create_image()と同じRGBA32へ読み込み時点で変換しておき、この問題を避ける。
+SDL_Surface *convertToRGBA32(SDL_Surface *loaded)
+{
+	if (!loaded || loaded->format == SDL_PIXELFORMAT_RGBA32) {
+		return loaded;
+	}
+	SDL_Surface *converted = ::SDL_ConvertSurface(loaded, SDL_PIXELFORMAT_RGBA32);
+	::SDL_DestroySurface(loaded);
+	return converted;
+}
+
+} // namespace
+
 Image::Image(int width, int height)
 	: Image(::SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32))
 {
 }
 Image::Image(const char * const file)
-	: Image(::IMG_Load(file))
+	: Image(convertToRGBA32(::IMG_Load(file)))
 {
 }
 

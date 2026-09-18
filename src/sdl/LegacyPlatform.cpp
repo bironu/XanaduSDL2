@@ -68,6 +68,9 @@ std::unique_ptr<SDL_::BitmapFont> legacyFont;
 // setLegacyPanelCompositingEnabled()参照
 bool legacyPanelCompositingEnabled = true;
 
+// setLegacyEndingRollCompositingEnabled()参照
+bool legacyEndingRollCompositingEnabled = false;
+
 // se_play/se_loadで使う効果音サウンドのキャッシュ。SE_*の定義値をそのまま
 // インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
 constexpr int SE_CHUNK_COUNT = SE_SOMEWHAT4 + 1;
@@ -180,7 +183,7 @@ void initLegacyGraphics(Resources &res)
 
 void initLegacySound(Resources &res)
 {
-	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::hi_def));
+	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
 	init_se();
 	init_bgm();
 }
@@ -198,6 +201,14 @@ void presentLegacyFrame()
 		draw_image(clip_overall, rect_shrine.x,     rect_shrine.y,     clip_shrine);
 		draw_image(clip_overall, rect_user_guage.x, rect_user_guage.y, clip_user_guage);
 		draw_image(clip_overall, rect_boss_guage.x, rect_boss_guage.y, clip_boss_guage);
+	}
+	// clip_endingrollはlegacyPanelCompositingEnabled(Opening/Ending/Fade中は
+	// 他パネルの古い内容が上書きされるのを防ぐためfalseにする)とは別の専用
+	// フラグで管理する。ここがlegacyPanelCompositingEnabledの対象に含まれて
+	// いると、EndingSceneが自ら無効化した瞬間にスクロールロール自体も画面に
+	// 出せなくなってしまう一方、常時trueにするとEnding終了後もクリップに
+	// 残った最後の描画内容がMenu画面等にずっと被り続けてしまう。
+	if (legacyEndingRollCompositingEnabled) {
 		draw_image(clip_overall, rect_endingroll.x, rect_endingroll.y, clip_endingroll);
 	}
 
@@ -210,6 +221,11 @@ void presentLegacyFrame()
 void setLegacyPanelCompositingEnabled(bool enabled)
 {
 	legacyPanelCompositingEnabled = enabled;
+}
+
+void setLegacyEndingRollCompositingEnabled(bool enabled)
+{
+	legacyEndingRollCompositingEnabled = enabled;
 }
 
 // ---- 描画・タイマー・音声のプラットフォームフック ----

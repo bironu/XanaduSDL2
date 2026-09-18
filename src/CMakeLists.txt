@@ -39,7 +39,6 @@ set(XANADU_CORE_SOURCES
   cave.cpp
   context.cpp
   dungeon.cpp
-  ending.cpp
   equip.cpp
   fade.cpp
   field.cpp

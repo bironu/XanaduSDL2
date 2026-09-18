@@ -37,7 +37,6 @@ public:
 	void quitSubSystem(Uint32 flags) { ::SDL_QuitSubSystem(flags); }
 	bool isApplication() const { return is_application_; }
 	bool isTtf() const { return is_ttf_; }
-	bool isImage() const { return is_image_; }
 	bool isMixer() const { return is_mixer_; }
 	SDL_::Mix_::Mixer &getMixer() { return *mixer_; }
 	int run(Resources &, TaskManager &manager);
@@ -67,7 +66,6 @@ private:
 
 	const bool is_application_;
 	const bool is_ttf_;
-	const bool is_image_;
 	const bool is_mixer_;
     std::unique_ptr<SDL_::Timer> timer_;
 	std::unique_ptr<SDL_::Mix_::Mixer> mixer_;
