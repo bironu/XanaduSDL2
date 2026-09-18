@@ -11,6 +11,8 @@
 #include "sdl/SDLMixMixer.h"
 #include "resources/SoundFontId.h"
 #include "app/Application.h"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_timer.h>
 #include <array>
 #include <memory>
 #include <string>
@@ -62,6 +64,9 @@ std::shared_ptr<SDL_::Image> visual_image;
 
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
+
+// setLegacyPanelCompositingEnabled()参照
+bool legacyPanelCompositingEnabled = true;
 
 // se_play/se_loadで使う効果音サウンドのキャッシュ。SE_*の定義値をそのまま
 // インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
@@ -125,6 +130,35 @@ std::shared_ptr<SDL_::Mix_::Audio> load_bgm_music(const char *filename)
 	auto music = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/midi/") + filename).c_str());
 	return music->get() ? music : nullptr;
 }
+
+// ---- 旧C実装のset_timer/kill_timer(WM_TIMER相当)のSDL3版 ----
+// SDL_AddTimer()のコールバックは専用スレッドで呼ばれるため、そこから直接
+// timer_proc(ゲーム状態やSDL_Rendererを触る)を呼ぶのは安全ではない。
+// そのため、コールバックはSDL_RegisterEvents()で確保した専用のSDL_Eventを
+// SDL_PushEvent()で積むだけに留め、実際のtimer_proc呼び出しはメインスレッドの
+// イベントループ(Application::handlePreEvent -> dispatchLegacyTimerEvent)側で行う。
+//
+// generation_はset_timer/kill_timerのたびに変化する世代番号。SDL_RemoveTimer()
+// が間に合わず、既にキューへ積まれてしまった古いタイマーのイベントが後から
+// 処理されても、生成時のgenerationと現在のgenerationが一致しなければ無視する。
+Uint32 legacyTimerEventType()
+{
+	static const Uint32 type = SDL_RegisterEvents(1);
+	return type;
+}
+
+void (*legacyTimerProc)(void) = nullptr;
+SDL_TimerID legacyTimerId = 0;
+Sint32 legacyTimerGeneration = 0;
+
+Uint32 SDLCALL legacyTimerCallback(void *userdata, SDL_TimerID /*timerID*/, Uint32 interval)
+{
+	SDL_Event event{};
+	event.type = legacyTimerEventType();
+	event.user.code = static_cast<Sint32>(reinterpret_cast<intptr_t>(userdata));
+	SDL_PushEvent(&event);
+	return interval; // 同じ間隔で繰り返す(one-shotにはしない)
+}
 }
 
 void initLegacyGraphics(Resources &res)
@@ -157,18 +191,25 @@ void presentLegacyFrame()
 		return;
 	}
 
-	draw_image(clip_overall, rect_main.x,       rect_main.y,       clip_main);
-	draw_image(clip_overall, rect_message.x,    rect_message.y,    clip_message);
-	draw_image(clip_overall, rect_status.x,     rect_status.y,     clip_status);
-	draw_image(clip_overall, rect_shrine.x,     rect_shrine.y,     clip_shrine);
-	draw_image(clip_overall, rect_user_guage.x, rect_user_guage.y, clip_user_guage);
-	draw_image(clip_overall, rect_boss_guage.x, rect_boss_guage.y, clip_boss_guage);
-	draw_image(clip_overall, rect_endingroll.x, rect_endingroll.y, clip_endingroll);
+	if (legacyPanelCompositingEnabled) {
+		draw_image(clip_overall, rect_main.x,       rect_main.y,       clip_main);
+		draw_image(clip_overall, rect_message.x,    rect_message.y,    clip_message);
+		draw_image(clip_overall, rect_status.x,     rect_status.y,     clip_status);
+		draw_image(clip_overall, rect_shrine.x,     rect_shrine.y,     clip_shrine);
+		draw_image(clip_overall, rect_user_guage.x, rect_user_guage.y, clip_user_guage);
+		draw_image(clip_overall, rect_boss_guage.x, rect_boss_guage.y, clip_boss_guage);
+		draw_image(clip_overall, rect_endingroll.x, rect_endingroll.y, clip_endingroll);
+	}
 
 	auto &renderer = Application::instance().getMainWindow()->getRenderer();
 	auto texture = std::make_shared<SDL_::Texture>(renderer, *clip_overall);
 	renderer.clear();
 	renderer.copy(texture, nullptr, nullptr);
+}
+
+void setLegacyPanelCompositingEnabled(bool enabled)
+{
+	legacyPanelCompositingEnabled = enabled;
 }
 
 // ---- 描画・タイマー・音声のプラットフォームフック ----
@@ -202,19 +243,40 @@ int load_background(const char *filename)
 	return 0;
 }
 
-// タイマー・音声はまだSDL3側の実装がなく、何もしない
-// (SDL_AddTimer/Mix_*等を使ったオーディオ統合は今後の課題)
-
-void set_timer(int, void (*)(void))
+void set_timer(int interval, void (*timer_proc)(void))
 {
+	kill_timer();
+	legacyTimerProc = timer_proc;
+	legacyTimerId = SDL_AddTimer(static_cast<Uint32>(interval), legacyTimerCallback,
+	                              reinterpret_cast<void *>(static_cast<intptr_t>(legacyTimerGeneration)));
 }
 
 void kill_timer(void)
 {
+	if (legacyTimerId) {
+		SDL_RemoveTimer(legacyTimerId);
+		legacyTimerId = 0;
+	}
+	++legacyTimerGeneration; // 積まれた古いイベントを無効化する
+	legacyTimerProc = nullptr;
 }
 
-void set_timer_proc(void (*)(void))
+void set_timer_proc(void (*timer_proc)(void))
 {
+	// 動作中のタイマーはそのままに、次に発火した際に呼ぶ関数だけ差し替える
+	// (battle.cpp等が同じ間隔のまま処理内容だけ切り替えるのに使う)
+	legacyTimerProc = timer_proc;
+}
+
+bool dispatchLegacyTimerEvent(const SDL_Event &event)
+{
+	if (event.type != legacyTimerEventType()) {
+		return false;
+	}
+	if (event.user.code == legacyTimerGeneration && legacyTimerProc) {
+		legacyTimerProc();
+	}
+	return true;
 }
 
 void beep(void)
