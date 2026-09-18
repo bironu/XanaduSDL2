@@ -59,6 +59,8 @@ const char *Resources::getSoundFontFileName(const SoundFontId &id) const
 {
 	switch (id) {
 	case SoundFontId::hi_def:
+		return AUDIO_ROOT "HiDef.sf2";
+	case SoundFontId::small_soundfont:
 		return AUDIO_ROOT "Small Soundfont.sf2";
 	default:
 		return "";

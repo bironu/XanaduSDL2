@@ -183,7 +183,7 @@ void initLegacyGraphics(Resources &res)
 
 void initLegacySound(Resources &res)
 {
-	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::hi_def));
+	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
 	init_se();
 	init_bgm();
 }

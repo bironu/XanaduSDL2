@@ -4,6 +4,7 @@
 enum class SoundFontId
 {
     hi_def,
+    small_soundfont,
 };
 
 #endif // RESOURCES_SOUND_FONT_ID_H_
