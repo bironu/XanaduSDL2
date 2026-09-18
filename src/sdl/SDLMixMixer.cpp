@@ -3,11 +3,29 @@
 #include "sdl/SDLMixTrack.h"
 #include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_properties.h>
 
 namespace SDL_
 {
 namespace Mix_
 {
+
+namespace {
+
+// MIX_SetTrackLoops()は「再生中のトラックのループ回数を途中で変更する」ための
+// 関数であり、停止中のトラックに対しては効果を持たない。MIX_PlayTrack()が
+// 開始時にMIX_PROP_PLAY_LOOPS_NUMBER(未指定時は0=ループなし)でループ回数を
+// 上書きしてしまうため、再生開始時のループ回数はここでプロパティとして指定する。
+bool playTrackLooped(MIX_Track *track, int loops)
+{
+	SDL_PropertiesID options = ::SDL_CreateProperties();
+	::SDL_SetNumberProperty(options, MIX_PROP_PLAY_LOOPS_NUMBER, loops);
+	const bool result = ::MIX_PlayTrack(track, options);
+	::SDL_DestroyProperties(options);
+	return result;
+}
+
+} // namespace
 
 Mixer::Mixer()
 	: mixer_(::MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr))
@@ -56,16 +74,14 @@ int Mixer::playSound(Audio &sound, int channel, int loops)
 	}
 	MIX_Track *track = seTracks_[index]->get();
 	::MIX_SetTrackAudio(track, sound.get());
-	::MIX_SetTrackLoops(track, loops);
-	::MIX_PlayTrack(track, 0);
+	playTrackLooped(track, loops);
 	return index;
 }
 
 bool Mixer::playMusic(Audio &sound, int loops)
 {
 	::MIX_SetTrackAudio(musicTrack_->get(), sound.get());
-	::MIX_SetTrackLoops(musicTrack_->get(), loops);
-	return ::MIX_PlayTrack(musicTrack_->get(), 0);
+	return playTrackLooped(musicTrack_->get(), loops);
 }
 
 bool Mixer::stopMusic()
@@ -88,11 +104,15 @@ void Mixer::rewindMusic()
 	::MIX_SetTrackPlaybackPosition(musicTrack_->get(), 0);
 }
 
-bool Mixer::setSoundFonts(const char *)
+bool Mixer::setSoundFonts(const char *path)
 {
-	// TODO: SDL3_mixer(MIX_*)には旧Mix_SetSoundFontsに相当する
-	// グローバルSoundFont設定APIが見当たらないため、移行時点では未対応。
-	return false;
+	// SDL3_mixer(MIX_*)には旧Mix_SetSoundFontsに相当するグローバルSoundFont
+	// 設定APIが見当たらないため、ここではパスを保持しておくだけにし、
+	// Audio::Audio()がMIDIを読み込む際にMIX_LoadAudioWithProperties()の
+	// デコーダ固有プロパティ(SDL_mixer.decoder.fluidsynth.soundfont_path)として
+	// 個別に指定する(SDLMixAudio.cpp参照)。
+	soundFontPath_ = path ? path : "";
+	return !soundFontPath_.empty();
 }
 
 } // namespace Mix_

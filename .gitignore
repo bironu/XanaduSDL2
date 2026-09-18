@@ -71,4 +71,4 @@ Testing/
 .DS_Store
 
 # SoundFont
-audio/HiDef.sf2
+audio/*.sf2

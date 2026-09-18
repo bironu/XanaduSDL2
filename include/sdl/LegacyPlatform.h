@@ -24,15 +24,24 @@ void initLegacySound(Resources &res);
 void presentLegacyFrame();
 
 // clip_main/clip_message/clip_status/clip_shrine/clip_user_guage/
-// clip_boss_guage/clip_endingroll をclip_overallへ合成する処理
-// (presentLegacyFrame内)の有効/無効を切り替える。
+// clip_boss_guage をclip_overallへ合成する処理(presentLegacyFrame内)の
+// 有効/無効を切り替える。clip_endingrollは対象外(setLegacyEndingRollCompositingEnabled
+// で個別に管理する)。
 //
 // 旧実装ではclip_main等はclip_overallの一部を指すビュー(同一メモリ)だったため、
-// Opening/Ending/Fadeのように画面全体を直接clip_overallへ描き込む演出では、
+// Opening/Fadeのように画面全体を直接clip_overallへ描き込む演出では、
 // それだけで自然と下地が上書きされていた。SDL3版ではclip_main等が独立した
 // バッファのため、これらの演出中は合成を止めておかないと、各領域に残った
 // 古い内容(例: メニュー画面の文字列)が毎フレーム上書きされてしまう。
 void setLegacyPanelCompositingEnabled(bool enabled);
+
+// clip_endingroll をclip_overallへ合成する処理の有効/無効を切り替える。
+// EndingSceneがスクロールを開始する直前にtrueにし、終了時(restoreContext())に
+// falseへ戻す。上のフラグと分けているのは、これをlegacyPanelCompositingEnabled
+// に含めてしまうと、Ending中に他パネルを隠すためfalseにした瞬間、
+// 表示すべきclip_endingroll自身も一緒に隠れてしまうため。また常時trueのままだと
+// Ending終了後もクリップに残った最後の描画内容がMenu画面等に被り続けてしまう。
+void setLegacyEndingRollCompositingEnabled(bool enabled);
 
 // set_timer()がSDL_AddTimer()で仕掛けたタイマーの発火通知(カスタムSDL_Event)
 // を検出し、対象であれば登録済みのtimer_procを呼び出す。SDL_AddTimerの

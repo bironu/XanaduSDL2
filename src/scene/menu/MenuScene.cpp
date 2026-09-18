@@ -6,7 +6,6 @@
 #include "field.h"
 #include "tower.h"
 #include "boss.h"
-#include "ending.h"
 
 #include <SDL3/SDL_events.h>
 #include <cstdio>
@@ -235,7 +234,7 @@ void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
 	case SDLK_D: state_ = State::Debug; onEnter(); break;
 	case SDLK_B: state_ = State::Boss; onEnter(); break;
 	case SDLK_O: extend_context(CONTEXT_OPENING); break;
-	case SDLK_E: extend_context(init_ending());  break;
+	case SDLK_E: extend_context(CONTEXT_ENDING); break;
 	case SDLK_V: state_ = State::Version; onEnter(); break;
 	default: return;
 	}

@@ -2,7 +2,6 @@
 #include "boss.h"
 #include "battle.h"
 #include "animation.h"
-#include "ending.h"
 
 #define STEP_USER_X		8	// ユーザーの進む速さ(水平方向)
 #define STEP_USER_Y		8	// ユーザーの進む速さ(垂直方向)
@@ -313,7 +312,7 @@ void restore_context(int won)
     // 最終ボス？
     if (boss_final_battle) {
       // エンディング
-      switch_context(init_ending());
+      switch_context(CONTEXT_ENDING);
     } else {
       // コンテキストの復元
       resume_context();

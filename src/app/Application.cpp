@@ -14,7 +14,6 @@ Application *Application::instance_ = nullptr;
 Application::Application(Uint32 flags)
 	: is_application_(::SDL_Init(flags))
 	, is_ttf_(::TTF_Init())
-	, is_image_(true)
 	, is_mixer_(MIX_Init())
 	, mixer_(std::make_unique<SDL_::Mix_::Mixer>())
 	, currentScene_()

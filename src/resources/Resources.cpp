@@ -9,6 +9,7 @@
 
 #define IMAGE_ROOT "../bmp/"
 #define AUDIO_ROOT "../audio/"
+#define FONT_ROOT "../font/"
 
 Resources::Resources()
 	: windowWidth_()
@@ -51,14 +52,14 @@ const char *Resources::getString(const StringId &id) const
 const char *Resources::getFontFileName() const
 {
 //	return (*luaString_)["font_name"].get<const char *>();
-	return "../font/ipag.ttf";
+	return FONT_ROOT "ipag.ttf";
 }
 
 const char *Resources::getSoundFontFileName(const SoundFontId &id) const
 {
 	switch (id) {
 	case SoundFontId::hi_def:
-		return AUDIO_ROOT "HiDef.sf2";
+		return AUDIO_ROOT "Small Soundfont.sf2";
 	default:
 		return "";
 	}
