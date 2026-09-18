@@ -48,7 +48,6 @@ set(XANADU_CORE_SOURCES
   inventory.cpp
   message.cpp
   numinous.cpp
-  opening.cpp
   pause.cpp
   shop.cpp
   status.cpp

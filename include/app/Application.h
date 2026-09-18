@@ -3,6 +3,7 @@
 
 #include "misc/Uncopyable.h"
 #include "scene/Scene.h"
+#include "sdl/SDLTimer.h"
 #include <SDL3/SDL.h>
 #include <memory>
 #include <stack>
@@ -58,6 +59,8 @@ public:
 	void updateWindow(Uint32 id);
 
 	static uint32_t getTickCount() { return ::SDL_GetTicks(); }
+    void set_timer(int interval, SDL_::Timer::Callback timer_proc);
+    void kill_timer(void);
 
 private:
 	bool handlePreEvent(Resources &res, TaskManager &manager, SDL_Event &);
@@ -66,6 +69,7 @@ private:
 	const bool is_ttf_;
 	const bool is_image_;
 	const bool is_mixer_;
+    std::unique_ptr<SDL_::Timer> timer_;
 	std::unique_ptr<SDL_::Mix_::Mixer> mixer_;
 	std::shared_ptr<Scene> currentScene_;
 	std::stack<std::shared_ptr<Scene>> stackResumeScene_;

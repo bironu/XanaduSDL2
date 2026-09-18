@@ -1,6 +1,7 @@
 #include "app/Application.h"
 #include "sdl/SDLWindow.h"
 #include "sdl/SDLMixMixer.h"
+#include "sdl/LegacyPlatform.h"
 #include "resources/Resources.h"
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_image/SDL_image.h>
@@ -23,6 +24,14 @@ Application::Application(Uint32 flags)
 	, nextScene_()
 	, return_code_(0)
 {
+	// 旧SDL2版はここで audio_->allocateChannels(MIX_CHANNELS) を呼んでいたが、
+	// SDL2->SDL3移行(コミット516336e)の際に呼び出しが抜けていた。SDL3_mixerの
+	// MIX_*APIはMix_AllocateChannels相当のグローバル既定値を持たないトラック制の
+	// APIのため、効果音(SE)を鳴らすチャンネルは明示的に確保する必要がある。
+	// これが無いとMixer::playSound()がseTracks_を空のまま扱い、常に何も
+	// 再生されない(SEが鳴らない)。8は旧SDL_mixerのMIX_CHANNELS既定値を踏襲。
+	mixer_->allocateChannels(8);
+
 	instance_ = this;
 }
 
@@ -157,6 +166,12 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 {
 	bool result = false;
 
+	// set_timer()がSDL_AddTimer()経由で仕掛けたタイマーの発火通知。
+	// timer_proc本体はここ(メインスレッド)で呼び出す。
+	if (dispatchLegacyTimerEvent(event)) {
+		return true;
+	}
+
 	switch(event.type)
 	{
 	case SDL_EVENT_QUIT:
@@ -233,6 +248,17 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 	}
 
 	return result;
+}
+
+void Application::set_timer(int interval, SDL_::Timer::Callback timer_proc)
+{
+    timer_.reset();
+    timer_ = std::make_unique<SDL_::Timer>(interval, timer_proc);
+}
+
+void Application::kill_timer(void)
+{
+    timer_.reset();
 }
 
 //void Application::waitFrame()
