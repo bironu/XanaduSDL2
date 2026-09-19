@@ -39,8 +39,8 @@ MIX_Audio *loadAudio(Mixer &owner, const char *fileName)
 
 } // namespace
 
-Audio::Audio(Mixer &owner, const char *fileName)
-	: audio_(loadAudio(owner, fileName))
+Audio::Audio(Mixer &owner, const char *fileName, bool isMusic)
+	: audio_(isMusic ? loadAudio(owner, fileName) : ::MIX_LoadAudio(owner.get(), fileName, false))
 {
 }
 

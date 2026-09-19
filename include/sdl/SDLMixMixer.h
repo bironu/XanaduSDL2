@@ -17,12 +17,14 @@ class Audio;
 class Track;
 
 // MIX_Mixer(再生デバイス+トラック群)のラッパー。
-class Mixer
+class Mixer final
 {
 public:
 	UNCOPYABLE(Mixer);
 	Mixer();
 	~Mixer();
+
+    MIX_Mixer *get() const { return mixer_; }
 
 	int allocateChannels(int);
 	int playSound(Audio &, int = -1, int = 0);

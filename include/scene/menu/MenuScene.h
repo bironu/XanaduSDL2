@@ -34,6 +34,9 @@ private:
 	void onEnter();
 	void onLeave();
 
+    void onKeyDown(const SDL_KeyboardEvent &key);
+    void onWindowExpose(const SDL_WindowEvent &window);
+
 	enum class State { Generic, Version, Load, Debug, Boss, Game };
 
 	struct UserEntry
@@ -62,8 +65,8 @@ private:
 	// static membersとする。
 	static State state_;
 	static std::array<UserEntry, kMaxUserEntry> userEntries_;
-	std::shared_ptr<SDL_::Image> imageLogo_;
-	std::shared_ptr<SDL_::Image> imageFrame_;
+	// std::shared_ptr<SDL_::Image> imageLogo_;
+	// std::shared_ptr<SDL_::Image> imageFrame_;
 };
 
 #endif // MENUSCENE_H_

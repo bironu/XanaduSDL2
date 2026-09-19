@@ -1,3 +1,5 @@
+#include "app/Application.h"
+#include "sdl/SDLWindow.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
 #include "scene/menu/MenuScene.h"
@@ -21,19 +23,16 @@ MenuScene::MenuScene()
 
 void MenuScene::dispatch(const SDL_Event &event)
 {
-	if (event.type != SDL_EVENT_KEY_DOWN || event.key.repeat != 0) {
-		return;
-	}
-
-	const SDL_KeyboardEvent &key = event.key;
-	switch (state_) {
-	case State::Generic: onGenericKey(key); break;
-	case State::Load:    onLoadKey(key);    break;
-	case State::Debug:   onDebugKey(key);   break;
-	case State::Boss:    onBossKey(key);    break;
-	case State::Version: onVersionKey(key); break;
-	case State::Game:    break; // onEnter()内で即座に遷移するため滞留しない
-	}
+    switch (event.type) {
+    case SDL_EVENT_KEY_DOWN:
+        onKeyDown(event.key);
+        break;
+    case SDL_EVENT_WINDOW_EXPOSED:
+        onWindowExpose(event.window);
+        break;
+    default:
+        break;
+    }
 }
 
 void MenuScene::onSuspend()
@@ -44,18 +43,50 @@ void MenuScene::onSuspend()
 void MenuScene::onCreate(uint32_t /*tick*/)
 {
     auto &res = getResources();
-    imageLogo_ = res.getImage(ImageId::picture_logo);
-    imageFrame_ = res.getImage(ImageId::xa1_frame);
+    res.loadImage(ImageId::picture_logo);
+    res.loadImage(ImageId::xa1_frame);
 }
 
 void MenuScene::onDestroy(uint32_t /*tick*/)
 {
+    auto &res = getResources();
+    res.unloadImage(ImageId::picture_logo);
+    res.unloadImage(ImageId::xa1_frame);
 }
 
 void MenuScene::onResume(uint32_t /*tick*/)
 {
 
 	onEnter();
+}
+
+void MenuScene::onKeyDown(const SDL_KeyboardEvent &key)
+{
+	if (key.repeat != 0) {
+		return;
+	}
+
+	switch (state_) {
+	case State::Generic: onGenericKey(key); break;
+	case State::Load:    onLoadKey(key);    break;
+	case State::Debug:   onDebugKey(key);   break;
+	case State::Boss:    onBossKey(key);    break;
+	case State::Version: onVersionKey(key); break;
+	case State::Game:    break; // onEnter()内で即座に遷移するため滞留しない
+	}
+}
+
+void MenuScene::onWindowExpose(const SDL_WindowEvent &window)
+{
+    auto &app = getApplication();
+    auto mainWindow = app.getMainWindow();
+    if (!mainWindow) {
+        return;
+    }
+    if (window.windowID == mainWindow->getWindowId()) {
+        mainWindow->swap();
+    }
+    SDL_Log("Window exposed event: windowID=%u, data1=%d, data2=%d", window.windowID, window.data1, window.data2);
 }
 
 void MenuScene::onEnter()
@@ -65,16 +96,14 @@ void MenuScene::onEnter()
 
 	bgm_play(bgm_data.start_menu); // BGM
 
-	fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
+	// fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
+    clip_main->fillRect(SDL_::Color::BLACK);
 
+    auto &res = getResources();
     // Frame
-    if (imageFrame_) {
-        draw_image(clip_overall, 0, 0, imageFrame_);
-    }
+    draw_image(clip_overall, 0, 0, res.getImage(ImageId::xa1_frame));
 	// Logo
-	if (imageLogo_) {
-		draw_image(clip_main, 100, 290, imageLogo_);
-	}
+    draw_image(clip_main, 100, 290, res.getImage(ImageId::picture_logo));
 
 	switch (state_) {
 	case State::Game:
@@ -167,11 +196,7 @@ void MenuScene::onEnter()
 		drawText( 3,  1, "REVISION:", SDL_::Color::RED);
 		drawText( 3, 10, "1.1.4", SDL_::Color::WHITE);
 		drawText( 4,  1, "  SYSTEM:", SDL_::Color::RED);
-#ifdef __WIN32__
-		drawText( 4, 10, "Win32", SDL_::Color::WHITE);
-#else
-		drawText( 4, 10, "X11R6", SDL_::Color::WHITE);
-#endif
+		drawText( 4, 10, "SDL3", SDL_::Color::WHITE);
 		drawText( 5,  1, " DISPLAY:", SDL_::Color::RED);
 		drawText( 5, 10, "32bpp", SDL_::Color::WHITE);
 		drawText( 6,  1, "     BGM:", SDL_::Color::RED);
@@ -200,7 +225,14 @@ void MenuScene::onEnter()
 		drawItem(10, 0, 'V', "Version info", SDL_::Color::WHITE);
 		drawText(12, 0, "Please Num-Lock *OFF*", SDL_::Color::RED);
 	}
-	update(rect_main);
+    auto mainWindow = getApplication().getMainWindow();
+    if (mainWindow) {
+        auto backBuffer = mainWindow->getBackBuffer();
+        backBuffer->fillRect(SDL_::Color::BLACK);
+        backBuffer->blit(clip_overall, rect_overall.x, rect_overall.y);
+        backBuffer->blit(clip_main, rect_main.x, rect_main.y);
+        mainWindow->requestRedraw();
+    }
 }
 
 void MenuScene::onLeave()
@@ -238,7 +270,6 @@ void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
 	case SDLK_V: state_ = State::Version; onEnter(); break;
 	default: return;
 	}
-	update(rect_main);
 }
 
 void MenuScene::onDebugKey(const SDL_KeyboardEvent &key)

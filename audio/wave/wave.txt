@@ -1,75 +1,75 @@
 #-----------------------------------------------------------------------------
-# ‘Ž®:
-#   s“ª‚Ì '#' ‚ÍƒRƒƒ“ƒgs‚ðŽw’è‚µ‚Ü‚·B
-#   ƒVƒ“ƒ{ƒ‹ ':' [ƒtƒ@ƒCƒ‹–¼] <‰üs ‚Ü‚½‚Í EOF>
+# æ›¸å¼:
+#   è¡Œé ­ã® '#' ã¯ã‚³ãƒ¡ãƒ³ãƒˆè¡Œã‚’æŒ‡å®šã—ã¾ã™ã€‚
+#   ã‚·ãƒ³ãƒœãƒ« ':' [ãƒ•ã‚¡ã‚¤ãƒ«å] <æ”¹è¡Œ ã¾ãŸã¯ EOF>
 #
-# ƒVƒ“ƒ{ƒ‹(0..9A..Z_)‚Í‘å•¶ŽšE¬•¶Žš‚ðu‹æ•Ê‚µ‚Ü‚·vB
-# ƒVƒ“ƒ{ƒ‹Eƒtƒ@ƒCƒ‹–¼‚Í‹¤‚É’·‚³‚ÍŽ©—R‚Å‚·‚ªA‹ó”’‚ð”FŽ¯‚µ‚Ü‚¹‚ñB
-# ‚½‚¾‚µˆês‚Ì’·‚³‚ÌãŒÀ‚Í 500 •¶Žš’ö“x‚Å‚·B
+# ã‚·ãƒ³ãƒœãƒ«(0..9A..Z_)ã¯å¤§æ–‡å­—ãƒ»å°æ–‡å­—ã‚’ã€ŒåŒºåˆ¥ã—ã¾ã™ã€ã€‚
+# ã‚·ãƒ³ãƒœãƒ«ãƒ»ãƒ•ã‚¡ã‚¤ãƒ«åã¯å…±ã«é•·ã•ã¯è‡ªç”±ã§ã™ãŒã€ç©ºç™½ã‚’èªè­˜ã—ã¾ã›ã‚“ã€‚
+# ãŸã ã—ä¸€è¡Œã®é•·ã•ã®ä¸Šé™ã¯ 500 æ–‡å­—ç¨‹åº¦ã§ã™ã€‚
 #-----------------------------------------------------------------------------
-# Œ»Ý’è‹`‚³‚ê‚Ä‚¢‚éƒVƒ“ƒ{ƒ‹:
+# ç¾åœ¨å®šç¾©ã•ã‚Œã¦ã„ã‚‹ã‚·ãƒ³ãƒœãƒ«:
 #
-# USER_HIT_DAGGER	ƒ†[ƒU[ƒqƒbƒg(’ZŒ•)
-# USER_HIT_SWORD	ƒ†[ƒU[ƒqƒbƒg(’·Œ•)
-# USER_HIT_SPEAR	ƒ†[ƒU[ƒqƒbƒg(‘„)
-# USER_HIT_AXE		ƒ†[ƒU[ƒqƒbƒg(•€)
-# USER_DAMAGED		ƒ†[ƒU[ƒ_ƒ[ƒW
-# USER_TRAPPED		‚¨‚Á‚ÆI(ƒ‚ƒ“ƒXƒ^[‚Ì–‚–@ƒqƒbƒg)
-# USER_DEAD		ƒ†[ƒU[ƒfƒbƒh
-# MAGIC_HIT		–‚–@ƒqƒbƒg
-# MAGIC_FAILED		–‚–@Ž¸”s
-# MONSTER_DEAD		ƒ‚ƒ“ƒXƒ^[ƒfƒbƒh
-# BOSS_HIT		ƒ{ƒXƒqƒbƒg
-# BOSS_DEAD		ƒ{ƒXƒfƒbƒh
-# BOSS_BREATH		ƒ{ƒXƒuƒŒƒX
-# OPEN_BOX		•ó” ‚ðŠJ‚¯‚é
-# TREASURE		‚¨•óoŒ»
-# GET			‚¨•óƒQƒbƒg
-# GET_POISON		‚¤‚°“Å‚¾I
-# USE_ELIXER		—ì–ò‚ðˆù‚Þ
-# LOST_KEY		ƒƒXƒgƒL[
+# USER_HIT_DAGGER	ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ’ãƒƒãƒˆ(çŸ­å‰£)
+# USER_HIT_SWORD	ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ’ãƒƒãƒˆ(é•·å‰£)
+# USER_HIT_SPEAR	ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ’ãƒƒãƒˆ(æ§)
+# USER_HIT_AXE		ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ’ãƒƒãƒˆ(æ–§)
+# USER_DAMAGED		ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ€ãƒ¡ãƒ¼ã‚¸
+# USER_TRAPPED		ãŠã£ã¨ï¼(ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ã®é­”æ³•ãƒ’ãƒƒãƒˆ)
+# USER_DEAD		ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ‡ãƒƒãƒ‰
+# MAGIC_HIT		é­”æ³•ãƒ’ãƒƒãƒˆ
+# MAGIC_FAILED		é­”æ³•å¤±æ•—
+# MONSTER_DEAD		ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼ãƒ‡ãƒƒãƒ‰
+# BOSS_HIT		ãƒœã‚¹ãƒ’ãƒƒãƒˆ
+# BOSS_DEAD		ãƒœã‚¹ãƒ‡ãƒƒãƒ‰
+# BOSS_BREATH		ãƒœã‚¹ãƒ–ãƒ¬ã‚¹
+# OPEN_BOX		å®ç®±ã‚’é–‹ã‘ã‚‹
+# TREASURE		ãŠå®å‡ºç¾
+# GET			ãŠå®ã‚²ãƒƒãƒˆ
+# GET_POISON		ã†ã’æ¯’ã ï¼
+# USE_ELIXER		éœŠè–¬ã‚’é£²ã‚€
+# LOST_KEY		ãƒ­ã‚¹ãƒˆã‚­ãƒ¼
 #
-# DEFAULT_CAST		–‚–@‚ð¥‚¦‚é(ƒfƒtƒHƒ‹ƒg)
-# CAST_NEEDLE		–‚–@‚²‚Æ‚ÌŒø‰Ê‰¹
+# DEFAULT_CAST		é­”æ³•ã‚’å”±ãˆã‚‹(ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ)
+# CAST_NEEDLE		é­”æ³•ã”ã¨ã®åŠ¹æžœéŸ³
 #  :			
 # CAST_DEATH
 #
-# DEFAULT_USE		“¹‹ï‚ðŽg‚¤(ƒfƒtƒHƒ‹ƒg)
-# USE_SPECTACLES	“¹‹ï‚²‚Æ‚ÌŒø‰Ê‰¹
+# DEFAULT_USE		é“å…·ã‚’ä½¿ã†(ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ)
+# USE_SPECTACLES	é“å…·ã”ã¨ã®åŠ¹æžœéŸ³
 #  :
 # USE_BOTTLE
-# USE_SILVER_ROSE	(ƒVƒiƒŠƒI2)
+# USE_SILVER_ROSE	(ã‚·ãƒŠãƒªã‚ª2)
 #  :
 # USE_CROSS
 #
-# OPENING0		ƒI[ƒvƒjƒ“ƒO1(ƒ{ƒˆƒ“1)
-# OPENING1		ƒI[ƒvƒjƒ“ƒO0(ƒJƒLƒ“)
-# OPENING2		ƒI[ƒvƒjƒ“ƒO2(ƒ{ƒˆƒ“2)
+# OPENING0		ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°1(ãƒœãƒ¨ãƒ³1)
+# OPENING1		ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°0(ã‚«ã‚­ãƒ³)
+# OPENING2		ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°2(ãƒœãƒ¨ãƒ³2)
 
-# ƒ†[ƒU[ƒqƒbƒg(–‚–@‚ªƒAƒCƒeƒ€‚É‚àƒqƒbƒg)
+# ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ’ãƒƒãƒˆ(é­”æ³•ãŒã‚¢ã‚¤ãƒ†ãƒ ã«ã‚‚ãƒ’ãƒƒãƒˆ)
 USER_HIT_DAGGER:	attack.wav
 USER_HIT_SWORD:		attack.wav
 USER_HIT_SPEAR:		attack.wav
 USER_HIT_AXE:		attack.wav
 
-# ƒ†[ƒU[ƒ_ƒ[ƒW
+# ãƒ¦ãƒ¼ã‚¶ãƒ¼ãƒ€ãƒ¡ãƒ¼ã‚¸
 USER_DAMAGED:		attack.wav
 USER_TRAPPED:		trapped.wav
 USER_DEAD:		
 
-# –‚–@(ƒ†[ƒU[‚É‚æ‚é)
+# é­”æ³•(ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«ã‚ˆã‚‹)
 MAGIC_HIT:		magic.wav
 MAGIC_FAILED:		failed.wav
 
-# ƒ‚ƒ“ƒXƒ^[
+# ãƒ¢ãƒ³ã‚¹ã‚¿ãƒ¼
 MONSTER_DEAD:		dead.wav
 
-# ƒ{ƒX
+# ãƒœã‚¹
 BOSS_HIT:		boss_hit.wav
 BOSS_DEAD:		boss_die.wav
 BOSS_BREATH:		breath.wav
 
-# ‚³‚Ü‚´‚Ü
+# ã•ã¾ã–ã¾
 OPEN_BOX:		open_box.wav
 TREASURE:		treasure.wav
 GET:			get.wav
@@ -77,7 +77,7 @@ GET_POISON:		poison.wav
 USE_ELIXER:		elixer.wav
 LOST_KEY:		lost_key.wav
 
-# –‚–@
+# é­”æ³•
 DEFAULT_CAST:		
 CAST_NEEDLE:		
 CAST_MITTAR:		
@@ -89,7 +89,7 @@ CAST_CORROSION:
 CAST_TILTE:		
 CAST_DEATH:		
 
-# “¹‹ï
+# é“å…·
 DEFAULT_USE:		invoke.wav
 USE_SPECTACLES:		
 USE_RED_POSION:		
@@ -109,14 +109,14 @@ USE_BROWN_POTION:
 USE_MIRROR:		
 USE_BOTTLE:		
 
-# ƒVƒiƒŠƒI2
+# ã‚·ãƒŠãƒªã‚ª2
 USE_SILVER_ROSE:	
 USE_KEY:		
 USE_ACID:		
 USE_LADDER:		
 USE_CROSS:		
 
-# ƒI[ƒvƒjƒ“ƒO
+# ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°
 OPENING0:		opening0.wav
 OPENING1:		opening1.wav
 OPENING2:		opening2.wav

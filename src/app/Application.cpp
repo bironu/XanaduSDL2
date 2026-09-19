@@ -211,6 +211,10 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 				event.window.windowID, event.window.data1, event.window.data2);
 		break;
 	case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        // Pixel size が変更されたので、WindowのBackbufferを再生成する
+        if (auto window = getWindow(event.window.windowID)) {
+            window->restoreRenderTexture();
+        }
 		SDL_Log("Window %d pixel size changed to %dx%d",
 				event.window.windowID, event.window.data1, event.window.data2);
 		break;

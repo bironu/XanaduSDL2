@@ -126,7 +126,8 @@ public:
 	const geo::Sizei getSize() const { return {getWidth(), getHeight()}; }
 	SDL_PixelFormat GetPixelFormat() const { assert(isEnabled()); return get()->format;}
 	const Uint32 getFlags() const { assert(isEnabled()); return get()->flags;}
-	const void *getPixels() const { return get()->pixels;}
+	const void *getPixels() const { assert(isEnabled()); return get()->pixels;}
+    int getPitch() const { assert(isEnabled()); return get()->pitch;}
 
 	bool fillRoundedBox( int xo, int yo, int w, int h, int r, Uint32 color );
 

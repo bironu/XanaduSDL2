@@ -78,10 +78,21 @@ public:
 	SDL_::Renderer &getRenderer() { return renderer_; }
 
 	void swap();
+	void restoreRenderTexture();
+    std::shared_ptr<SDL_::Image> getBackBuffer() {
+        return backBuffer_;
+    }
+    void requestRedraw() {
+        SDL_Event event = {SDL_EVENT_WINDOW_EXPOSED};
+        event.window.windowID = getWindowId();
+        SDL_PushEvent(&event);
+    }
 
 private:
 	SDL_Window * const window_;
-	SDL_::Renderer renderer_;
+	Renderer renderer_;
+    std::shared_ptr<Texture> renderTexture_;
+    std::shared_ptr<Image> backBuffer_;
 };
 
 } // SDL_

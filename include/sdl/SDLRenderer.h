@@ -86,18 +86,15 @@ public:
 	}
 	bool isClipEnabled()
 	{
-		//return ::SDL_RenderClipEnabled(get());
-		return clip_enable_;
+		return ::SDL_RenderClipEnabled(get());
 	}
 	void present() { ::SDL_RenderPresent(get()); }
 	//bool SDL_RenderReadPixels(SDL_Renderer* renderer, const SDL_Rect* rect, Uint32 format, void* pixels, int pitch);
 	void setClipRect(const Rect &rect) {
 		::SDL_SetRenderClipRect(get(), &rect);
-		clip_enable_ = true;
 	}
 	void clearClipRect() {
 		::SDL_SetRenderClipRect(get(), nullptr);
-		clip_enable_ = false;
 	}
 	void setLogicalSize(int w, int h) { ::SDL_SetRenderLogicalPresentation(get(), w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX); }
 	void setLogicalSize(const geo::Sizei &size) { ::SDL_SetRenderLogicalPresentation(get(), size.getWidth(), size.getHeight(), SDL_LOGICAL_PRESENTATION_LETTERBOX); }
@@ -107,11 +104,10 @@ public:
 	void setDrawBlendMode(SDL_BlendMode blendMode) { ::SDL_SetRenderDrawBlendMode(get(), blendMode); }
 	void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) { ::SDL_SetRenderDrawColor(get(), r, g, b, a); }
 	void setDrawColor(const Color &color) { ::SDL_SetRenderDrawColor(get(), color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()); }
-	void setTarget(std::shared_ptr<Texture> texture);
+	// void setTarget(std::shared_ptr<Texture> texture);
 
 private:
 	SDL_Renderer * const renderer_;
-	bool clip_enable_;
 };
 
 } // SDL_

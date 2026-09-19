@@ -1,37 +1,38 @@
 #include "scene/opening/OpeningScene.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 #include "xanadu.h"
 #include "fade.h"
 #include "sdl/LegacyPlatform.h"
 
 #include <SDL3/SDL_events.h>
+#include <array>
 #include <cstdio>
 
 namespace {
 
 struct Visual
 {
-	const char *image;
+	ImageId imageId;
 	int x;
 	int y;
 	int se;
 };
 
-const Visual kVisuals1[] = {
-	{ "xa1/opening/background.bmp",  0,   0, SE_SOMEWHAT1 },
-	{ "xa1/opening/battler.bmp",   360, 144, SE_SOMEWHAT1 },
-	{ "xa1/opening/witch.bmp",     144, 144, SE_SOMEWHAT1 },
-	{ "xa1/opening/wizard.bmp",    464, 152, SE_SOMEWHAT1 },
-	{ "xa1/opening/robber.bmp",     16, 168, SE_SOMEWHAT1 },
-	{ "xa1/opening/swordman.bmp",  232, 144, SE_SOMEWHAT2 },
-	{ nullptr, 0, 0, 0 }
-};
+const std::array<Visual, 6> kVisuals1 = {{
+	{ ImageId::xa1_opening_background,  0,   0, SE_SOMEWHAT1 },
+	{ ImageId::xa1_opening_battler,   360, 144, SE_SOMEWHAT1 },
+	{ ImageId::xa1_opening_witch,     144, 144, SE_SOMEWHAT1 },
+	{ ImageId::xa1_opening_wizard,    464, 152, SE_SOMEWHAT1 },
+	{ ImageId::xa1_opening_robber,     16, 168, SE_SOMEWHAT1 },
+	{ ImageId::xa1_opening_swordman,  232, 144, SE_SOMEWHAT2 },
+}};
 
-const Visual kVisuals2[] = {
-	{ "xa2/opening/title.bmp",      24,  24, SE_SOMEWHAT1 },
-	{ "xa2/opening/subtitle.bmp",  112, 248, SE_SOMEWHAT1 },
-	{ "xa2/opening/hero.bmp",      368,  16, SE_SOMEWHAT1 },
-	{ nullptr, 0, 0, 0 }
-};
+const std::array<Visual, 3> kVisuals2 = {{
+	{ ImageId::xa2_opening_title,      24,  24, SE_SOMEWHAT1 },
+	{ ImageId::xa2_opening_subtitle,  112, 248, SE_SOMEWHAT1 },
+	{ ImageId::xa2_opening_hero,      368,  16, SE_SOMEWHAT1 },
+}};
 
 } // namespace
 
@@ -99,9 +100,11 @@ void OpeningScene::onEnter()
 		return;
 	}
 
-	const Visual *visuals = user.environment.scenario == 0 ? kVisuals1 : kVisuals2;
+	const Visual *visuals = user.environment.scenario == 0 ? kVisuals1.data() : kVisuals2.data();
+    const int numVisuals = user.environment.scenario == 0 ? kVisuals1.size() : kVisuals2.size();
 
-	if (visuals[step_].image == nullptr) {
+	//if (visuals[step_].image == nullptr) {
+    if (step_ >= numVisuals) {
 		waitForever();
 		return;
 	}
@@ -111,10 +114,10 @@ void OpeningScene::onEnter()
 	switch (fadeMask_) {
 	case 0x000000:
 		{
-			char path[BUFSIZ];
-			sprintf(path, IMAGE_DIR "/%s", visuals[step_].image);
+			// char path[BUFSIZ];
+			// sprintf(path, IMAGE_DIR "/%s", visuals[step_].image);
 
-			visual_image = load_image(path);
+			visual_image = getResources().getImage(visuals[step_].imageId);
 		}
 		se_play(visuals[step_].se);
 		// through

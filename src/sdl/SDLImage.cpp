@@ -1,4 +1,5 @@
 #include "sdl/SDLImage.h"
+#include "sdl/SDLTexture.h"
 
 namespace SDL_
 {

@@ -27,4 +27,19 @@ Texture::~Texture()
 	}
 }
 
+TextureLock::TextureLock(Texture &texture)
+    : texture_(texture.get())
+    , surface_(nullptr)
+{
+    if (!::SDL_LockTextureToSurface(texture_, nullptr, &surface_)) {
+        // ロックに失敗した場合のエラーハンドリング
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to lock texture: %s", SDL_GetError());
+    }
+}
+
+TextureLock::~TextureLock()
+{
+    ::SDL_UnlockTexture(texture_);
+}
+
 } // SDL_
