@@ -4,6 +4,7 @@
 #include "xanadu.h"
 #include "goods.h"
 #include "battle.h"
+#include <string>
 
 // ユーザーの経験に関する情報を保持する構造体
 typedef struct {
@@ -136,7 +137,7 @@ extern user_t user;
 extern int user_hidden;
 
 // ユーザーディレクトリ
-extern const char *user_path;
+extern std::string user_path;
 
 // ユーザーイメージの読み込み
 extern int load_user_image(void);
@@ -150,7 +151,6 @@ extern int user_use_key(void);
 
 // user_io.c
 extern int save_user(void);
-extern int load_user(void);
 extern int make_user_dir(void);
 extern void match_user_name(const char *name);
 

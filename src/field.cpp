@@ -1108,7 +1108,7 @@ void field_enter_where(void)
         extend_context(init_cave(0));
         
         make_user_dir(); // ユーザーディレクトリを作成する
-        init_level(0, user_path); // 読み直し
+        init_level(0, user_path.empty() ? nullptr : user_path.c_str()); // 読み直し
       }
       return;
     }

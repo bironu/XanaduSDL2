@@ -1,6 +1,5 @@
 #include "scene/Scene.h"
 #include "sdl/SDLWindow.h"
-#include "sdl/LegacyPlatform.h"
 #include "app/Application.h"
 #include "resources/Resources.h"
 #include "task/TaskManager.h"
@@ -21,14 +20,8 @@ void Scene::prepare(Application *app, Resources *res, TaskManager *manager)
 	manager_ = manager;
 }
 
-// void Scene::clear()
-// {
-// 	::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-// }
-
 void Scene::swap()
 {
-	presentLegacyFrame();
 	app_->getMainWindow()->swap();
 }
 

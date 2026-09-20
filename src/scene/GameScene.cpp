@@ -1,6 +1,7 @@
 #include "scene/GameScene.h"
 #include "message.h"
 #include "keystate.h"
+#include "sdl/LegacyPlatform.h"
 #include <SDL3/SDL_events.h>
 #include <cctype>
 
@@ -93,6 +94,12 @@ void GameScene::onResume(uint32_t /*tick*/)
 void GameScene::onSuspend()
 {
 	onLeave();
+}
+
+bool GameScene::onIdle(uint32_t tick)
+{
+    presentLegacyFrame();
+    return Scene::onIdle(tick);
 }
 
 void GameScene::dispatch(const SDL_Event &event)

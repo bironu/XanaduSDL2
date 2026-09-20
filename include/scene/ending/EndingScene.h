@@ -3,12 +3,14 @@
 
 #include "scene/Scene.h"
 #include "sdl/SDLImage.h"
+#include "fade.h"
 #include <memory>
 #include <vector>
 
 // 旧C実装(src/ending.cpp)のstatic変数・自由関数群をクラスのメンバに移設したもの。
 // スクロール終了後のキー入力確認はthunk_key_eventではなくこのクラス自身のdispatch()で
-// 完結し、フェード演出もOpeningSceneと同様extend_context(init_fade(...))で行うため、
+// 完結する。フェード演出はXanaduFade(fade.h参照)を使い、このScene自身のタイマーで
+// 1ステップぶんずつ進める(フェード中もdispatch()/onIdle()が止まらないようにするため)。
 // MenuScene/OpeningSceneと同様にGameScene(旧C実装の共通コンテキスト基底)は継承せず、
 // Sceneを直接継承してonCreate/onDestroy/onResume/onSuspendを自前で実装する。
 class EndingScene final : public Scene
@@ -29,6 +31,11 @@ private:
 	void loop();
 	void waitForever();
 
+	// フェード演出(XanaduFade)をこのScene自身のタイマーで駆動する
+	void startFade(std::shared_ptr<SDL_::Image> dst, int x, int y,
+	               std::shared_ptr<SDL_::Image> img, unsigned rgb);
+	void onFadeTimer();
+
 	bool init();
 	int loadKanjiCode(const char *filename);
 	int drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y, const int *code) const;
@@ -41,6 +48,11 @@ private:
 	static EndingScene *active_;
 
 	static constexpr int kEndingInterval = 80;
+	// フェードの1ステップと同じ間隔(旧FADE_INTERVAL)
+	static constexpr uint32_t kFadeInterval = 50;
+	static const uint32_t SDL_ENDING_FADE_TIMER_EVENT;
+
+	XanaduFade fade_;
 
 	static constexpr int kKanjiWidth = 23;    // 漢字フォントの幅
 	static constexpr int kKanjiHeight = 23;   // 漢字フォントの高さ

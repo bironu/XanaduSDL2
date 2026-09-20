@@ -82,7 +82,7 @@ public:
     std::shared_ptr<SDL_::Image> getBackBuffer() {
         return backBuffer_;
     }
-    void requestExpose() {
+    void requestUpdate() {
         SDL_Event event = {SDL_EVENT_WINDOW_EXPOSED};
         event.window.windowID = getWindowId();
         SDL_PushEvent(&event);

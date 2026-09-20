@@ -2,6 +2,7 @@
 #define MENUSCENE_H_
 
 #include "scene/Scene.h"
+#include "geo/FRect.h"
 #include <array>
 #include <memory>
 
@@ -34,13 +35,6 @@ private:
 
 	enum class State { Generic, Version, Load, Debug, Boss, Game };
 
-	struct UserEntry
-	{
-		char name[16];
-	};
-
-	static constexpr int kMaxUserEntry = 8;
-
 	void drawText(int row, int col, const char *s, const SDL_::Color &pixel);
 	void drawItem(int row, int col, int key, const char *s, const SDL_::Color &pixel);
 
@@ -53,13 +47,20 @@ private:
 	void initDebug();
 	int initLoadMenu();
 	int loadGame(int index);
+	bool loadUser();
+
+    std::shared_ptr<SDL_::Image> clip_main_;
+    std::shared_ptr<SDL_::Image> clip_overall_;
+    static const FRect rect_overall_;
+    static const FRect rect_main_;
 
 	// 旧menu.cppのstatic変数と同様、インスタンスをまたいで状態を保持する
 	// 必要がある(例: 'N'で menu_state = MENU_GAME にした後、opening scene
 	// 経由で一度破棄・再構築されたMenuSceneに戻ってきてもGAME状態を継続する)ため
 	// static membersとする。
+	static constexpr int kMaxUserEntry = 8;
 	static State state_;
-	static std::array<UserEntry, kMaxUserEntry> userEntries_;
+	static std::array<std::string, kMaxUserEntry> userEntries_;
 };
 
 #endif // MENUSCENE_H_

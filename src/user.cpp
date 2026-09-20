@@ -47,7 +47,7 @@ const rank_data_t wizard_rank[MAX_RANK + 1] = {
   { "",			      0 } // 番兵
 };
 
-const char *user_path;
+std::string user_path;
 user_t user;
 int user_hidden;
 

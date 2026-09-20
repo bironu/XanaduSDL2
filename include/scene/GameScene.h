@@ -19,9 +19,10 @@ public:
 	int contextId() const { return contextId_; }
 
 	void onCreate(uint32_t tick) override;
-	void onDestroy(uint32_t tick) override;
 	void onResume(uint32_t tick) override;
 	void onSuspend() override;
+	void onDestroy(uint32_t tick) override;
+    bool onIdle(uint32_t tick) override;
 
 	// キー入力等のOSイベント処理。挙動は全コンテキスト共通のため、この基底クラスで実装する。
 	void dispatch(const SDL_Event &event) override;

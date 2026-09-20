@@ -154,13 +154,6 @@ void Application::quit(const int val)
 	::SDL_PushEvent(&event);
 }
 
-void Application::updateWindow(Uint32 id)
-{
-	SDL_Event event = {SDL_EVENT_WINDOW_EXPOSED};
-	event.window.windowID = id;
-	::SDL_PushEvent(&event);
-}
-
 bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event &event)
 {
 	bool result = false;
@@ -214,7 +207,7 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
         // Pixel size が変更されたので、WindowのBackbufferを再生成する
         if (auto window = getWindow(event.window.windowID)) {
             window->restoreRenderTexture();
-            window->requestExpose();
+            window->requestUpdate();
         }
 		SDL_Log("Window %d pixel size changed to %dx%d",
 				event.window.windowID, event.window.data1, event.window.data2);
@@ -254,13 +247,13 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 	return result;
 }
 
-void Application::set_timer(int interval, SDL_::Timer::Callback timer_proc)
+void Application::setTimer(int interval, SDL_::Timer::Callback timer_proc)
 {
     timer_.reset();
     timer_ = std::make_unique<SDL_::Timer>(interval, timer_proc);
 }
 
-void Application::kill_timer(void)
+void Application::killTimer(void)
 {
     timer_.reset();
 }

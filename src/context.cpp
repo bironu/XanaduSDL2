@@ -18,7 +18,6 @@
 #include "scene/userdead/UserDeadScene.h"
 #include "scene/message/MessageEnterScene.h"
 #include "scene/pause/PauseScene.h"
-#include "scene/fade/FadeScene.h"
 #include "scene/opening/OpeningScene.h"
 #include "scene/ending/EndingScene.h"
 
@@ -73,8 +72,6 @@ std::shared_ptr<Scene> create_scene(int context_id)
     return std::make_shared<MessageEnterScene>(context_id);
   case CONTEXT_PAUSE:
     return std::make_shared<PauseScene>();
-  case CONTEXT_FADE:
-    return std::make_shared<FadeScene>();
   case CONTEXT_OPENING:
     return std::make_shared<OpeningScene>();
   case CONTEXT_ENDING:

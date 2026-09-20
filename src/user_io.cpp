@@ -30,18 +30,17 @@ int make_user_dir(void)
   mkdir(path);
   
   // ユーザーディレクトリ
-  free((void *)user_path);
-  user_path = strdup(path);
+  user_path = path;
 
   // 階層データファイルをコピー
   for (i = 0; i < MAX_DUNGEON_LEVEL - 1; i++) {
     error |= load_level(i, NULL);
-    error |= save_level(i, user_path);
+    error |= save_level(i, user_path.c_str());
   }
   // scenario 2
   if (in_scenario2()) {
     error |= load_level(MAX_DUNGEON_LEVEL - 1, NULL);
-    error |= save_level(MAX_DUNGEON_LEVEL - 1, user_path);
+    error |= save_level(MAX_DUNGEON_LEVEL - 1, user_path.c_str());
   }
 
   error |= save_user_data(); // ユーザー情報の保存
@@ -54,41 +53,18 @@ int save_user_data(void)
   FILE *fp;
   int error;
   
-  if (user_path == NULL)
+  if (user_path.empty())
     return 1;
 
-  sprintf(path, "%s/user.dat", user_path);
+  sprintf(path, "%s/user.dat", user_path.c_str());
   fp = fopen(path, "wb");
   if (fp == NULL) {
     perror(path);
     return 1;
   }
-  
+
   // ユーザー情報の保存
   error = fwrite(&user, sizeof(user), 1, fp) != 1;
-  fclose(fp);
-
-  return error;
-}
-
-int load_user(void)
-{
-  char path[BUFSIZ];
-  FILE *fp;
-  int error;
-
-  if (user_path == NULL)
-    return 1;
-
-  sprintf(path, "%s/user.dat", user_path);
-  fp = fopen(path, "rb");
-  if (fp == NULL) {
-    perror(path);
-    return 1;
-  }
-  
-  // ユーザー情報の読み込み
-  error = fread(&user, sizeof(user), 1, fp) != 1;
   fclose(fp);
 
   return error;
@@ -97,7 +73,7 @@ int load_user(void)
 int save_user(void)
 {
   if (save_user_data() == 0)
-    return save_level(user.environment.dungeon_level, user_path);
+    return save_level(user.environment.dungeon_level, user_path.c_str());
   else
     return 1;
 }

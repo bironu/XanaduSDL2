@@ -2,12 +2,14 @@
 #include "xanadu.h"
 #include "fade.h"
 #include "context.h"
+#include "app/Application.h"
 #include "sdl/LegacyPlatform.h"
 
 #include <SDL3/SDL_events.h>
 #include <cstdio>
 
 EndingScene *EndingScene::active_ = nullptr;
+const uint32_t EndingScene::SDL_ENDING_FADE_TIMER_EVENT = ::SDL_RegisterEvents(1);
 
 EndingScene::EndingScene()
 	: initialized_(false)
@@ -21,6 +23,11 @@ EndingScene::EndingScene()
 
 void EndingScene::dispatch(const SDL_Event &event)
 {
+	if (event.type == SDL_ENDING_FADE_TIMER_EVENT) {
+		onFadeTimer();
+		return;
+	}
+
 	if (event.type != SDL_EVENT_KEY_DOWN || event.key.repeat != 0) {
 		return;
 	}
@@ -64,6 +71,7 @@ void EndingScene::onCreate(uint32_t /*tick*/)
 
 void EndingScene::onDestroy(uint32_t /*tick*/)
 {
+	getApplication().killTimer();
 	active_ = nullptr;
 }
 
@@ -74,10 +82,11 @@ void EndingScene::onResume(uint32_t /*tick*/)
 
 void EndingScene::onSuspend()
 {
-	kill_timer();
+	getApplication().killTimer();
 
-	// FadeSceneへ一時的に処理を譲るだけ(演出がまだ続く)ならfalseのままにし、
-	// このシーン自体が本当に終わる(isFinished())時にだけ合成を元へ戻す
+	// フェード(XanaduFade)はSceneスタックへ委譲しなくなったため、onSuspend()は
+	// 基本的にこのシーン自体が本当に終わる時にしか呼ばれない。isFinished()の
+	// チェック自体はSceneの一般的な契約に合わせてそのまま残しておく。
 	if (isFinished()) {
 		setLegacyPanelCompositingEnabled(true);
 	}
@@ -105,14 +114,14 @@ void EndingScene::onEnter()
 			           SDL_::Color::BLACK);
 
 			// セピア色?
-			extend_context(init_fade(clip_overall, 0, 0, visual_image, 0xff7f00));
+			startFade(clip_overall, 0, 0, visual_image, 0xff7f00);
 		} else {
 			visual_image = load_image(IMAGE_DIR "/xa2/ending/background.bmp");
 			if (!visual_image) {
 				restoreContext();
 				return;
 			}
-			extend_context(init_fade(clip_overall, 0, 0, visual_image, 0xffffff));
+			startFade(clip_overall, 0, 0, visual_image, 0xffffff);
 		}
 	} else {
 		// もう一度スクリーンをコピー
@@ -129,8 +138,34 @@ void EndingScene::onEnter()
 	}
 }
 
+void EndingScene::startFade(std::shared_ptr<SDL_::Image> dst, int x, int y,
+                             std::shared_ptr<SDL_::Image> img, unsigned rgb)
+{
+	fade_.start(dst, x, y, img, rgb);
+	getApplication().setTimer(kFadeInterval, [](Uint32 interval) -> Uint32 {
+		SDL_Event event{};
+		event.type = SDL_ENDING_FADE_TIMER_EVENT;
+		::SDL_PushEvent(&event);
+		return interval;
+	});
+}
+
+void EndingScene::onFadeTimer()
+{
+	fade_.step();
+	// 旧fade_loop()のupdate_region()相当。画面全体が対象なのでrect_overallでよい
+	update(rect_overall);
+	if (fade_.isDone()) {
+		getApplication().killTimer();
+		onEnter(); // 旧resume_context()->onResume()->onEnter()の再入に相当
+	}
+}
+
 void EndingScene::restoreContext()
 {
+	// フェード中に中断(Ctrl+Q)された場合に備え、念のためタイマーを止めておく
+	getApplication().killTimer();
+
 	kanjiBase_ = nullptr;
 	msg_ = nullptr;
 	kanjiCode_.clear();
