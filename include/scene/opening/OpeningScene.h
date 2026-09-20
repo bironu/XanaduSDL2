@@ -3,11 +3,6 @@
 
 #include "scene/Scene.h"
 
-// 旧C実装(src/opening.cpp)のstatic変数・自由関数群をクラスのメンバに移設したもの。
-// フェード演出中の連射キー確認はget_keystate()による共有状態の参照だけで足り、
-// 最終ステップの「キー待ち」もこのクラス自身のdispatch()で完結するため、
-// MenuSceneと同様にGameScene(旧C実装の共通コンテキスト基底)は継承せず、
-// Sceneを直接継承してonCreate/onSuspend/onResumeを自前で実装する。
 class OpeningScene final : public Scene
 {
 public:
@@ -19,7 +14,10 @@ public:
 	void onResume(uint32_t tick) override;
 
 private:
-	// 旧opening_enter/wait_forever/restore_contextに対応
+    void onKeyDown(const SDL_KeyboardEvent &key);
+    void onWindowExpose(const SDL_WindowEvent &window);
+
+    // 旧opening_enter/wait_forever/restore_contextに対応
 	void onEnter();
 	void waitForever();
 	void restoreContext();

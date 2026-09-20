@@ -47,10 +47,10 @@ public:
 			::SDL_UnlockSurface(get());
 		}
 	}
-	bool blitScaled(std::shared_ptr<Image> src, const Rect *srcrect, Rect *dstrect)
+	bool blitScaled(std::shared_ptr<Image> src, const Rect *srcrect, Rect *dstrect, SDL_ScaleMode scaleMode = SDL_SCALEMODE_NEAREST)
 	{
 		assert(isEnabled() && src->isEnabled());
-		return ::SDL_BlitSurfaceScaled(src->get(), srcrect, get(), dstrect, SDL_SCALEMODE_NEAREST);
+		return ::SDL_BlitSurfaceScaled(src->get(), srcrect, get(), dstrect, scaleMode);
 	}
 	bool blit(std::shared_ptr<Image> src, const Rect &srcrect, Sint16 nXDest, Sint16 nYDest)
 	{

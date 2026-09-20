@@ -1,9 +1,11 @@
+#include "app/Application.h"
 #include "scene/opening/OpeningScene.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
 #include "xanadu.h"
 #include "fade.h"
 #include "sdl/LegacyPlatform.h"
+#include "sdl/SDLWindow.h"
 
 #include <SDL3/SDL_events.h>
 #include <array>
@@ -85,12 +87,41 @@ void OpeningScene::onSuspend()
 
 void OpeningScene::dispatch(const SDL_Event &event)
 {
+    switch (event.type) {
+    case SDL_EVENT_KEY_DOWN:
+        onKeyDown(event.key);
+        break;
+
+    case SDL_EVENT_WINDOW_EXPOSED:
+        onWindowExpose(event.window);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void OpeningScene::onKeyDown(const SDL_KeyboardEvent &key)
+{
 	if (!waitingForKey_) {
 		return;
 	}
-	if (event.type == SDL_EVENT_KEY_DOWN && event.key.repeat == 0) {
+	if (key.repeat == 0) {
 		restoreContext();
 	}
+}
+
+void OpeningScene::onWindowExpose(const SDL_WindowEvent &window)
+{
+    auto &app = getApplication();
+    auto mainWindow = app.getMainWindow();
+    if (!mainWindow) {
+        return;
+    }
+    if (window.windowID == mainWindow->getWindowId()) {
+        mainWindow->swap();
+    }
+    SDL_Log("Window exposed event: windowID=%u, data1=%d, data2=%d", window.windowID, window.data1, window.data2);
 }
 
 void OpeningScene::onEnter()

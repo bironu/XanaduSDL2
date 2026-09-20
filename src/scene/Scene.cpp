@@ -37,7 +37,6 @@ bool Scene::onIdle(uint32_t tick)
 	const bool stillRunning = !manager_->compute(tick);
 	/* レンダラはSDL_SetRenderVSync()でVSync有効にして生成されているため、
 	   ここで毎回present()してもリフレッシュレートで自然にペーシングされる */
-	swap();
 	return stillRunning;
 }
 

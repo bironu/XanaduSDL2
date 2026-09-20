@@ -383,10 +383,10 @@ void Resources::reload()
 	// screenWidth_ = lua["screen"]["width"].get<int>();
 	// screenHeight_ = lua["screen"]["height"].get<int>();
 	// lang_ = lua["system"]["lang"].get<const char *>();
-	windowWidth_ = 640;
-	windowHeight_ = 480;
+	windowWidth_ = 1280;
+	windowHeight_ = 800;
 	screenWidth_ = 640;
-	screenHeight_ = 480;
+	screenHeight_ = 400;
 	// lang_ = "japanese";
     loadImage(ImageId::user_font);
 

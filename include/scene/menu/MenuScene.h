@@ -13,11 +13,6 @@ class Color;
 
 struct SDL_KeyboardEvent;
 
-// 旧C実装(src/menu.cpp)のstatic変数・自由関数群をクラスのメンバに移設したもの。
-// キー入力はthunk_key_event/get_keystate()のどちらも使わず、dispatch()が
-// SDL_Eventから直接state_に応じたon*Keyメンバへ振り分ける。そのため、他の
-// *Scene群と違い、GameScene(旧C実装の共通コンテキスト基底)は継承せず、
-// Sceneを直接継承してonCreate/onDestroy/onResume/onSuspendを自前で実装する。
 class MenuScene final : public Scene
 {
 public:
@@ -65,8 +60,6 @@ private:
 	// static membersとする。
 	static State state_;
 	static std::array<UserEntry, kMaxUserEntry> userEntries_;
-	// std::shared_ptr<SDL_::Image> imageLogo_;
-	// std::shared_ptr<SDL_::Image> imageFrame_;
 };
 
 #endif // MENUSCENE_H_

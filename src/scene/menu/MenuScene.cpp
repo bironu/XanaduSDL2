@@ -1,7 +1,9 @@
 #include "app/Application.h"
 #include "sdl/SDLWindow.h"
+#include "sdl/SDLMixMixer.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
+#include "resources/MusicId.h"
 #include "scene/menu/MenuScene.h"
 #include "xanadu.h"
 #include "context.h"
@@ -35,16 +37,32 @@ void MenuScene::dispatch(const SDL_Event &event)
     }
 }
 
-void MenuScene::onSuspend()
-{
-	onLeave();
-}
-
 void MenuScene::onCreate(uint32_t /*tick*/)
 {
     auto &res = getResources();
     res.loadImage(ImageId::picture_logo);
     res.loadImage(ImageId::xa1_frame);
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    res.loadMusic(mixer, MusicId::GMINIT);
+}
+
+void MenuScene::onResume(uint32_t /*tick*/)
+{
+	onEnter();
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    auto &res = getResources();
+    mixer.playMusic(*res.getMusic(MusicId::GMINIT));
+}
+
+void MenuScene::onSuspend()
+{
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    auto &res = getResources();
+    mixer.stopMusic();
+	onLeave();
 }
 
 void MenuScene::onDestroy(uint32_t /*tick*/)
@@ -52,12 +70,7 @@ void MenuScene::onDestroy(uint32_t /*tick*/)
     auto &res = getResources();
     res.unloadImage(ImageId::picture_logo);
     res.unloadImage(ImageId::xa1_frame);
-}
-
-void MenuScene::onResume(uint32_t /*tick*/)
-{
-
-	onEnter();
+    res.unloadMusic(MusicId::GMINIT);
 }
 
 void MenuScene::onKeyDown(const SDL_KeyboardEvent &key)
@@ -84,6 +97,11 @@ void MenuScene::onWindowExpose(const SDL_WindowEvent &window)
         return;
     }
     if (window.windowID == mainWindow->getWindowId()) {
+        auto &res = getResources();
+        auto backBuffer = mainWindow->getBackBuffer();
+        backBuffer->fillRect(SDL_::Color::BLACK);
+        // backBuffer->blit(res.getImage(ImageId::xa1_frame), 0, 0);
+        backBuffer->blitScaled(clip_overall, nullptr, nullptr);
         mainWindow->swap();
     }
     SDL_Log("Window exposed event: windowID=%u, data1=%d, data2=%d", window.windowID, window.data1, window.data2);
@@ -94,16 +112,16 @@ void MenuScene::onEnter()
 	const SDL_::Color pixel1 = user.environment.scenario == 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 	const SDL_::Color pixel2 = user.environment.scenario != 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 
-	bgm_play(bgm_data.start_menu); // BGM
+	// bgm_play(bgm_data.start_menu); // BGM
 
-	// fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
+    clip_overall->fillRect(SDL_::Color::BLACK);
     clip_main->fillRect(SDL_::Color::BLACK);
 
     auto &res = getResources();
     // Frame
-    draw_image(clip_overall, 0, 0, res.getImage(ImageId::xa1_frame));
+    clip_overall->blit(res.getImage(ImageId::xa1_frame), 0, 0);
 	// Logo
-    draw_image(clip_main, 100, 290, res.getImage(ImageId::picture_logo));
+    clip_main->blit(res.getImage(ImageId::picture_logo), 100, 290);
 
 	switch (state_) {
 	case State::Game:
@@ -225,13 +243,11 @@ void MenuScene::onEnter()
 		drawItem(10, 0, 'V', "Version info", SDL_::Color::WHITE);
 		drawText(12, 0, "Please Num-Lock *OFF*", SDL_::Color::RED);
 	}
+    clip_overall->blit(clip_main, rect_main.x, rect_main.y);
     auto mainWindow = getApplication().getMainWindow();
     if (mainWindow) {
-        auto backBuffer = mainWindow->getBackBuffer();
-        backBuffer->fillRect(SDL_::Color::BLACK);
-        backBuffer->blit(clip_overall, rect_overall.x, rect_overall.y);
-        backBuffer->blit(clip_main, rect_main.x, rect_main.y);
-        mainWindow->requestRedraw();
+        mainWindow->requestExpose();
+        SDL_Log("MenuScene::onEnter: requested expose for main window");
     }
 }
 
