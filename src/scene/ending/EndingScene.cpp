@@ -1,9 +1,6 @@
 #include "scene/ending/EndingScene.h"
 #include "xanadu.h"
-#include "fade.h"
-#include "context.h"
 #include "app/Application.h"
-#include "sdl/LegacyPlatform.h"
 #include "sdl/SDLWindow.h"
 #include "sdl/SDLMixMixer.h"
 #include "resources/Resources.h"
@@ -309,10 +306,6 @@ void EndingScene::loop()
 	}
 
 	clipEndingRoll_->blit(visualImage_, kRectEndingRoll, 0, 0);
-	// draw_sprite()は実装上draw_image()のエイリアスで、常にcolorkeyを一時的に
-	// 無効化してから不透明合成してしまう(コメントの説明と実装が食い違っている)。
-	// ここはmsg_のcolorkeyによる透過合成が必須なので、それをそのまま尊重する
-	// Image::blit()を直接使う
 	clipEndingRoll_->blit(msg_, 0, -msgY_);
 
 	onDraw();
