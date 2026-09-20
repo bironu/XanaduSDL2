@@ -309,10 +309,11 @@ void EndingScene::loop()
 	}
 
 	clipEndingRoll_->blit(visualImage_, kRectEndingRoll, 0, 0);
-	// draw_sprite()はmsg_のcolorkeyを尊重した透過合成を行う。Image::blit()は
-	// colorkeyの有無に関わらずそのままSDL_BlitSurfaceするだけなので、
-	// ここは意図的にgraphics.hの関数のまま残す
-	draw_sprite(clipEndingRoll_, 0, -msgY_, msg_);
+	// draw_sprite()は実装上draw_image()のエイリアスで、常にcolorkeyを一時的に
+	// 無効化してから不透明合成してしまう(コメントの説明と実装が食い違っている)。
+	// ここはmsg_のcolorkeyによる透過合成が必須なので、それをそのまま尊重する
+	// Image::blit()を直接使う
+	clipEndingRoll_->blit(msg_, 0, -msgY_);
 
 	onDraw();
 }

@@ -111,6 +111,9 @@ namespace
     // Image読み込み時に左上ピクセル色でカラーキーを設定する
     // (SDL_::Image::Image(file, isColorKey)参照)
     const std::unordered_set<ImageId> kColorKeyImages = {
+        // EndingScene::drawKanjiText()がグリフを不透明合成する際の背景色、
+        // かつmsg_(クレジットロールのテキストバッファ)自身のカラーキーの元にもなる
+        ImageId::picture_kanji,
         ImageId::user_breath,
         ImageId::user_damage,
         ImageId::user_effect,
