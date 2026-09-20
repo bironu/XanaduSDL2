@@ -3,6 +3,7 @@
 
 #include "scene/Scene.h"
 #include "sdl/SDLImage.h"
+#include "geo/Rect.h"
 #include "fade.h"
 #include <memory>
 #include <vector>
@@ -30,27 +31,29 @@ private:
 	void restoreContext();
 	void loop();
 	void waitForever();
+	// フェード(scenario2)/即黒背景(scenario1)のどちらの後でも呼ばれる、
+	// クレジットロール開始処理
+	void startScroll();
 
 	// フェード演出(XanaduFade)をこのScene自身のタイマーで駆動する
 	void startFade(std::shared_ptr<SDL_::Image> dst, int x, int y,
 	               std::shared_ptr<SDL_::Image> img, unsigned rgb);
-	void onFadeTimer();
+	// フェード中/スクロール中共通のタイマー処理(fade_の状態でどちらかへ振り分ける)
+	void onTimer();
+	// Application::setTimer()を起動し、以後SDL_ENDING_TIMER_EVENT経由でonTimer()を呼ぶ
+	void startTimer(uint32_t interval);
+
+	// clipOverall_(+スクロール中はclipEndingRoll_)をバックバッファへ反映する
+	void onDraw();
 
 	bool init();
 	int loadKanjiCode(const char *filename);
 	int drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y, const int *code) const;
 
-	// 旧C実装のset_timer()はvoid(*)(void)という素の関数ポインタしか受け付けず、
-	// メンバ関数を直接渡すことができない。そのため、実行中のインスタンスへ
-	// 転送するだけの静的ブリッジを用意する(同時にアクティブなEndingSceneは
-	// 常に高々1つという前提に依る)。
-	static void timerProc();
-	static EndingScene *active_;
-
 	static constexpr int kEndingInterval = 80;
 	// フェードの1ステップと同じ間隔(旧FADE_INTERVAL)
 	static constexpr uint32_t kFadeInterval = 50;
-	static const uint32_t SDL_ENDING_FADE_TIMER_EVENT;
+	static const uint32_t SDL_ENDING_TIMER_EVENT;
 
 	XanaduFade fade_;
 
@@ -61,11 +64,26 @@ private:
 
 	static constexpr int kMessageBufferSize = 8024;
 
+	static const Rect kRectOverall;
+	static const Rect kRectEndingRoll;
+
 	// 旧kanji_baseの非nullptr判定(初回のフェード演出が済んだかどうか)に対応
 	bool initialized_;
 	// wait_forever()到達後、キー入力を待っている間だけtrue
 	// (旧実装のthunk_key_event = ending_key_eventに対応)
 	bool waitingForKey_;
+	// クレジットロール(clipEndingRoll_)をclipOverall_へ合成するかどうか。
+	// 旧setLegacyEndingRollCompositingEnabled(グローバルフラグ)に対応するが、
+	// このScene自身の状態として持つ。
+	bool rollActive_;
+
+	// 旧clip_overall/clip_endingroll/visual_image(いずれもLegacyPlatform.cppの
+	// グローバル)をこのScene自身のメンバとして持つ。onCreate()で確保し、
+	// onDestroy()で破棄する。画面反映は自前のonDraw()(backBuffer_+swap())で行い、
+	// presentLegacyFrame()には依存しない。
+	std::shared_ptr<SDL_::Image> clipOverall_;
+	std::shared_ptr<SDL_::Image> clipEndingRoll_;
+	std::shared_ptr<SDL_::Image> visualImage_;
 
 	SDL_::SubImage kanji_[kKanjiPageRow][kKanjiPageCol];
 	std::shared_ptr<SDL_::Image> kanjiBase_;

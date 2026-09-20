@@ -9,6 +9,7 @@
 #include "sdl/SDLMixMixer.h"
 #include <SDL3/SDL_events.h>
 #include <cstring>
+#include <unordered_set>
 
 #define IMAGE_ROOT "../bmp/"
 #define AUDIO_ROOT "../audio/"
@@ -105,6 +106,61 @@ namespace
         {ImageId::xa2_opening_subtitle , IMAGE_ROOT "xa2/opening/subtitle.bmp"},
         {ImageId::xa2_opening_title , IMAGE_ROOT "xa2/opening/title.bmp"},
     };
+
+    // 背景画像等ではなく、スプライトとして透過合成が必要な画像だけ、
+    // Image読み込み時に左上ピクセル色でカラーキーを設定する
+    // (SDL_::Image::Image(file, isColorKey)参照)
+    const std::unordered_set<ImageId> kColorKeyImages = {
+        ImageId::user_breath,
+        ImageId::user_damage,
+        ImageId::user_effect,
+        ImageId::user_goods,
+        ImageId::user_magic,
+        ImageId::user_user0,
+        ImageId::user_user1,
+        ImageId::user_user2,
+        ImageId::user_user3,
+        ImageId::xa1_boss_0,
+        ImageId::xa1_boss_1,
+        ImageId::xa1_boss_2,
+        ImageId::xa1_boss_3,
+        ImageId::xa1_boss_4,
+        ImageId::xa1_monst_0,
+        ImageId::xa1_monst_1,
+        ImageId::xa1_monst_2,
+        ImageId::xa1_monst_3,
+        ImageId::xa1_monst_4,
+        ImageId::xa1_monst_5,
+        ImageId::xa1_monst_6,
+        ImageId::xa1_monst_7,
+        ImageId::xa1_monst_8,
+        ImageId::xa1_monst_9,
+        ImageId::xa1_monst_a,
+        ImageId::xa2_boss_0,
+        ImageId::xa2_boss_1,
+        ImageId::xa2_boss_2,
+        ImageId::xa2_boss_3,
+        ImageId::xa2_boss_4,
+        ImageId::xa2_boss_5,
+        ImageId::xa2_boss_6,
+        ImageId::xa2_boss_7,
+        ImageId::xa2_boss_8,
+        ImageId::xa2_boss_9,
+        ImageId::xa2_boss_a,
+        ImageId::xa2_boss_b,
+        ImageId::xa2_monst_0,
+        ImageId::xa2_monst_1,
+        ImageId::xa2_monst_2,
+        ImageId::xa2_monst_3,
+        ImageId::xa2_monst_4,
+        ImageId::xa2_monst_5,
+        ImageId::xa2_monst_6,
+        ImageId::xa2_monst_7,
+        ImageId::xa2_monst_8,
+        ImageId::xa2_monst_9,
+        ImageId::xa2_monst_a,
+    };
+
     const std::unordered_map<SoundId, std::string> mapSoundPath_ = {
         {SoundId::boss_hit, AUDIO_ROOT "wave/boss_hit.wav"},
         {SoundId::attack, AUDIO_ROOT "wave/attack.wav"},
@@ -259,7 +315,8 @@ bool Resources::loadImage(ImageId id)
         auto p = mapImagePath_.find(id);
         if (p != mapImagePath_.end()) {
             std::string path = p->second;
-            auto result = std::make_shared<SDL_::Image>(path.c_str());
+            const bool isColorKey = kColorKeyImages.count(id) > 0;
+            auto result = std::make_shared<SDL_::Image>(path.c_str(), isColorKey);
             mapImage_.insert(std::make_pair(id, result));
             return true;
         }

@@ -28,9 +28,17 @@ Image::Image(int width, int height)
 	: Image(::SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32))
 {
 }
-Image::Image(const char * const file)
+
+// isColorKeyがtrueなら、画像左上(0, 0)のピクセル色をカラーキー(透過色)として設定する
+Image::Image(const char * const file, bool isColorKey)
 	: Image(convertToRGBA32(::IMG_Load(file)))
 {
+    if (isColorKey && isEnabled()) {
+        lock();
+        const Uint32 topLeftPixel = *static_cast<const Uint32 *>(get()->pixels);
+        unlock();
+        setColorKey(topLeftPixel);
+    }
 }
 
 Image::~Image()

@@ -23,7 +23,7 @@ public:
 	{
 	}
 	Image(int width, int height);
-	explicit Image(const char * const file);
+	explicit Image(const char * const file, bool isColorKey = false);
 	~Image();
 
 	SDL_Surface *get() const { return surface_;}

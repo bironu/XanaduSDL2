@@ -32,7 +32,6 @@ void Window::swap()
         ::SDL_BlitSurface(backBuffer_->get(), nullptr, lock.getSurface(), nullptr);
     }
     auto size = getSize();
-    SDL_Log("Window::swap() - size: %d x %d", size.getWidth(), size.getHeight());
     renderer_.clear();
     renderer_.copy(renderTexture_, nullptr, nullptr);
 	renderer_.present();
