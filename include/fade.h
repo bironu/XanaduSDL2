@@ -4,13 +4,6 @@
 #include "graphics.h"
 
 // 市松状にfade_R/G/Bでマスクした色へ寄せていくフェード演出。
-//
-// 旧実装(FadeScene/init_fade/fade_loop)はSceneスタック(extend_context)へ
-// 積んで専用タイマー(set_timer)で自走していたが、その間は呼び出し元Sceneが
-// currentScene_ではなくなり、dispatch()/onIdle()が一切呼ばれなくなる
-// (Application::run()参照)。呼び出し元が自前のタイマーで画面更新している
-// 場合、フェード中だけそれが止まってしまう問題があった。
-//
 // XanaduFadeはタイマーも画面反映(swap等)も一切持たない。呼び出し側が
 // 自分のタイマーからstep()を1フレームぶんずつ呼び出し、呼び出し側自身の
 // 責任で描画結果を画面へ反映する。

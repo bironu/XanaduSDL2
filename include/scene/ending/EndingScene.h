@@ -8,12 +8,6 @@
 #include <memory>
 #include <vector>
 
-// 旧C実装(src/ending.cpp)のstatic変数・自由関数群をクラスのメンバに移設したもの。
-// スクロール終了後のキー入力確認はthunk_key_eventではなくこのクラス自身のdispatch()で
-// 完結する。フェード演出はXanaduFade(fade.h参照)を使い、このScene自身のタイマーで
-// 1ステップぶんずつ進める(フェード中もdispatch()/onIdle()が止まらないようにするため)。
-// MenuScene/OpeningSceneと同様にGameScene(旧C実装の共通コンテキスト基底)は継承せず、
-// Sceneを直接継承してonCreate/onDestroy/onResume/onSuspendを自前で実装する。
 class EndingScene final : public Scene
 {
 public:
