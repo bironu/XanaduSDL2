@@ -104,7 +104,7 @@ public:
 	void setDrawBlendMode(SDL_BlendMode blendMode) { ::SDL_SetRenderDrawBlendMode(get(), blendMode); }
 	void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a) { ::SDL_SetRenderDrawColor(get(), r, g, b, a); }
 	void setDrawColor(const Color &color) { ::SDL_SetRenderDrawColor(get(), color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()); }
-	// void setTarget(std::shared_ptr<Texture> texture);
+	void setTarget(std::shared_ptr<Texture> texture);
 
 private:
 	SDL_Renderer * const renderer_;

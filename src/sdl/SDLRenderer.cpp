@@ -38,4 +38,10 @@ void Renderer::copyEx(std::shared_ptr<Texture> texture, const FRect *srcrect, co
 	::SDL_RenderTextureRotated(get(), texture->get(), srcrect, dstrect, angle, center, flip);
 }
 
+void Renderer::setTarget(std::shared_ptr<Texture> texture)
+{
+    ::SDL_SetRenderTarget(get(), texture->get());
+}
+
+
 } // SDL_
