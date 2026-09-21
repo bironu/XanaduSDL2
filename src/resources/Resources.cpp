@@ -1,22 +1,258 @@
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
-#include "resources/StringId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
 #include "resources/SoundFontId.h"
 #include "sdl/SDLImage.h"
 #include "sdl/SDLJoystick.h"
+#include "sdl/SDLMixAudio.h"
+#include "sdl/SDLMixMixer.h"
 #include <SDL3/SDL_events.h>
 #include <cstring>
+#include <unordered_set>
 
 #define IMAGE_ROOT "../bmp/"
 #define AUDIO_ROOT "../audio/"
 #define FONT_ROOT "../font/"
 
+namespace
+{
+	const std::unordered_map<ImageId, std::string> mapImagePath_ = {
+        {ImageId::picture_agl , IMAGE_ROOT "picture/agl.bmp"},
+        {ImageId::picture_armory , IMAGE_ROOT "picture/armory.bmp"},
+        {ImageId::picture_castle , IMAGE_ROOT "picture/castle.bmp"},
+        {ImageId::picture_cave , IMAGE_ROOT "picture/cave.bmp"},
+        {ImageId::picture_chr , IMAGE_ROOT "picture/chr.bmp"},
+        {ImageId::picture_dex , IMAGE_ROOT "picture/dex.bmp"},
+        {ImageId::picture_item , IMAGE_ROOT "picture/item.bmp"},
+        {ImageId::picture_kanji , IMAGE_ROOT "picture/kanji.bmp"},
+        {ImageId::picture_logo , IMAGE_ROOT "picture/logo.bmp"},
+        {ImageId::picture_mgr , IMAGE_ROOT "picture/mgr.bmp"},
+        {ImageId::picture_scroll , IMAGE_ROOT "picture/scroll.bmp"},
+        {ImageId::picture_shield , IMAGE_ROOT "picture/shield.bmp"},
+        {ImageId::picture_shop , IMAGE_ROOT "picture/shop.bmp"},
+        {ImageId::picture_slayer , IMAGE_ROOT "picture/slayer.bmp"},
+        {ImageId::picture_str , IMAGE_ROOT "picture/str.bmp"},
+        {ImageId::picture_temple , IMAGE_ROOT "picture/temple.bmp"},
+        {ImageId::picture_weapon , IMAGE_ROOT "picture/weapon.bmp"},
+        {ImageId::picture_wis , IMAGE_ROOT "picture/wis.bmp"},
+        {ImageId::user_boss_st , IMAGE_ROOT "user/boss_st.bmp"},
+        {ImageId::user_breath , IMAGE_ROOT "user/breath.bmp"},
+        {ImageId::user_damage , IMAGE_ROOT "user/damage.bmp"},
+        {ImageId::user_effect , IMAGE_ROOT "user/effect.bmp"},
+        {ImageId::user_font , IMAGE_ROOT "user/font.bmp"},
+        {ImageId::user_frame , IMAGE_ROOT "user/frame.bmp"},
+        {ImageId::user_goods , IMAGE_ROOT "user/goods.bmp"},
+        {ImageId::user_magic , IMAGE_ROOT "user/magic.bmp"},
+        {ImageId::user_pattern , IMAGE_ROOT "user/pattern.bmp"},
+        {ImageId::user_user0 , IMAGE_ROOT "user/user0.bmp"},
+        {ImageId::user_user1 , IMAGE_ROOT "user/user1.bmp"},
+        {ImageId::user_user2 , IMAGE_ROOT "user/user2.bmp"},
+        {ImageId::user_user3 , IMAGE_ROOT "user/user3.bmp"},
+        {ImageId::xa1_boss_0 , IMAGE_ROOT "xa1/boss_0.bmp"},
+        {ImageId::xa1_boss_1 , IMAGE_ROOT "xa1/boss_1.bmp"},
+        {ImageId::xa1_boss_2 , IMAGE_ROOT "xa1/boss_2.bmp"},
+        {ImageId::xa1_boss_3 , IMAGE_ROOT "xa1/boss_3.bmp"},
+        {ImageId::xa1_boss_4 , IMAGE_ROOT "xa1/boss_4.bmp"},
+        {ImageId::xa1_field , IMAGE_ROOT "xa1/field.bmp"},
+        {ImageId::xa1_frame , IMAGE_ROOT "xa1/frame.bmp"},
+        {ImageId::xa1_monst_0 , IMAGE_ROOT "xa1/monst_0.bmp"},
+        {ImageId::xa1_monst_1 , IMAGE_ROOT "xa1/monst_1.bmp"},
+        {ImageId::xa1_monst_2 , IMAGE_ROOT "xa1/monst_2.bmp"},
+        {ImageId::xa1_monst_3 , IMAGE_ROOT "xa1/monst_3.bmp"},
+        {ImageId::xa1_monst_4 , IMAGE_ROOT "xa1/monst_4.bmp"},
+        {ImageId::xa1_monst_5 , IMAGE_ROOT "xa1/monst_5.bmp"},
+        {ImageId::xa1_monst_6 , IMAGE_ROOT "xa1/monst_6.bmp"},
+        {ImageId::xa1_monst_7 , IMAGE_ROOT "xa1/monst_7.bmp"},
+        {ImageId::xa1_monst_8 , IMAGE_ROOT "xa1/monst_8.bmp"},
+        {ImageId::xa1_monst_9 , IMAGE_ROOT "xa1/monst_9.bmp"},
+        {ImageId::xa1_monst_a , IMAGE_ROOT "xa1/monst_a.bmp"},
+        {ImageId::xa1_shrine , IMAGE_ROOT "xa1/shrine.bmp"},
+        {ImageId::xa1_train , IMAGE_ROOT "xa1/train.bmp"},
+        {ImageId::xa1_opening_background , IMAGE_ROOT "xa1/opening/background.bmp"},
+        {ImageId::xa1_opening_battler , IMAGE_ROOT "xa1/opening/battler.bmp"},
+        {ImageId::xa1_opening_robber , IMAGE_ROOT "xa1/opening/robber.bmp"},
+        {ImageId::xa1_opening_swordman , IMAGE_ROOT "xa1/opening/swordman.bmp"},
+        {ImageId::xa1_opening_witch , IMAGE_ROOT "xa1/opening/witch.bmp"},
+        {ImageId::xa1_opening_wizard , IMAGE_ROOT "xa1/opening/wizard.bmp"},
+        {ImageId::xa2_boss_0 , IMAGE_ROOT "xa2/boss_0.bmp"},
+        {ImageId::xa2_boss_1 , IMAGE_ROOT "xa2/boss_1.bmp"},
+        {ImageId::xa2_boss_2 , IMAGE_ROOT "xa2/boss_2.bmp"},
+        {ImageId::xa2_boss_3 , IMAGE_ROOT "xa2/boss_3.bmp"},
+        {ImageId::xa2_boss_4 , IMAGE_ROOT "xa2/boss_4.bmp"},
+        {ImageId::xa2_boss_5 , IMAGE_ROOT "xa2/boss_5.bmp"},
+        {ImageId::xa2_boss_6 , IMAGE_ROOT "xa2/boss_6.bmp"},
+        {ImageId::xa2_boss_7 , IMAGE_ROOT "xa2/boss_7.bmp"},
+        {ImageId::xa2_boss_8 , IMAGE_ROOT "xa2/boss_8.bmp"},
+        {ImageId::xa2_boss_9 , IMAGE_ROOT "xa2/boss_9.bmp"},
+        {ImageId::xa2_boss_a , IMAGE_ROOT "xa2/boss_a.bmp"},
+        {ImageId::xa2_boss_b , IMAGE_ROOT "xa2/boss_b.bmp"},
+        {ImageId::xa2_field , IMAGE_ROOT "xa2/field.bmp"},
+        {ImageId::xa2_monst_0 , IMAGE_ROOT "xa2/monst_0.bmp"},
+        {ImageId::xa2_monst_1 , IMAGE_ROOT "xa2/monst_1.bmp"},
+        {ImageId::xa2_monst_2 , IMAGE_ROOT "xa2/monst_2.bmp"},
+        {ImageId::xa2_monst_3 , IMAGE_ROOT "xa2/monst_3.bmp"},
+        {ImageId::xa2_monst_4 , IMAGE_ROOT "xa2/monst_4.bmp"},
+        {ImageId::xa2_monst_5 , IMAGE_ROOT "xa2/monst_5.bmp"},
+        {ImageId::xa2_monst_6 , IMAGE_ROOT "xa2/monst_6.bmp"},
+        {ImageId::xa2_monst_7 , IMAGE_ROOT "xa2/monst_7.bmp"},
+        {ImageId::xa2_monst_8 , IMAGE_ROOT "xa2/monst_8.bmp"},
+        {ImageId::xa2_monst_9 , IMAGE_ROOT "xa2/monst_9.bmp"},
+        {ImageId::xa2_monst_a , IMAGE_ROOT "xa2/monst_a.bmp"},
+        {ImageId::xa2_outoflevel , IMAGE_ROOT "xa2/outoflevel.bmp"},
+        {ImageId::xa2_shrine , IMAGE_ROOT "xa2/shrine.bmp"},
+        {ImageId::xa2_ending_background , IMAGE_ROOT "xa2/ending/background.bmp"},
+        {ImageId::xa2_opening_hero , IMAGE_ROOT "xa2/opening/hero.bmp"},
+        {ImageId::xa2_opening_subtitle , IMAGE_ROOT "xa2/opening/subtitle.bmp"},
+        {ImageId::xa2_opening_title , IMAGE_ROOT "xa2/opening/title.bmp"},
+    };
+
+    // 背景画像等ではなく、スプライトとして透過合成が必要な画像だけ、
+    // Image読み込み時に左上ピクセル色でカラーキーを設定する
+    // (SDL_::Image::Image(file, isColorKey)参照)
+    const std::unordered_set<ImageId> kColorKeyImages = {
+        // EndingScene::drawKanjiText()がグリフを不透明合成する際の背景色、
+        // かつmsg_(クレジットロールのテキストバッファ)自身のカラーキーの元にもなる
+        ImageId::picture_kanji,
+        ImageId::user_breath,
+        ImageId::user_damage,
+        ImageId::user_effect,
+        ImageId::user_goods,
+        ImageId::user_magic,
+        ImageId::user_user0,
+        ImageId::user_user1,
+        ImageId::user_user2,
+        ImageId::user_user3,
+        ImageId::xa1_boss_0,
+        ImageId::xa1_boss_1,
+        ImageId::xa1_boss_2,
+        ImageId::xa1_boss_3,
+        ImageId::xa1_boss_4,
+        ImageId::xa1_monst_0,
+        ImageId::xa1_monst_1,
+        ImageId::xa1_monst_2,
+        ImageId::xa1_monst_3,
+        ImageId::xa1_monst_4,
+        ImageId::xa1_monst_5,
+        ImageId::xa1_monst_6,
+        ImageId::xa1_monst_7,
+        ImageId::xa1_monst_8,
+        ImageId::xa1_monst_9,
+        ImageId::xa1_monst_a,
+        ImageId::xa2_boss_0,
+        ImageId::xa2_boss_1,
+        ImageId::xa2_boss_2,
+        ImageId::xa2_boss_3,
+        ImageId::xa2_boss_4,
+        ImageId::xa2_boss_5,
+        ImageId::xa2_boss_6,
+        ImageId::xa2_boss_7,
+        ImageId::xa2_boss_8,
+        ImageId::xa2_boss_9,
+        ImageId::xa2_boss_a,
+        ImageId::xa2_boss_b,
+        ImageId::xa2_monst_0,
+        ImageId::xa2_monst_1,
+        ImageId::xa2_monst_2,
+        ImageId::xa2_monst_3,
+        ImageId::xa2_monst_4,
+        ImageId::xa2_monst_5,
+        ImageId::xa2_monst_6,
+        ImageId::xa2_monst_7,
+        ImageId::xa2_monst_8,
+        ImageId::xa2_monst_9,
+        ImageId::xa2_monst_a,
+    };
+
+    const std::unordered_map<SoundId, std::string> mapSoundPath_ = {
+        {SoundId::boss_hit, AUDIO_ROOT "wave/boss_hit.wav"},
+        {SoundId::attack, AUDIO_ROOT "wave/attack.wav"},
+        {SoundId::boss_die, AUDIO_ROOT "wave/boss_die.wav"},
+        {SoundId::c_corros, AUDIO_ROOT "wave/c_corros.wav"},
+        {SoundId::c_death, AUDIO_ROOT "wave/c_death.wav"},
+        {SoundId::c_deluge, AUDIO_ROOT "wave/c_deluge.wav"},
+        {SoundId::c_fire, AUDIO_ROOT "wave/c_fire.wav"},
+        {SoundId::c_mittar, AUDIO_ROOT "wave/c_mittar.wav"},
+        {SoundId::c_needle, AUDIO_ROOT "wave/c_needle.wav"},
+        {SoundId::c_poison, AUDIO_ROOT "wave/c_poison.wav"},
+        {SoundId::c_thunder, AUDIO_ROOT "wave/c_thunder.wav"},
+        {SoundId::c_tilte, AUDIO_ROOT "wave/c_tilte.wav"},
+        {SoundId::dead, AUDIO_ROOT "wave/dead.wav"},
+        {SoundId::dig, AUDIO_ROOT "wave/dig.wav"},
+        {SoundId::elixer, AUDIO_ROOT "wave/elixer.wav"},
+        {SoundId::encount, AUDIO_ROOT "wave/encount.wav"},
+        {SoundId::failed, AUDIO_ROOT "wave/failed.wav"},
+        {SoundId::get, AUDIO_ROOT "wave/get.wav"},
+        {SoundId::invoke, AUDIO_ROOT "wave/invoke.wav"},
+        {SoundId::lost_key, AUDIO_ROOT "wave/lost_key.wav"},
+        {SoundId::magic, AUDIO_ROOT "wave/magic.wav"},
+        {SoundId::opening0, AUDIO_ROOT "wave/opening0.wav"},
+        {SoundId::opening1, AUDIO_ROOT "wave/opening1.wav"},
+        {SoundId::opening2, AUDIO_ROOT "wave/opening2.wav"},
+        {SoundId::peep, AUDIO_ROOT "wave/peep.wav"},
+        {SoundId::poison, AUDIO_ROOT "wave/poison.wav"},
+        {SoundId::trapped, AUDIO_ROOT "wave/trapped.wav"},
+        {SoundId::treasure, AUDIO_ROOT "wave/treasure.wav"},
+        {SoundId::victory, AUDIO_ROOT "wave/victory.wav"},
+        {SoundId::warp2, AUDIO_ROOT "wave/warp2.wav"},
+    };
+    const std::unordered_map<MusicId, std::string> mapMusicPath_ = {
+        {MusicId::GMINIT, AUDIO_ROOT "midi/GMINIT.mid"},
+        {MusicId::xa2opening, AUDIO_ROOT "midi/xa2opening.mid"},
+        {MusicId::xanadu, AUDIO_ROOT "midi/xanadu.mid"},
+        {MusicId::xana2_XANA2_01, AUDIO_ROOT "midi/xana2/XANA2_01.mid"},
+        {MusicId::xana2_XANA2_02, AUDIO_ROOT "midi/xana2/XANA2_02.mid"},
+        {MusicId::xana2_XANA2_03, AUDIO_ROOT "midi/xana2/XANA2_03.mid"},
+        {MusicId::xana2_XANA2_04, AUDIO_ROOT "midi/xana2/XANA2_04.mid"},
+        {MusicId::xana2_XANA2_05, AUDIO_ROOT "midi/xana2/XANA2_05.mid"},
+        {MusicId::xana2_XANA2_06, AUDIO_ROOT "midi/xana2/XANA2_06.mid"},
+        {MusicId::xana2_XANA2_07, AUDIO_ROOT "midi/xana2/XANA2_07.mid"},
+        {MusicId::xana2_XANA2_08, AUDIO_ROOT "midi/xana2/XANA2_08.mid"},
+        {MusicId::xana2_XANA2_09, AUDIO_ROOT "midi/xana2/XANA2_09.mid"},
+        {MusicId::xana2_XANA2_10, AUDIO_ROOT "midi/xana2/XANA2_10.mid"},
+        {MusicId::xana2_XANA2_11, AUDIO_ROOT "midi/xana2/XANA2_11.mid"},
+        {MusicId::xana2_XANA2_HE, AUDIO_ROOT "midi/xana2/XANA2_HE.mid"},
+        {MusicId::xana2_XANA2_SH, AUDIO_ROOT "midi/xana2/XANA2_SH.mid"},
+        {MusicId::xana2_XANA2_TE, AUDIO_ROOT "midi/xana2/XANA2_TE.mid"},
+        {MusicId::xana2dl_xana201, AUDIO_ROOT "midi/xana2dl/xana201.mid"},
+        {MusicId::xana2dl_xana202, AUDIO_ROOT "midi/xana2dl/xana202.mid"},
+        {MusicId::xana2dl_xana203, AUDIO_ROOT "midi/xana2dl/xana203.mid"},
+        {MusicId::xana2dl_xana204, AUDIO_ROOT "midi/xana2dl/xana204.mid"},
+        {MusicId::xana2dl_xana205, AUDIO_ROOT "midi/xana2dl/xana205.mid"},
+        {MusicId::xana2dl_xana206, AUDIO_ROOT "midi/xana2dl/xana206.mid"},
+        {MusicId::xana2dl_xana207, AUDIO_ROOT "midi/xana2dl/xana207.mid"},
+        {MusicId::xana2dl_xana208, AUDIO_ROOT "midi/xana2dl/xana208.mid"},
+        {MusicId::xana2dl_xana209, AUDIO_ROOT "midi/xana2dl/xana209.mid"},
+        {MusicId::xana2dl_xana210, AUDIO_ROOT "midi/xana2dl/xana210.mid"},
+        {MusicId::xana2dl_xana211, AUDIO_ROOT "midi/xana2dl/xana211.mid"},
+        {MusicId::xana2dl_xana212, AUDIO_ROOT "midi/xana2dl/xana212.mid"},
+        {MusicId::xana2dl_xana213, AUDIO_ROOT "midi/xana2dl/xana213.mid"},
+        {MusicId::xana2dl_xana214, AUDIO_ROOT "midi/xana2dl/xana214.mid"},
+        {MusicId::xana2dl_xana215, AUDIO_ROOT "midi/xana2dl/xana215.mid"},
+        {MusicId::xana2dl_xana216, AUDIO_ROOT "midi/xana2dl/xana216.mid"},
+        {MusicId::xana2dl_xana217, AUDIO_ROOT "midi/xana2dl/xana217.mid"},
+        {MusicId::xana2dl_xana218, AUDIO_ROOT "midi/xana2dl/xana218.mid"},
+        {MusicId::xana2dl_xana219, AUDIO_ROOT "midi/xana2dl/xana219.mid"},
+        {MusicId::xana2dl_xana220, AUDIO_ROOT "midi/xana2dl/xana220.mid"},
+        {MusicId::xana2dl_xana221, AUDIO_ROOT "midi/xana2dl/xana221.mid"},
+        {MusicId::xana2dl_xana222, AUDIO_ROOT "midi/xana2dl/xana222.mid"},
+        {MusicId::xana2dl_xana223, AUDIO_ROOT "midi/xana2dl/xana223.mid"},
+        {MusicId::xana2dl_xana224, AUDIO_ROOT "midi/xana2dl/xana224.mid"},
+        {MusicId::xana2dl_xana225, AUDIO_ROOT "midi/xana2dl/xana225.mid"},
+        {MusicId::xana2dl_xana226, AUDIO_ROOT "midi/xana2dl/xana226.mid"},
+        {MusicId::xana2dl_xana227, AUDIO_ROOT "midi/xana2dl/xana227.mid"},
+        {MusicId::xana2dl_xana228, AUDIO_ROOT "midi/xana2dl/xana228.mid"},
+        {MusicId::xana2dl_xana229, AUDIO_ROOT "midi/xana2dl/xana229.mid"},
+        {MusicId::xana2dl_xana230, AUDIO_ROOT "midi/xana2dl/xana230.mid"},
+    };
+}
+
 Resources::Resources()
-	: windowWidth_()
-	, windowHeight_()
-	, screenWidth_()
-	, screenHeight_()
-	, lang_()
+	: windowWidth_(640)
+	, windowHeight_(480)
+	, screenWidth_(640)
+	, screenHeight_(480)
+	, lang_("japanese")
 	// , luaString_()
 	// , luaImage_()
 	, mapImage_()
@@ -26,27 +262,6 @@ Resources::Resources()
 
 Resources::~Resources()
 {
-}
-
-std::shared_ptr<SDL_::Image> Resources::getImage(const ImageId &id) const
-{
-	auto i = mapImage_.find(id);
-	if (i != mapImage_.end()) {
-		return i->second;
-	}
-	else {
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Image ID not found. %d\n", id);
-		return std::shared_ptr<SDL_::Image>();
-	}
-}
-
-const char *Resources::getString(const StringId &id) const
-{
-	// const char *result = (*luaString_)["strings"][id.c_str()].get_or<const char *>(nullptr);
-	// if (!result) {
-	// 	SDL_LogError(SDL_LOG_CATEGORY_ERROR, "String ID not found. %s\n", id.c_str());
-	// }
-	return "";
 }
 
 const char *Resources::getFontFileName() const
@@ -93,116 +308,129 @@ std::shared_ptr<SDL_::Joystick> Resources::getJoystick(uint32_t index) const
 	}
 }
 
-void Resources::loadString(const std::string &lang)
+bool Resources::loadImage(ImageId id)
 {
-	// const std::string langPath = "res/lua/lang/" + lang + ".lua";
-	// luaString_ = std::make_unique<sol::state>();
-	// luaString_->open_libraries(sol::lib::base, sol::lib::package);
-	// luaString_->script_file(langPath);
+    auto i = mapImage_.find(id);
+    if (i != mapImage_.end()) {
+        return true;
+    }
+    else {
+        auto p = mapImagePath_.find(id);
+        if (p != mapImagePath_.end()) {
+            std::string path = p->second;
+            const bool isColorKey = kColorKeyImages.count(id) > 0;
+            auto result = std::make_shared<SDL_::Image>(path.c_str(), isColorKey);
+            mapImage_.insert(std::make_pair(id, result));
+            return true;
+        }
+        else {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Image ID not found. %d\n", id);
+            return false;
+        }
+    }
 }
 
-void Resources::loadImage(const std::string &lang)
+void Resources::unloadImage(ImageId id)
 {
-	mapImage_.clear();
-	mapImage_.emplace(ImageId::picture_agl , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/agl.bmp"));
-	mapImage_.emplace(ImageId::picture_armory , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/armory.bmp"));
-	mapImage_.emplace(ImageId::picture_castle , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/castle.bmp"));
-	mapImage_.emplace(ImageId::picture_cave , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/cave.bmp"));
-	mapImage_.emplace(ImageId::picture_chr , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/chr.bmp"));
-	mapImage_.emplace(ImageId::picture_dex , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/dex.bmp"));
-	mapImage_.emplace(ImageId::picture_foods , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/foods.bmp"));
-	mapImage_.emplace(ImageId::picture_guilds , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/guilds.bmp"));
-	mapImage_.emplace(ImageId::picture_healers , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/healers.bmp"));
-	mapImage_.emplace(ImageId::picture_inn , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/inn.bmp"));
-	mapImage_.emplace(ImageId::picture_int , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/int.bmp"));
-	mapImage_.emplace(ImageId::picture_item , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/item.bmp"));
-	mapImage_.emplace(ImageId::picture_kanji , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/kanji.bmp"));
-	mapImage_.emplace(ImageId::picture_logo , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/logo.bmp"));
-	mapImage_.emplace(ImageId::picture_mgr , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/mgr.bmp"));
-	mapImage_.emplace(ImageId::picture_scroll , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/scroll.bmp"));
-	mapImage_.emplace(ImageId::picture_shield , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/shield.bmp"));
-	mapImage_.emplace(ImageId::picture_shop , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/shop.bmp"));
-	mapImage_.emplace(ImageId::picture_slayer , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/slayer.bmp"));
-	mapImage_.emplace(ImageId::picture_str , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/str.bmp"));
-	mapImage_.emplace(ImageId::picture_temple , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/temple.bmp"));
-	mapImage_.emplace(ImageId::picture_weapon , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/weapon.bmp"));
-	mapImage_.emplace(ImageId::picture_wis , std::make_shared<SDL_::Image>(IMAGE_ROOT "picture/wis.bmp"));
-	mapImage_.emplace(ImageId::user_boss_st , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/boss_st.bmp"));
-	mapImage_.emplace(ImageId::user_breath , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/breath.bmp"));
-	mapImage_.emplace(ImageId::user_damage , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/damage.bmp"));
-	mapImage_.emplace(ImageId::user_effect , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/effect.bmp"));
-	mapImage_.emplace(ImageId::user_font , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/font.bmp"));
-	mapImage_.emplace(ImageId::user_frame , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/frame.bmp"));
-	mapImage_.emplace(ImageId::user_goods , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/goods.bmp"));
-	mapImage_.emplace(ImageId::user_magic , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/magic.bmp"));
-	mapImage_.emplace(ImageId::user_pattern , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/pattern.bmp"));
-	mapImage_.emplace(ImageId::user_user0 , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/user0.bmp"));
-	mapImage_.emplace(ImageId::user_user1 , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/user1.bmp"));
-	mapImage_.emplace(ImageId::user_user2 , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/user2.bmp"));
-	mapImage_.emplace(ImageId::user_user3 , std::make_shared<SDL_::Image>(IMAGE_ROOT "user/user3.bmp"));
-	mapImage_.emplace(ImageId::xa1_boss_0 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/boss_0.bmp"));
-	mapImage_.emplace(ImageId::xa1_boss_1 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/boss_1.bmp"));
-	mapImage_.emplace(ImageId::xa1_boss_2 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/boss_2.bmp"));
-	mapImage_.emplace(ImageId::xa1_boss_3 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/boss_3.bmp"));
-	mapImage_.emplace(ImageId::xa1_boss_4 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/boss_4.bmp"));
-	mapImage_.emplace(ImageId::xa1_field , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/field.bmp"));
-	mapImage_.emplace(ImageId::xa1_frame , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/frame.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_0 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_0.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_1 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_1.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_2 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_2.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_3 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_3.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_4 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_4.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_5 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_5.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_6 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_6.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_7 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_7.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_8 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_8.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_9 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_9.bmp"));
-	mapImage_.emplace(ImageId::xa1_monst_a , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/monst_a.bmp"));
-	mapImage_.emplace(ImageId::xa1_shrine , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/shrine.bmp"));
-	mapImage_.emplace(ImageId::xa1_train , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/train.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_background , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/background.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_battler , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/battler.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_robber , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/robber.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_swordman , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/swordman.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_witch , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/witch.bmp"));
-	mapImage_.emplace(ImageId::xa1_opening_wizard , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa1/opening/wizard.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_0 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_0.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_1 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_1.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_2 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_2.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_3 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_3.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_4 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_4.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_5 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_5.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_6 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_6.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_7 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_7.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_8 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_8.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_9 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_9.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_a , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_a.bmp"));
-	mapImage_.emplace(ImageId::xa2_boss_b , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/boss_b.bmp"));
-	mapImage_.emplace(ImageId::xa2_field , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/field.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_0 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_0.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_1 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_1.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_2 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_2.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_3 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_3.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_4 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_4.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_5 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_5.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_6 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_6.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_7 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_7.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_8 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_8.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_9 , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_9.bmp"));
-	mapImage_.emplace(ImageId::xa2_monst_a , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/monst_a.bmp"));
-	mapImage_.emplace(ImageId::xa2_outoflevel , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/outoflevel.bmp"));
-	mapImage_.emplace(ImageId::xa2_shrine , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/shrine.bmp"));
-	mapImage_.emplace(ImageId::xa2_ending_background , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/ending/background.bmp"));
-	mapImage_.emplace(ImageId::xa2_opening_hero , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/opening/hero.bmp"));
-	mapImage_.emplace(ImageId::xa2_opening_subtitle , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/opening/subtitle.bmp"));
-	mapImage_.emplace(ImageId::xa2_opening_title , std::make_shared<SDL_::Image>(IMAGE_ROOT "xa2/opening/title.bmp"));
-
+    auto i = mapImage_.find(id);
+    if (i != mapImage_.end()) {
+        mapImage_.erase(i);
+    }
 }
 
-void Resources::clearImage()
+std::shared_ptr<SDL_::Image> Resources::getImage(const ImageId &id) const
 {
-	mapImage_.clear();
+	auto i = mapImage_.find(id);
+	if (i != mapImage_.end()) {
+		return i->second;
+	}
+	else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Image ID not found. %d\n", id);
+        return std::shared_ptr<SDL_::Image>();
+	}
 }
+
+bool Resources::loadSound(SDL_::Mix_::Mixer &mixer, SoundId id)
+{
+    auto i = mapSound_.find(id);
+    if (i != mapSound_.end()) {
+        return true;
+    }
+    else {
+        // Implementation for loading sound
+        if (auto p = mapSoundPath_.find(id); p != mapSoundPath_.end()) {
+            std::string path = p->second;
+            auto result = std::make_shared<SDL_::Mix_::Audio>(mixer, path.c_str(), false);
+            mapSound_.insert(std::make_pair(id, result));
+            return true;
+        }
+        else {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Sound ID not found. %d\n", id);
+        }
+        return false;
+    }
+}
+
+void Resources::unloadSound(SoundId id)
+{
+    auto i = mapSound_.find(id);
+    if (i != mapSound_.end()) {
+        mapSound_.erase(i);
+    }
+}
+
+std::shared_ptr<SDL_::Mix_::Audio> Resources::getSound(const SoundId &id) const
+{
+    auto i = mapSound_.find(id);
+    if (i != mapSound_.end()) {
+        return i->second;
+    }
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Sound ID not found. %d\n", id);
+        return std::shared_ptr<SDL_::Mix_::Audio>();
+    }
+}
+
+bool Resources::loadMusic(SDL_::Mix_::Mixer &mixer, MusicId id)
+{
+    auto i = mapMusic_.find(id);
+    if (i != mapMusic_.end()) {
+        return true;
+    }
+    else {
+        if (auto p = mapMusicPath_.find(id); p != mapMusicPath_.end()) {
+            std::string path = p->second;
+            auto result = std::make_shared<SDL_::Mix_::Audio>(mixer, path.c_str(), true);
+            mapMusic_.insert(std::make_pair(id, result));
+            return true;
+        }
+        else {
+            SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Music ID not found. %d\n", id);
+        }
+        // Implementation for loading music
+        return false;
+    }
+}
+
+void Resources::unloadMusic(MusicId id)
+{
+    auto i = mapMusic_.find(id);
+    if (i != mapMusic_.end()) {
+        mapMusic_.erase(i);
+    }
+}
+std::shared_ptr<SDL_::Mix_::Audio> Resources::getMusic(const MusicId &id) const
+{
+    auto i = mapMusic_.find(id);
+    if (i != mapMusic_.end()) {
+        return i->second;
+    }
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Music ID not found. %d\n", id);
+        return std::shared_ptr<SDL_::Mix_::Audio>();
+    }
+}
+
 
 void Resources::reload()
 {
@@ -216,11 +444,12 @@ void Resources::reload()
 	// screenHeight_ = lua["screen"]["height"].get<int>();
 	// lang_ = lua["system"]["lang"].get<const char *>();
 	windowWidth_ = 640;
-	windowHeight_ = 480;
+	windowHeight_ = 400;
 	screenWidth_ = 640;
-	screenHeight_ = 480;
-	lang_ = "japanese";
+	screenHeight_ = 400;
+	// lang_ = "japanese";
+    loadImage(ImageId::user_font);
 
-	loadString(lang_);
-	loadImage(lang_);
+	// loadString(lang_);
+	// loadImage(lang_);
 }

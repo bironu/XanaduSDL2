@@ -11,13 +11,20 @@
 #include <functional>
 
 enum class ImageId;
-enum class StringId;
+// enum class StringId;
 enum class SoundFontId;
+enum class SoundId;
+enum class MusicId;
 
 namespace SDL_
 {
-class Image;
-class Joystick;
+    class Image;
+    class Joystick;
+    namespace Mix_
+    {
+        class Audio;
+        class Mixer;
+    }
 }
 
 // namespace sol
@@ -45,15 +52,21 @@ public:
 
 	void addJoyDevice(const SDL_JoyDeviceEvent &);
 	void removeJoyDevice(const SDL_JoyDeviceEvent &);
-
-	std::shared_ptr<SDL_::Image> getImage(const ImageId &) const;
-	const char *getString(const StringId &) const;
 	std::shared_ptr<SDL_::Joystick> getJoystick(uint32_t) const;
 
-	void loadString(const std::string &lang);
-	void loadImage(const std::string &lang);
-	void clearImage();
-	void reload();
+	bool loadImage(ImageId id);
+    void unloadImage(ImageId id);
+	std::shared_ptr<SDL_::Image> getImage(const ImageId &) const;
+
+    bool loadSound(SDL_::Mix_::Mixer &mixer, SoundId id);
+    void unloadSound(SoundId id);
+    std::shared_ptr<SDL_::Mix_::Audio> getSound(const SoundId &) const;
+
+    bool loadMusic(SDL_::Mix_::Mixer &mixer, MusicId id);
+    void unloadMusic(MusicId id);
+    std::shared_ptr<SDL_::Mix_::Audio> getMusic(const MusicId &) const;
+
+    void reload();
 
 private:
 	int windowWidth_;
@@ -64,6 +77,8 @@ private:
 	// std::unique_ptr<sol::state> luaString_;
 	// std::unique_ptr<sol::state> luaImage_;
 	mutable std::unordered_map<ImageId, std::shared_ptr<SDL_::Image>> mapImage_;
+    mutable std::unordered_map<SoundId, std::shared_ptr<SDL_::Mix_::Audio>> mapSound_;
+    mutable std::unordered_map<MusicId, std::shared_ptr<SDL_::Mix_::Audio>> mapMusic_;
 	std::unordered_map<uint32_t, std::shared_ptr<SDL_::Joystick>> mapJoystick_;
 };
 

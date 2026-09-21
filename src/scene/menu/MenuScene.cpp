@@ -1,19 +1,24 @@
+#include "app/Application.h"
+#include "sdl/SDLWindow.h"
+#include "sdl/SDLMixMixer.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
+#include "resources/MusicId.h"
 #include "scene/menu/MenuScene.h"
-#include "xanadu.h"
-#include "context.h"
-#include "field.h"
-#include "tower.h"
-#include "boss.h"
+#include "field.h" // FieldSceneが出来れば削除
+#include "tower.h" // TowerSceneが出来れば削除
+#include "boss.h" // BossSceneが出来れば削除
 
 #include <SDL3/SDL_events.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <filesystem>
+#include <fstream>
 
+namespace fs = std::filesystem;
+
+const FRect MenuScene::rect_overall_    = {   0.0f,   0.0f, 640.0f, 400.0f };
+const FRect MenuScene::rect_main_       = {  16.0f,  16.0f, 360.0f, 360.0f };
 MenuScene::State MenuScene::state_ = MenuScene::State::Generic;
-std::array<MenuScene::UserEntry, MenuScene::kMaxUserEntry> MenuScene::userEntries_{};
+std::array<std::string, MenuScene::kMaxUserEntry> MenuScene::userEntries_{};
 
 MenuScene::MenuScene()
 {
@@ -21,11 +26,62 @@ MenuScene::MenuScene()
 
 void MenuScene::dispatch(const SDL_Event &event)
 {
-	if (event.type != SDL_EVENT_KEY_DOWN || event.key.repeat != 0) {
+    switch (event.type) {
+    case SDL_EVENT_KEY_DOWN:
+        onKeyDown(event.key);
+        break;
+    case SDL_EVENT_WINDOW_EXPOSED:
+        onWindowExpose(event.window);
+        break;
+    default:
+        break;
+    }
+}
+
+void MenuScene::onCreate(uint32_t /*tick*/)
+{
+    auto &res = getResources();
+    res.loadImage(ImageId::picture_logo);
+    res.loadImage(ImageId::xa1_frame);
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    res.loadMusic(mixer, MusicId::GMINIT);
+    clip_main_ = std::make_shared<SDL_::Image>(rect_main_.getWidth(), rect_main_.getHeight());
+    clip_overall_ = std::make_shared<SDL_::Image>(rect_overall_.getWidth(), rect_overall_.getHeight());
+}
+
+void MenuScene::onResume(uint32_t /*tick*/)
+{
+	onEnter();
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    auto &res = getResources();
+    mixer.playMusic(*res.getMusic(MusicId::GMINIT));
+}
+
+void MenuScene::onSuspend()
+{
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    auto &res = getResources();
+    mixer.stopMusic();
+	onLeave();
+}
+
+void MenuScene::onDestroy(uint32_t /*tick*/)
+{
+    auto &res = getResources();
+    res.unloadImage(ImageId::picture_logo);
+    res.unloadImage(ImageId::xa1_frame);
+    res.unloadMusic(MusicId::GMINIT);
+}
+
+void MenuScene::onKeyDown(const SDL_KeyboardEvent &key)
+{
+	if (key.repeat != 0) {
 		return;
 	}
 
-	const SDL_KeyboardEvent &key = event.key;
 	switch (state_) {
 	case State::Generic: onGenericKey(key); break;
 	case State::Load:    onLoadKey(key);    break;
@@ -36,26 +92,21 @@ void MenuScene::dispatch(const SDL_Event &event)
 	}
 }
 
-void MenuScene::onSuspend()
+void MenuScene::onWindowExpose(const SDL_WindowEvent &window)
 {
-	onLeave();
-}
-
-void MenuScene::onCreate(uint32_t /*tick*/)
-{
-    auto &res = getResources();
-    imageLogo_ = res.getImage(ImageId::picture_logo);
-    imageFrame_ = res.getImage(ImageId::xa1_frame);
-}
-
-void MenuScene::onDestroy(uint32_t /*tick*/)
-{
-}
-
-void MenuScene::onResume(uint32_t /*tick*/)
-{
-
-	onEnter();
+    auto &app = getApplication();
+    auto mainWindow = app.getMainWindow();
+    if (!mainWindow) {
+        return;
+    }
+    if (window.windowID == mainWindow->getWindowId()) {
+        auto &res = getResources();
+        auto backBuffer = mainWindow->getBackBuffer();
+        // backBuffer->fillRect(SDL_::Color::BLACK);
+        backBuffer->blitScaled(clip_overall_, nullptr, nullptr, SDL_SCALEMODE_PIXELART);
+        mainWindow->swap();
+    }
+    SDL_Log("Window exposed event: windowID=%u, data1=%d, data2=%d", window.windowID, window.data1, window.data2);
 }
 
 void MenuScene::onEnter()
@@ -63,18 +114,19 @@ void MenuScene::onEnter()
 	const SDL_::Color pixel1 = user.environment.scenario == 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 	const SDL_::Color pixel2 = user.environment.scenario != 0 ? SDL_::Color::RED : SDL_::Color::WHITE;
 
-	bgm_play(bgm_data.start_menu); // BGM
+	// bgm_play(bgm_data.start_menu); // BGM
+    auto &app = getApplication();
+    auto &mixer = app.getMixer();
+    mixer.stopMusic();
 
-	fill_image(clip_main, 0, 0, clip_main->getWidth(), clip_main->getHeight(), SDL_::Color::BLACK);
+    clip_overall_->fillRect(SDL_::Color::BLACK);
+    clip_main_->fillRect(SDL_::Color::BLACK);
 
+    auto &res = getResources();
     // Frame
-    if (imageFrame_) {
-        draw_image(clip_overall, 0, 0, imageFrame_);
-    }
+    clip_overall_->blit(res.getImage(ImageId::xa1_frame), 0, 0);
 	// Logo
-	if (imageLogo_) {
-		draw_image(clip_main, 100, 290, imageLogo_);
-	}
+    clip_main_->blit(res.getImage(ImageId::picture_logo), 100, 290);
 
 	switch (state_) {
 	case State::Game:
@@ -128,7 +180,7 @@ void MenuScene::onEnter()
 			drawText(0, 4, "Load game", SDL_::Color::RED);
 			int i = 0;
 			for (; i < n; i++) {
-				drawItem(2 + i, 0, 'A' + i, userEntries_[i].name, SDL_::Color::WHITE);
+				drawItem(2 + i, 0, 'A' + i, userEntries_[i].c_str(), SDL_::Color::WHITE);
 			}
 			drawItem(2 + i, 0, 'R', "Return back", SDL_::Color::RED);
 		}
@@ -167,11 +219,7 @@ void MenuScene::onEnter()
 		drawText( 3,  1, "REVISION:", SDL_::Color::RED);
 		drawText( 3, 10, "1.1.4", SDL_::Color::WHITE);
 		drawText( 4,  1, "  SYSTEM:", SDL_::Color::RED);
-#ifdef __WIN32__
-		drawText( 4, 10, "Win32", SDL_::Color::WHITE);
-#else
-		drawText( 4, 10, "X11R6", SDL_::Color::WHITE);
-#endif
+		drawText( 4, 10, "SDL3", SDL_::Color::WHITE);
 		drawText( 5,  1, " DISPLAY:", SDL_::Color::RED);
 		drawText( 5, 10, "32bpp", SDL_::Color::WHITE);
 		drawText( 6,  1, "     BGM:", SDL_::Color::RED);
@@ -200,7 +248,12 @@ void MenuScene::onEnter()
 		drawItem(10, 0, 'V', "Version info", SDL_::Color::WHITE);
 		drawText(12, 0, "Please Num-Lock *OFF*", SDL_::Color::RED);
 	}
-	update(rect_main);
+    clip_overall_->blit(clip_main_, rect_main.x, rect_main.y);
+    auto mainWindow = getApplication().getMainWindow();
+    if (mainWindow) {
+        mainWindow->requestUpdate();
+        SDL_Log("MenuScene::onEnter: requested expose for main window");
+    }
 }
 
 void MenuScene::onLeave()
@@ -209,16 +262,16 @@ void MenuScene::onLeave()
 
 void MenuScene::drawText(int row, int col, const char *s, const SDL_::Color &pixel)
 {
-	draw_text(clip_main, col * 16, row * 16, s, pixel);
+	draw_text(clip_main_, col * 16, row * 16, s, pixel);
 }
 
 void MenuScene::drawItem(int row, int col, int key, const char *s, const SDL_::Color &pixel)
 {
 	char buf[3] = "*:";
 	buf[0] = key;
-	draw_text(clip_main, col * 16, row * 16, buf, SDL_::Color::RED);
+	draw_text(clip_main_, col * 16, row * 16, buf, SDL_::Color::RED);
 	col += 2;
-	draw_text(clip_main, col * 16, row * 16, s, pixel);
+	draw_text(clip_main_, col * 16, row * 16, s, pixel);
 }
 
 void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
@@ -238,7 +291,6 @@ void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
 	case SDLK_V: state_ = State::Version; onEnter(); break;
 	default: return;
 	}
-	update(rect_main);
 }
 
 void MenuScene::onDebugKey(const SDL_KeyboardEvent &key)
@@ -298,7 +350,7 @@ void MenuScene::onLoadKey(const SDL_KeyboardEvent &key)
 		if (loadGame(key.key - SDLK_A) == 0) {
 			// ゲームを再開する
 			load_user_image();
-			init_level(user.environment.dungeon_level, user_path);
+			init_level(user.environment.dungeon_level, user_path.empty() ? nullptr : user_path.c_str());
 			if (in_tower())
 				switch_context(init_tower());
 			else
@@ -348,8 +400,7 @@ void MenuScene::onVersionKey(const SDL_KeyboardEvent &key)
 
 void MenuScene::initDebug()
 {
-	free((void *)user_path);
-	user_path = nullptr;
+	user_path.clear();
 
 	user.environment.in_battle = 0;
 
@@ -408,64 +459,55 @@ void MenuScene::initDebug()
 int MenuScene::initLoadMenu()
 {
 	int n = 0;
+    // USERS_DIR内のファイルを列挙し、そのファイル名をuserEntries_に格納する。最大でkMaxUserEntry個まで。
+    if (!fs::exists(USERS_DIR) || !fs::is_directory(USERS_DIR)) {
+        ::SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Directory %s does not exist or is not a directory", USERS_DIR);
+        return 0;
+    }
+    for (const auto &entry : fs::directory_iterator(USERS_DIR)) {
+        if (!entry.is_directory()) {
+            continue; // ディレクトリ以外はスキップ
+        }
+        const auto filename = entry.path().filename().string();
+        if (filename != "." && filename != "..") {
+            userEntries_[n] = filename;
+            n++;
+            if (n >= kMaxUserEntry) {
+                break;
+            }
+        }
+    }
 
-#ifdef __BORLANDC__
-	int done;
-	struct ffblk ffblk;
-
-	done = findfirst(USERS_DIR "/*", &ffblk, FA_DIREC);
-	while (!done) {
-		if (ffblk.ff_attrib == FA_DIREC &&
-		    strcmp(ffblk.ff_name, "." ) != 0 &&
-		    strcmp(ffblk.ff_name, "..") != 0 &&
-		    strlen(ffblk.ff_name) < sizeof(userEntries_[n].name) - 1) {
-			strcpy(userEntries_[n].name, ffblk.ff_name);
-			n++;
-		}
-		done = findnext(&ffblk);
-	}
-#elif __FreeBSD__
-	DIR *dir;
-	struct dirent *dirent;
-
-	dir = opendir(USERS_DIR);
-	if (!dir) {
-		perror(USERS_DIR);
-		return 0;
-	}
-	while ((dirent = readdir(dir)) != nullptr) {
-		if (dirent->d_type == DT_DIR &&
-		    strcmp(dirent->d_name, "." ) != 0 &&
-		    strcmp(dirent->d_name, "..") != 0 &&
-		    strlen(dirent->d_name) < sizeof(userEntries_[n].name) - 1) {
-			strcpy(userEntries_[n].name, dirent->d_name);
-			n++;
-		}
-	}
-#endif
-	for (int i = n; i < kMaxUserEntry; i++) {
-		memset(&userEntries_[i], 0, sizeof(userEntries_[i]));
-	}
 	return n;
 }
 
 int MenuScene::loadGame(int index)
 {
-	if (0 <= index && index < kMaxUserEntry && strlen(userEntries_[index].name) > 0) {
-		char path[BUFSIZ];
+	if (0 <= index && index < kMaxUserEntry && !userEntries_[index].empty()) {
+		user_path = std::string(USERS_DIR) + "/" + userEntries_[index];
 
-		sprintf(path, "%s/%s", USERS_DIR, userEntries_[index].name);
-		free((void *)user_path);
-		user_path = strdup(path);
-
-		if (load_user()) {
+		if (!loadUser()) {
 			// 失敗
 			emit_error("Can't load user.dat!");
-			free((void *)user_path);
-			user_path = nullptr;
+			user_path.clear();
 			return 1;
 		}
 		return 0; // 成功
 	}
 	return 1;
+}
+
+bool MenuScene::loadUser()
+{
+	if (user_path.empty()) {
+		return false;
+	}
+
+	std::ifstream ifs(user_path + "/user.dat", std::ios::binary);
+	if (!ifs) {
+		return false;
+	}
+
+	ifs.read(reinterpret_cast<char *>(&user), sizeof(user));
+	return static_cast<bool>(ifs);
 }

@@ -8,7 +8,7 @@ int init_cave(int to_level)
 {
   save_user();
   user.environment.dungeon_level = to_level;
-  init_level(to_level, user_path);
+  init_level(to_level, user_path.empty() ? nullptr : user_path.c_str());
 
   visual_image = load_image(IMAGE_DIR "/picture/cave.bmp");
   

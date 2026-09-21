@@ -42,8 +42,7 @@ void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, co
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
-  // 透過はsrcにロード/複製時点で設定済みのcolorkeyにより実現される
-  draw_image(dst, x, y, src);
+  dst->blit(src, x, y);
 }
 
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
@@ -65,7 +64,7 @@ void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubI
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
 {
-  draw_image(dst, x, y, src);
+  dst->blit(src.sheet, src.rect, x, y);
 }
 
 void scroll_image(std::shared_ptr<SDL_::Image> dst, int dot)

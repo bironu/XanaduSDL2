@@ -23,7 +23,7 @@ public:
 	{
 	}
 	Image(int width, int height);
-	explicit Image(const char * const file);
+	explicit Image(const char * const file, bool isColorKey = false);
 	~Image();
 
 	SDL_Surface *get() const { return surface_;}
@@ -47,10 +47,10 @@ public:
 			::SDL_UnlockSurface(get());
 		}
 	}
-	bool blitScaled(std::shared_ptr<Image> src, const Rect *srcrect, Rect *dstrect)
+	bool blitScaled(std::shared_ptr<Image> src, const Rect *srcrect, Rect *dstrect, SDL_ScaleMode scaleMode = SDL_SCALEMODE_NEAREST)
 	{
 		assert(isEnabled() && src->isEnabled());
-		return ::SDL_BlitSurfaceScaled(src->get(), srcrect, get(), dstrect, SDL_SCALEMODE_NEAREST);
+		return ::SDL_BlitSurfaceScaled(src->get(), srcrect, get(), dstrect, scaleMode);
 	}
 	bool blit(std::shared_ptr<Image> src, const Rect &srcrect, Sint16 nXDest, Sint16 nYDest)
 	{
@@ -126,7 +126,8 @@ public:
 	const geo::Sizei getSize() const { return {getWidth(), getHeight()}; }
 	SDL_PixelFormat GetPixelFormat() const { assert(isEnabled()); return get()->format;}
 	const Uint32 getFlags() const { assert(isEnabled()); return get()->flags;}
-	const void *getPixels() const { return get()->pixels;}
+	const void *getPixels() const { assert(isEnabled()); return get()->pixels;}
+    int getPitch() const { assert(isEnabled()); return get()->pitch;}
 
 	bool fillRoundedBox( int xo, int yo, int w, int h, int r, Uint32 color );
 

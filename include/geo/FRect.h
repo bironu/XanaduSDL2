@@ -3,7 +3,6 @@
 #define FRECT_H_
 
 #include "FPoint.h"
-#include "Rect.h"
 #include "Vector2.h"
 #include <SDL3/SDL_rect.h>
 

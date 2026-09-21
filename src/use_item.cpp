@@ -580,7 +580,7 @@ void use_item_warp_level(int up_down)
 
 void use_item_past_level(void)
 {
-  init_level(user.environment.dungeon_level, user_path);
+  init_level(user.environment.dungeon_level, user_path.empty() ? nullptr : user_path.c_str());
   use_item_state = STATE_EXIT_SUCCESS;
 
   format_message("Level %d", user.environment.dungeon_level + 1);

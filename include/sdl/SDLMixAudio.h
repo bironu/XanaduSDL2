@@ -18,7 +18,7 @@ class Mixer;
 class Audio {
 public:
 	UNCOPYABLE(Audio);
-	Audio(Mixer &owner, const char *);
+	Audio(Mixer &owner, const char *, bool isMusic = false);
 	~Audio();
 
 	MIX_Audio *get() const { return audio_; }

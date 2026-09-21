@@ -86,18 +86,15 @@ public:
 	}
 	bool isClipEnabled()
 	{
-		//return ::SDL_RenderClipEnabled(get());
-		return clip_enable_;
+		return ::SDL_RenderClipEnabled(get());
 	}
 	void present() { ::SDL_RenderPresent(get()); }
 	//bool SDL_RenderReadPixels(SDL_Renderer* renderer, const SDL_Rect* rect, Uint32 format, void* pixels, int pitch);
 	void setClipRect(const Rect &rect) {
 		::SDL_SetRenderClipRect(get(), &rect);
-		clip_enable_ = true;
 	}
 	void clearClipRect() {
 		::SDL_SetRenderClipRect(get(), nullptr);
-		clip_enable_ = false;
 	}
 	void setLogicalSize(int w, int h) { ::SDL_SetRenderLogicalPresentation(get(), w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX); }
 	void setLogicalSize(const geo::Sizei &size) { ::SDL_SetRenderLogicalPresentation(get(), size.getWidth(), size.getHeight(), SDL_LOGICAL_PRESENTATION_LETTERBOX); }
@@ -111,7 +108,6 @@ public:
 
 private:
 	SDL_Renderer * const renderer_;
-	bool clip_enable_;
 };
 
 } // SDL_

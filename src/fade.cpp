@@ -1,73 +1,14 @@
-#include "xanadu.h"
+#include "fade.h"
 #include <SDL3/SDL_surface.h>
 #include <algorithm>
 #include <cstdint>
 
-#define FADE_INTERVAL	50
-
-static std::shared_ptr<SDL_::Image> fade_clip;
-static std::shared_ptr<SDL_::Image> fade_image;
-/* fade_imageをfade_clipと同じピクセルフォーマットへ変換したもの。
-   生ピクセル比較のためフォーマットを揃える必要がある */
-static std::shared_ptr<SDL_::Image> fade_source;
-static int fade_x;
-static int fade_y;
-static unsigned fade_R;
-static unsigned fade_G;
-static unsigned fade_B;
-static int fade_step;
-
-static void fade_loop(void);
-static void fade_apply(std::shared_ptr<SDL_::Image> dst, int x, int y,
-                       std::shared_ptr<SDL_::Image> src, int step);
-
-int init_fade(std::shared_ptr<SDL_::Image> clip, int x, int y, std::shared_ptr<SDL_::Image> img, unsigned rgb)
-{
-  fade_clip = clip;
-  fade_x = x;
-  fade_y = y;
-  fade_image = img;
-  fade_source = nullptr;
-  if (clip && img) {
-    SDL_Surface *converted = SDL_ConvertSurface(img->get(), clip->get()->format);
-    if (converted) {
-      fade_source = std::make_shared<SDL_::Image>(converted);
-    }
-  }
-  fade_R = (rgb >> 16) & 0xff;
-  fade_G = (rgb >>  8) & 0xff;
-  fade_B = (rgb      ) & 0xff;
-  fade_step = 0;
-
-  return CONTEXT_FADE;
-}
-
-void fade_enter(void)
-{
-  set_timer(FADE_INTERVAL, fade_loop);
-}
-
-void fade_leave(void)
-{
-  kill_timer();
-}
-
-void fade_loop(void)
-{
-  if (fade_image && fade_step < 11) {
-    fade_apply(fade_clip, fade_x, fade_y, fade_source ? fade_source : fade_image, fade_step);
-    fade_step++;
-    // We assumed fade_clip as clip_overall anyway.
-    update_region(fade_x, fade_y, fade_image->getWidth(), fade_image->getHeight());
-  } else {
-    resume_context();
-  }
-}
+namespace {
 
 /* 11ステップに分けて市松状にfade_R/G/Bでマスクした色へ寄せていく
    (元のfade__8bpp/fade_16bpp/fade_24bpp/fade_32bppを1本化したもの) */
 void fade_apply(std::shared_ptr<SDL_::Image> dst, int x, int y,
-                std::shared_ptr<SDL_::Image> src, int step)
+                std::shared_ptr<SDL_::Image> src, unsigned fade_R, unsigned fade_G, unsigned fade_B, int step)
 {
   if (!dst || !src) {
     return;
@@ -106,4 +47,50 @@ void fade_apply(std::shared_ptr<SDL_::Image> dst, int x, int y,
 
   src->unlock();
   dst->unlock();
+}
+
+} // namespace
+
+XanaduFade::XanaduFade()
+	: dst_()
+	, x_(0)
+	, y_(0)
+	, source_()
+	, r_(0)
+	, g_(0)
+	, b_(0)
+	, step_(kSteps)
+{
+}
+
+void XanaduFade::start(std::shared_ptr<SDL_::Image> dst, int x, int y,
+                        std::shared_ptr<SDL_::Image> img, unsigned rgb)
+{
+	dst_ = dst;
+	x_ = x;
+	y_ = y;
+	source_ = nullptr;
+	if (dst && img) {
+		SDL_Surface *converted = SDL_ConvertSurface(img->get(), dst->get()->format);
+		if (converted) {
+			source_ = std::make_shared<SDL_::Image>(converted);
+		}
+	}
+	if (!source_) {
+		source_ = img;
+	}
+	r_ = (rgb >> 16) & 0xff;
+	g_ = (rgb >>  8) & 0xff;
+	b_ = (rgb      ) & 0xff;
+	step_ = 0;
+}
+
+bool XanaduFade::step()
+{
+	if (isDone() || !source_) {
+		return false;
+	}
+	fade_apply(dst_, x_, y_, source_, r_, g_, b_, step_);
+	++step_;
+	return !isDone();
 }

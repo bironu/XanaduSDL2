@@ -55,11 +55,10 @@ public:
 
 	//static void waitFrame();
 	void quit(const int val = 0);
-	void updateWindow(Uint32 id);
 
 	static uint32_t getTickCount() { return ::SDL_GetTicks(); }
-    void set_timer(int interval, SDL_::Timer::Callback timer_proc);
-    void kill_timer(void);
+    void setTimer(int interval, SDL_::Timer::Callback timer_proc);
+    void killTimer(void);
 
 private:
 	bool handlePreEvent(Resources &res, TaskManager &manager, SDL_Event &);

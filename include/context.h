@@ -18,7 +18,6 @@
 #define CONTEXT_ENTER_NUMBER	14	// 数値入力
 #define CONTEXT_ENTER_STRING	15	// 文字列入力
 #define CONTEXT_PAUSE		16	// 一時停止
-#define CONTEXT_FADE		17	// フェード
 #define CONTEXT_OPENING		18	// オープニング
 #define CONTEXT_ENDING		19	// エンディ%s%0
 
