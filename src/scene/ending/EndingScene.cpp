@@ -8,11 +8,10 @@
 #include "resources/MusicId.h"
 
 #include <SDL3/SDL_events.h>
-// #include <cerrno>
-// #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 
 namespace fs = std::filesystem;
 
@@ -44,8 +43,7 @@ EndingScene::EndingScene()
 	: initialized_(false)
 	, waitingForKey_(false)
 	, rollActive_(false)
-	, kanjiCodeTop_(nullptr)
-	, kanjiCodeEnd_(nullptr)
+	, kanjiCodeTop_(kanjiCode_.cbegin())
 	, msgY_(0)
 	, msgRestRows_(0)
 {
@@ -76,8 +74,7 @@ void EndingScene::onCreate(uint32_t /*tick*/)
 	waitingForKey_ = false;
 	rollActive_ = false;
 	kanjiCode_.clear();
-	kanjiCodeTop_ = nullptr;
-	kanjiCodeEnd_ = nullptr;
+	kanjiCodeTop_ = kanjiCode_.cbegin();
 	msgY_ = 0;
 	msgRestRows_ = 0;
 
@@ -271,8 +268,7 @@ void EndingScene::restoreContext()
 	getApplication().killTimer();
 
 	kanjiCode_.clear();
-	kanjiCodeTop_ = nullptr;
-	kanjiCodeEnd_ = nullptr;
+	kanjiCodeTop_ = kanjiCode_.cbegin();
 
 	visualImage_.reset();
 	rollActive_ = false;
@@ -304,10 +300,9 @@ void EndingScene::loop()
 	if (msgY_ > kKanjiHeight) {
 		scroll_image(msg_, -msgY_);
 		msgY_ = 0;
-		if (kanjiCodeTop_ < kanjiCodeEnd_) {
+		if (kanjiCodeTop_ != kanjiCode_.cend()) {
 			// 最下行に描画
-			const int n = drawKanjiText(msg_, 0, msg_->getHeight() - kKanjiHeight, kanjiCodeTop_);
-			kanjiCodeTop_ += n;
+			kanjiCodeTop_ = drawKanjiText(msg_, 0, msg_->getHeight() - kKanjiHeight, kanjiCodeTop_, kanjiCode_.cend());
 		} else {
 			msgRestRows_++;
 
@@ -335,33 +330,30 @@ void EndingScene::waitForever()
 
 int EndingScene::loadKanjiCode(const char *filename)
 {
-	kanjiCode_.assign(kMessageBufferSize, 0);
-	int *code = kanjiCode_.data();
-	kanjiCodeTop_ = code;
-
 	std::ifstream ifs(filename);
 	if (!ifs) {
 		std::cerr << filename << ": " << std::strerror(errno) << '\n';
 		return 1;
 	}
 
-	for (int i = 0; i < kMessageBufferSize - 1; ++i, ++code) {
-		if (!(ifs >> *code)) {
-			break;
-		}
-	}
-	*code = -1; // 終わりを示す
-	kanjiCodeEnd_ = code;
+	// message.txtは各行が-1で終端された漢字コード列。改行は無視して
+	// フラットに読み込み、行区切りの-1もそのままバッファに残す
+	// (drawKanjiText側で1行分ずつ読み飛ばす)
+	kanjiCode_.assign(std::istream_iterator<int>(ifs), std::istream_iterator<int>());
+	kanjiCodeTop_ = kanjiCode_.cbegin();
 
 	return 0;
 }
 
-int EndingScene::drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y, const int *code) const
+std::vector<int>::const_iterator EndingScene::drawKanjiText(
+    std::shared_ptr<SDL_::Image> img, int x, int y,
+    std::vector<int>::const_iterator first,
+    std::vector<int>::const_iterator last
+) const
 {
-	int n = 0;
-	for (; *code >= 0; code++, n++) {
-		const int row = *code / kKanjiPageCol;
-		const int col = *code % kKanjiPageCol;
+	for (; first != last && *first >= 0; ++first) {
+		const int row = *first / kKanjiPageCol;
+		const int col = *first % kKanjiPageCol;
 		if (row < kKanjiPageRow) {
 			// kanjiBase_(kanji_[][].sheet)のcolorkeyを一時的に無効化して不透明合成
 			// する(旧tmpl_draw相当)。Image::blit()はcolorkeyを尊重してしまうため
@@ -370,5 +362,8 @@ int EndingScene::drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y, c
 		}
 		x += kKanjiWidth;
 	}
-	return n + 1;
+	if (first != last) {
+		++first; // 行区切りの-1を読み飛ばす
+	}
+	return first;
 }

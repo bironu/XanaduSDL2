@@ -13,6 +13,8 @@
 #include <filesystem>
 #include <fstream>
 
+namespace fs = std::filesystem;
+
 const FRect MenuScene::rect_overall_    = {   0.0f,   0.0f, 640.0f, 400.0f };
 const FRect MenuScene::rect_main_       = {  16.0f,  16.0f, 360.0f, 360.0f };
 MenuScene::State MenuScene::state_ = MenuScene::State::Generic;
@@ -458,11 +460,11 @@ int MenuScene::initLoadMenu()
 {
 	int n = 0;
     // USERS_DIR内のファイルを列挙し、そのファイル名をuserEntries_に格納する。最大でkMaxUserEntry個まで。
-    if (!std::filesystem::exists(USERS_DIR) || !std::filesystem::is_directory(USERS_DIR)) {
+    if (!fs::exists(USERS_DIR) || !fs::is_directory(USERS_DIR)) {
         ::SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Directory %s does not exist or is not a directory", USERS_DIR);
         return 0;
     }
-    for (const auto &entry : std::filesystem::directory_iterator(USERS_DIR)) {
+    for (const auto &entry : fs::directory_iterator(USERS_DIR)) {
         if (!entry.is_directory()) {
             continue; // ディレクトリ以外はスキップ
         }

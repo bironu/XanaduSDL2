@@ -44,7 +44,9 @@ private:
 
 	bool init();
 	int loadKanjiCode(const char *filename);
-	int drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y, const int *code) const;
+	std::vector<int>::const_iterator drawKanjiText(std::shared_ptr<SDL_::Image> img, int x, int y,
+	                                                std::vector<int>::const_iterator first,
+	                                                std::vector<int>::const_iterator last) const;
 
 	static constexpr int kEndingInterval = 80;
 	// フェードの1ステップと同じ間隔(旧FADE_INTERVAL)
@@ -57,8 +59,6 @@ private:
 	static constexpr int kKanjiHeight = 23;   // 漢字フォントの高さ
 	static constexpr int kKanjiPageCol = 16;  // 漢字フォントの列数
 	static constexpr int kKanjiPageRow = 24;  // 漢字フォントの行数
-
-	static constexpr int kMessageBufferSize = 8024;
 
 	static const Rect kRectOverall;
 	static const Rect kRectEndingRoll;
@@ -76,8 +76,7 @@ private:
 	std::shared_ptr<SDL_::Image> msg_;
 
 	std::vector<int> kanjiCode_;
-	int *kanjiCodeTop_;
-	int *kanjiCodeEnd_;
+	std::vector<int>::const_iterator kanjiCodeTop_;
 
 	int msgY_;
 	int msgRestRows_;
