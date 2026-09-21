@@ -16,7 +16,6 @@ public:
 	void onResume(uint32_t tick) override;
 	void onSuspend() override;
     void onDestroy(uint32_t tick) override;
-    bool onIdle(uint32_t tick) override;
 
 private:
     void onKeyDown(const SDL_KeyboardEvent &key);

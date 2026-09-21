@@ -8,8 +8,8 @@
 #include "resources/MusicId.h"
 
 #include <SDL3/SDL_events.h>
-#include <cerrno>
-#include <cstring>
+// #include <cerrno>
+// #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -53,33 +53,21 @@ EndingScene::EndingScene()
 
 void EndingScene::dispatch(const SDL_Event &event)
 {
-	if (event.type == SDL_ENDING_TIMER_EVENT) {
-		onTimer();
-		return;
-	}
+    switch(event.type) {
+    case SDL_EVENT_WINDOW_EXPOSED:
+        onWindowExpose(event.window);
+        break;
 
-	if (event.type == SDL_EVENT_WINDOW_EXPOSED) {
-		onDraw();
-		return;
-	}
+    case SDL_EVENT_KEY_DOWN:
+        onKeyDown(event.key);
+        break;
 
-	if (event.type != SDL_EVENT_KEY_DOWN || event.key.repeat != 0) {
-		return;
-	}
-
-	if (waitingForKey_) {
-		// スクロール終了後は何を押してもメニューへ戻る
-		restoreContext();
-		return;
-	}
-
-	// スクロール中断(旧ending_loopのget_keystate(VK_CONTROL) && get_keystate('Q')に
-	// 対応)。keystate_vectorはGameScene::dispatch()経由でしか更新されず、
-	// GameSceneを継承しないこのクラスでは常に古いままになるため、ここで
-	// SDL_Eventから直接Ctrl+Qを判定する。
-	if ((event.key.mod & SDL_KMOD_CTRL) != 0 && event.key.key == SDLK_Q) {
-		restoreContext();
-	}
+    default:
+        if (event.type == SDL_ENDING_TIMER_EVENT) {
+            onTimer();
+        }
+        break;
+    }
 }
 
 void EndingScene::onCreate(uint32_t /*tick*/)
@@ -158,6 +146,29 @@ void EndingScene::onResume(uint32_t /*tick*/)
 void EndingScene::onSuspend()
 {
 	getApplication().killTimer();
+}
+
+void EndingScene::onKeyDown(const SDL_KeyboardEvent &key)
+{
+	if (key.repeat != 0) {
+		return;
+	}
+	if (waitingForKey_) {
+		// スクロール終了後は何を押してもメニューへ戻る
+		restoreContext();
+		return;
+	}
+	else if (
+        (key.mod & SDL_KMOD_CTRL) != 0
+        && key.key == SDLK_Q)
+    {
+		restoreContext();
+    }
+}
+
+void EndingScene::onWindowExpose(const SDL_WindowEvent &window)
+{
+    onDraw();
 }
 
 void EndingScene::onEnter()

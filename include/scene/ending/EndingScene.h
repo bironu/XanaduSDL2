@@ -20,8 +20,10 @@ public:
 	void onResume(uint32_t tick) override;
 
 private:
-	// 旧ending_enter/restore_context/ending_loop/wait_foreverに対応
-	void onEnter();
+    void onKeyDown(const SDL_KeyboardEvent &key);
+    void onWindowExpose(const SDL_WindowEvent &window);
+
+    void onEnter();
 	void restoreContext();
 	void loop();
 	void waitForever();

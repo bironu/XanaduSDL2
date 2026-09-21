@@ -127,11 +127,6 @@ void OpeningScene::onDestroy(uint32_t /*tick*/)
     res.unloadImage(ImageId::xa2_opening_hero);
 }
 
-bool OpeningScene::onIdle(uint32_t tick)
-{
-    return Scene::onIdle(tick);
-}
-
 void OpeningScene::dispatch(const SDL_Event &event)
 {
     switch (event.type) {
@@ -164,7 +159,6 @@ void OpeningScene::onKeyDown(const SDL_KeyboardEvent &key)
 void OpeningScene::onWindowExpose(const SDL_WindowEvent &window)
 {
     onDraw();
-    SDL_Log("Window exposed event: windowID=%u, data1=%d, data2=%d", window.windowID, window.data1, window.data2);
 }
 
 void OpeningScene::onTimer()
