@@ -61,20 +61,10 @@ private:
 	static const Rect kRectOverall;
 	static const Rect kRectEndingRoll;
 
-	// 旧kanji_baseの非nullptr判定(初回のフェード演出が済んだかどうか)に対応
 	bool initialized_;
-	// wait_forever()到達後、キー入力を待っている間だけtrue
-	// (旧実装のthunk_key_event = ending_key_eventに対応)
 	bool waitingForKey_;
-	// クレジットロール(clipEndingRoll_)をclipOverall_へ合成するかどうか。
-	// 旧setLegacyEndingRollCompositingEnabled(グローバルフラグ)に対応するが、
-	// このScene自身の状態として持つ。
 	bool rollActive_;
 
-	// 旧clip_overall/clip_endingroll/visual_image(いずれもLegacyPlatform.cppの
-	// グローバル)をこのScene自身のメンバとして持つ。onCreate()で確保し、
-	// onDestroy()で破棄する。画面反映は自前のonDraw()(backBuffer_+swap())で行い、
-	// presentLegacyFrame()には依存しない。
 	std::shared_ptr<SDL_::Image> clipOverall_;
 	std::shared_ptr<SDL_::Image> clipEndingRoll_;
 	std::shared_ptr<SDL_::Image> visualImage_;

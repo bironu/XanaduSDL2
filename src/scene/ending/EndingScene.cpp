@@ -8,7 +8,13 @@
 #include "resources/MusicId.h"
 
 #include <SDL3/SDL_events.h>
-#include <cstdio>
+#include <cerrno>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+
+namespace fs = std::filesystem;
 
 namespace {
 
@@ -265,12 +271,12 @@ void EndingScene::restoreContext()
 
 bool EndingScene::init()
 {
-	char path[BUFSIZ];
-	sprintf(path, IMAGE_DIR "/%s", !in_scenario2() ?
-	        "xa1/ending/message.txt" : "xa2/ending/message.txt");
+    fs::path path = IMAGE_DIR;
+    path.append(!in_scenario2()?"xa1":"xa2");
+    path.append("ending");
+    path.append("message.txt");
 
-	// エンディングメッセージの読み込み(画像・音声と違い固定IDが無いためファイルから読む)
-	if (loadKanjiCode(path)) {
+	if (loadKanjiCode(path.c_str())) {
 		return false;
 	}
 
@@ -279,10 +285,6 @@ bool EndingScene::init()
 
 void EndingScene::loop()
 {
-	// 中断(Ctrl+Q)はdispatch()がSDL_Eventから直接判定するため、ここでは
-	// get_keystate()による確認は行わない(旧keystate_vectorはGameSceneを
-	// 継承しないこのクラスでは更新されない)。
-
 	msgY_ += 1;
 
 	// 新しい行が完全に現れた?
@@ -313,9 +315,10 @@ void EndingScene::loop()
 
 void EndingScene::waitForever()
 {
-	getApplication().killTimer();
 	waitingForKey_ = true;
-	auto &mixer = getApplication().getMixer();
+    auto &app = getApplication();
+	app.killTimer();
+	auto &mixer = app.getMixer();
 	mixer.playMusic(*getResources().getMusic(endingThemeId()), -1);
 }
 
@@ -325,22 +328,20 @@ int EndingScene::loadKanjiCode(const char *filename)
 	int *code = kanjiCode_.data();
 	kanjiCodeTop_ = code;
 
-	FILE *fp = fopen(filename, "rt");
-	if (!fp) {
-		perror(filename);
+	std::ifstream ifs(filename);
+	if (!ifs) {
+		std::cerr << filename << ": " << std::strerror(errno) << '\n';
 		return 1;
 	}
 
-	int i = 0;
-	for (; i < kMessageBufferSize - 1; i++, code++) {
-		if (fscanf(fp, "%d ", code) != 1) {
+	for (int i = 0; i < kMessageBufferSize - 1; ++i, ++code) {
+		if (!(ifs >> *code)) {
 			break;
 		}
 	}
 	*code = -1; // 終わりを示す
 	kanjiCodeEnd_ = code;
 
-	fclose(fp);
 	return 0;
 }
 
