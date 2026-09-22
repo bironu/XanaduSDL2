@@ -33,6 +33,8 @@
 #define SE_SOMEWHAT3		24	// 何か３
 #define SE_SOMEWHAT4		25	// 何か４
 
+#define SE_ENCOUNT		26	// モンスターと遭遇
+
 // 効果音ファイルを保持する構造体
 typedef struct {
   char *		user_hit[4];	// ユーザーヒット
@@ -53,6 +55,7 @@ typedef struct {
   char *		item[22];	// 道具
   char *		boss_hit;	// ボスヒット
   char *		boss_breath;	// ボスブレス
+  char *		encount;	// モンスターと遭遇
   char *		opening0;	// オープニング0
   char *		opening1;	// オープニング1
   char *		opening2;	// オープニング2

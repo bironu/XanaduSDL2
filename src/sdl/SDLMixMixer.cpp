@@ -84,6 +84,11 @@ bool Mixer::playMusic(Audio &sound, int loops)
 	return playTrackLooped(musicTrack_->get(), loops);
 }
 
+bool Mixer::isMusicPlaying() const
+{
+	return ::MIX_TrackPlaying(musicTrack_->get());
+}
+
 bool Mixer::stopMusic()
 {
 	return ::MIX_StopTrack(musicTrack_->get(), 0);

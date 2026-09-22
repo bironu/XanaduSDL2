@@ -12,7 +12,7 @@
 
 #include "graphics.h"
 #include "audio.h"
-#include "keystate.h"
+#include "keyboard.h"
 
 #include "context.h"
 #include "dungeon.h"
@@ -88,7 +88,6 @@ extern std::shared_ptr<SDL_::Image> clip_status;		// ステータス
 extern std::shared_ptr<SDL_::Image> clip_shrine;		// ワイドスクリーン(神殿)
 extern std::shared_ptr<SDL_::Image> clip_user_guage;	// 生命力ゲージ(ユーザ)
 extern std::shared_ptr<SDL_::Image> clip_boss_guage;	// 生命力ゲージ(ボス)
-extern std::shared_ptr<SDL_::Image> clip_endingroll;
 
 extern const rectangle_t rect_overall;
 extern const rectangle_t rect_main;

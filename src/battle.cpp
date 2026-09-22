@@ -435,19 +435,19 @@ void battle_loop(void)
     goto do_magic;
   }
   
-  if (get_keystate(VK_CONTROL)) {
+  if (isCtrlDown()) {
     // Ctrl-S: サウンド
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       if (bgm_mute()) {
         emit_message("Sound Off");
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, 'S'));
+      extend_context(init_pause(100, SDL_SCANCODE_S));
       return;
     }
     // Ctrl-Q: 保存
-    if (get_keystate('Q')) {
+    if (isKeyDown(SDL_SCANCODE_Q)) {
       save_battle_monsters();
       // フィールドの場合、戦闘中でなくても戦闘中として保存する
       user.environment.in_battle = 1;
@@ -458,43 +458,43 @@ void battle_loop(void)
     }
   } else {
     // ENTER: アイテム使用
-    if (get_keystate(VK_RETURN) &&
+    if (isReturnDown() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
       extend_context(init_use_item(update_background, battle_room));
       return;
     }
-    
+
     // S: ステータス表示
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       status_user_status();
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, NULL));
       return;
     }
-    // I: 在庫表示 
-    if (get_keystate('I')) {
+    // I: 在庫表示
+    if (isKeyDown(SDL_SCANCODE_I)) {
       extend_context(init_inventory());
       return;
     }
     // E: 装備
-    if (get_keystate('E') && !in_battle()) {
+    if (isKeyDown(SDL_SCANCODE_E) && !in_battle()) {
       extend_context(init_equip());
       return;
     }
   }
-  
+
   // Shift キー状態
-  keystate_SHIFT = get_keystate(VK_SHIFT);
-  
+  keystate_SHIFT = isShiftDown();
+
   // CTRL キーが押されている？
-  if (get_keystate(VK_CONTROL)) {
+  if (isCtrlDown()) {
     move_proc = battle_control_user_magic;
   } else {
     move_proc = battle_move_user;
   }
-  
+
   // SPACE: 魔法念唱
-  if (get_keystate(VK_SPACE)) {
+  if (isKeyDown(SDL_SCANCODE_SPACE)) {
     if (battle_user_magic->lifetime == 0) {
       battle_cast_spell(battle_user_magic,
                         user.equipment[GOODS_SCROLL],
@@ -503,10 +503,10 @@ void battle_loop(void)
       update = 1;
     }
   }
-  else if (get_keystate(VK_DOWN))  update = move_proc(2);
-  else if (get_keystate(VK_LEFT))  update = move_proc(4);
-  else if (get_keystate(VK_RIGHT)) update = move_proc(6);
-  else if (get_keystate(VK_UP))    update = move_proc(8);
+  else if (isKeyDown(SDL_SCANCODE_DOWN))  update = move_proc(2);
+  else if (isKeyDown(SDL_SCANCODE_LEFT))  update = move_proc(4);
+  else if (isKeyDown(SDL_SCANCODE_RIGHT)) update = move_proc(6);
+  else if (isKeyDown(SDL_SCANCODE_UP))    update = move_proc(8);
 
   // 中断？
   if (update < 0) {
@@ -1400,7 +1400,7 @@ void battle_open_box(member_t *um)
     
       if (um->value == 1) {
         // ウエイト: 危険なものが入っているかもしれない
-        extend_context(init_pause(200, ' '));
+        extend_context(init_pause(200, SDL_SCANCODE_SPACE));
         um->value = monster_status->goods; // 赤箱
       } else {
         um->value = monster_status->goods == GOODS_FOOD

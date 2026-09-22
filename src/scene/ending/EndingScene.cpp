@@ -43,6 +43,7 @@ EndingScene::EndingScene()
 	: initialized_(false)
 	, waitingForKey_(false)
 	, rollActive_(false)
+	, postRollFadeActive_(false)
 	, kanjiCodeTop_(kanjiCode_.cbegin())
 	, msgY_(0)
 	, msgRestRows_(0)
@@ -73,6 +74,7 @@ void EndingScene::onCreate(uint32_t /*tick*/)
 	initialized_ = false;
 	waitingForKey_ = false;
 	rollActive_ = false;
+	postRollFadeActive_ = false;
 	kanjiCode_.clear();
 	kanjiCodeTop_ = kanjiCode_.cbegin();
 	msgY_ = 0;
@@ -106,6 +108,9 @@ void EndingScene::onCreate(uint32_t /*tick*/)
 
 	if (in_scenario2()) {
 		res.loadImage(ImageId::xa2_ending_background);
+	} else {
+		// クレジットロール終了後、BGM切り替えと同時にフェード表示する背景
+		res.loadImage(ImageId::xa1_opening_background);
 	}
 
 	res.loadMusic(mixer, mainThemeId());
@@ -124,6 +129,8 @@ void EndingScene::onDestroy(uint32_t /*tick*/)
 	res.unloadImage(ImageId::picture_kanji);
 	if (in_scenario2()) {
 		res.unloadImage(ImageId::xa2_ending_background);
+	} else {
+		res.unloadImage(ImageId::xa1_opening_background);
 	}
 	res.unloadMusic(mainThemeId());
 	res.unloadMusic(endingThemeId());
@@ -239,7 +246,13 @@ void EndingScene::onTimer()
 		onDraw();
 		if (fade_.isDone()) {
 			getApplication().killTimer();
-			onEnter(); // 旧resume_context()->onResume()->onEnter()の再入に相当
+			if (postRollFadeActive_) {
+				// クレジットロール後のフェード完了: ここでキー入力待ちにする
+				postRollFadeActive_ = false;
+				waitingForKey_ = true;
+			} else {
+				onEnter(); // 旧resume_context()->onResume()->onEnter()の再入に相当
+			}
 		}
 		return;
 	}
@@ -321,11 +334,25 @@ void EndingScene::loop()
 
 void EndingScene::waitForever()
 {
-	waitingForKey_ = true;
     auto &app = getApplication();
 	app.killTimer();
 	auto &mixer = app.getMixer();
-	mixer.playMusic(*getResources().getMusic(endingThemeId()), -1);
+	auto &res = getResources();
+	mixer.playMusic(*res.getMusic(endingThemeId()), -1);
+
+	// シナリオ1: BGM切り替えと同時に、クレジットロールからxa1_opening_backgroundへ
+	// フェードする(旧仕様)
+	if (!in_scenario2()) {
+		auto background = res.getImage(ImageId::xa1_opening_background);
+		if (background) {
+			rollActive_ = false; // onDraw()がclipEndingRoll_で上書きしないようにする
+			postRollFadeActive_ = true;
+			startFade(clipOverall_, 0, 0, background, 0xffffff);
+			return;
+		}
+	}
+
+	waitingForKey_ = true;
 }
 
 int EndingScene::loadKanjiCode(const char *filename)

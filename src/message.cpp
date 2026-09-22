@@ -93,7 +93,7 @@ static void call_consumer(int last_key)
 #ifdef NO_PAUSE
   resume_context();
 #else
-  switch_context(init_pause(50, toupper(last_key)));
+  switch_context(init_pause(50, scancodeFromChar(toupper(last_key))));
 #endif
 }
 

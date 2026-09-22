@@ -181,7 +181,7 @@ void restore_context(int consumed)
 #ifdef NO_PAUSE
   resume_context();
 #else
-  switch_context(init_pause(50, VK_RETURN));
+  switch_context(init_pause(50, SDL_SCANCODE_RETURN));
 #endif
 }
 
@@ -228,10 +228,10 @@ void loop_spectacles_in_field(void)
 {
   int dir = spectacles_dir;
 
-  if (get_keystate(VK_DOWN))  dir = 2;
-  if (get_keystate(VK_LEFT))  dir = 4;
-  if (get_keystate(VK_RIGHT)) dir = 6;
-  if (get_keystate(VK_UP))    dir = 8;
+  if (isKeyDown(SDL_SCANCODE_DOWN))  dir = 2;
+  if (isKeyDown(SDL_SCANCODE_LEFT))  dir = 4;
+  if (isKeyDown(SDL_SCANCODE_RIGHT)) dir = 6;
+  if (isKeyDown(SDL_SCANCODE_UP))    dir = 8;
 
   switch (spectacles_dir) {
   case 2:

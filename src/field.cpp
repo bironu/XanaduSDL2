@@ -104,7 +104,10 @@ int init_training_ground(int scenario)
 
   // ワープカウンタの初期化
   field_warp_count = 0;
-  
+
+  // BGM
+  bgm_play(bgm_data.dungeon[0].field[10]);
+
   return CONTEXT_FIELD;
 }
 
@@ -179,6 +182,10 @@ void field_enter(void)
     user.y = 160;
   }
 
+  // 背景フレーム(枠)。ボス撃破後はboss.cppのrestore_context()が再描画するが、
+  // フィールドへの最初の入場時にも描いておく必要がある
+  load_background(IMAGE_DIR "/user/frame.bmp");
+
   // BGM
   if (in_training_ground()) {
     bgm_play(bgm_data.dungeon[0].field[10]);
@@ -224,79 +231,79 @@ void field_loop(void)
     return;
   }
 
-  if (get_keystate(VK_CONTROL)) {
+  if (isCtrlDown()) {
     // Ctrl+Q: 保存
-    if (get_keystate('Q')) {
+    if (isKeyDown(SDL_SCANCODE_Q)) {
       save_user();
       switch_context(CONTEXT_START_MENU);
       return;
     }
     // Ctrl+S: サウンド
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       if (bgm_mute()) {
         emit_message("Sound Off");
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, 'S'));
+      extend_context(init_pause(100, SDL_SCANCODE_S));
       return;
     }
   } else {
     // SPACE: 建物・洞窟に入る
-    if (get_keystate(VK_SPACE)) {
+    if (isKeyDown(SDL_SCANCODE_SPACE)) {
       field_enter_where();
       return;
     }
-    // ENTER: アイテム使用  
-    if (get_keystate(VK_RETURN) && !in_training_ground() &&
+    // ENTER: アイテム使用
+    if (isReturnDown() && !in_training_ground() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
       extend_context(init_use_item(update_background, NULL));
       return;
     }
     // S: ステータス表示
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       status_user_status();
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, NULL));
       return;
     }
     // I: 在庫表示
-    if (get_keystate('I')) {
+    if (isKeyDown(SDL_SCANCODE_I)) {
       extend_context(init_inventory());
       return;
     }
     // E: 装備
-    if (get_keystate('E') && !in_training_ground()) {
+    if (isKeyDown(SDL_SCANCODE_E) && !in_training_ground()) {
       extend_context(init_equip());
       return;
     }
   }
 
   // 移動
-  key2 = get_keystate(VK_DOWN);
-  key4 = get_keystate(VK_LEFT);
-  key6 = get_keystate(VK_RIGHT);
-  key8 = get_keystate(VK_UP);
+  key2 = isKeyDown(SDL_SCANCODE_DOWN);
+  key4 = isKeyDown(SDL_SCANCODE_LEFT);
+  key6 = isKeyDown(SDL_SCANCODE_RIGHT);
+  key8 = isKeyDown(SDL_SCANCODE_UP);
 
   if (key2 && key4) {
     key2 = key4 = 0; key1 = 1;
   } else {
-    key1 = get_keystate(VK_END);
+    key1 = isKeyDown(SDL_SCANCODE_END);
   }
   if (key2 && key6) {
     key2 = key6 = 0; key3 = 1;
   } else {
-    key3 = get_keystate(VK_NEXT);
+    key3 = isKeyDown(SDL_SCANCODE_PAGEDOWN);
   }
   if (key8 && key4) {
     key8 = key4 = 0; key7 = 1;
   } else {
-    key7 = get_keystate(VK_HOME);
+    key7 = isKeyDown(SDL_SCANCODE_HOME);
   }
   if (key8 && key6) {
     key8 = key6 = 0; key9 = 1;
   } else {
-    key9 = get_keystate(VK_PRIOR);
+    key9 = isKeyDown(SDL_SCANCODE_PAGEUP);
   }
 
        if (key1) update = field_move_user(1);
@@ -869,6 +876,9 @@ void field_begin_battle()
   };
   int i, diff;
   room_t *room = &user.environment.field_room;
+
+  // 遭遇音
+  se_play(SE_ENCOUNT);
   tomb_t *ma = monster_encountered;
 
   // 遭遇したモンスターの出現位置番号を控えておく
@@ -1172,7 +1182,7 @@ void field_enter_where(void)
       user.frame = battle_frame_user[8];
 
       switch_context(CONTEXT_TOWER);
-      extend_context(init_pause(50, VK_SPACE));
+      extend_context(init_pause(50, SDL_SCANCODE_SPACE));
       return;
     }
   }

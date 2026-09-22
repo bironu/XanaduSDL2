@@ -118,6 +118,11 @@ void resume_context(void)
 void reset_context(void)
 {
   user_hidden = 0;
+  // extend_context()で積まれたまま(死亡時のFieldScene/BattleScene等)の
+  // 中断中Sceneが残っていると、後で無関係なresume_context()によって
+  // 誤って復元されてしまう(スタック上のScene以下の状態は既に破棄・変化
+  // している)。ここでメニューへ戻し切るので、スタックも空にしておく。
+  Application::instance().clearResumeStack();
   switch_context(CONTEXT_START_MENU);
 }
 

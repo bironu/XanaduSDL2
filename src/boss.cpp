@@ -422,36 +422,36 @@ void boss_loop(void)
   }
   else {
     int user_update = 0;
-    int key2 = get_keystate(VK_DOWN);
-    int key4 = get_keystate(VK_LEFT);
-    int key6 = get_keystate(VK_RIGHT);
-    int key8 = get_keystate(VK_UP);
-    int key7 = (key8 && key4) || get_keystate(VK_HOME);
-    int key9 = (key8 && key6) || get_keystate(VK_PRIOR);
-    
-    if (get_keystate(VK_SPACE)) {
+    int key2 = isKeyDown(SDL_SCANCODE_DOWN);
+    int key4 = isKeyDown(SDL_SCANCODE_LEFT);
+    int key6 = isKeyDown(SDL_SCANCODE_RIGHT);
+    int key8 = isKeyDown(SDL_SCANCODE_UP);
+    int key7 = (key8 && key4) || isKeyDown(SDL_SCANCODE_HOME);
+    int key9 = (key8 && key6) || isKeyDown(SDL_SCANCODE_PAGEUP);
+
+    if (isKeyDown(SDL_SCANCODE_SPACE)) {
       // 跳躍力を無効に
       user_jump = -1;
-      
+
       if (user_magic.lifetime < 0) {
         boss_cast_spell(user.equipment[GOODS_SCROLL],
                         user_INT(), user.x, user.y, user.dir);
         update = 1;
       }
     }
-    else if (get_keystate(VK_RETURN)) {
+    else if (isReturnDown()) {
       user_jump = -1;
       boss_healing();
     }
-    else if (get_keystate(VK_CONTROL)) {
-      if (get_keystate('Q')) {
+    else if (isCtrlDown()) {
+      if (isKeyDown(SDL_SCANCODE_Q)) {
         user.status.HP = -1;
         set_timer_proc(boss_loose_loop);
         return;
       }
       else if (key4) user_magic.dir = 4;
       else if (key6) user_magic.dir = 6;
-      else if (key2) user_magic.dir = 2;      
+      else if (key2) user_magic.dir = 2;
       else if (key8) user_magic.dir = 8;
     }
     else if (key9) user_update = boss_move_user(9);
@@ -460,8 +460,8 @@ void boss_loop(void)
     else if (key4) user_update = boss_move_user(4);
     else if (key6) user_update = boss_move_user(6);
     else if (key8) user_update = boss_move_user(8);
-    else if (get_keystate(VK_END)) user_update = boss_move_user(1);
-    else if (get_keystate(VK_NEXT)) user_update = boss_move_user(3);
+    else if (isKeyDown(SDL_SCANCODE_END)) user_update = boss_move_user(1);
+    else if (isKeyDown(SDL_SCANCODE_PAGEDOWN)) user_update = boss_move_user(3);
     else {
       user_jump = -1;
     }
@@ -545,7 +545,7 @@ int boss_move_user(int dir)
   int dx, dy;
   int x, y;
 
-  if (!get_keystate(VK_SHIFT)) {
+  if (!isShiftDown()) {
     user.dir = dir; // 方向を変える
   }
   dx = move_table[dir].x;
@@ -717,13 +717,10 @@ void boss_attack_user(void)
 static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_::Color pixel)
 {
   char buf[16];
-  int i;
 
-  // 背景を消す
-  for (i = 0; i < 128; i += 16) {
-    draw_image(img, i, 16, pattern_guage);
-  }
-  
+  // 背景を消す(pattern_guageは旧実装のタイル地紋で未移植のため、単色で塗りつぶす)
+  fill_image(img, 0, 16, 128, 16, SDL_::Color::BLACK);
+
   if (pts < 0) {
     pts = 0;
     pixel = SDL_::Color::RED;

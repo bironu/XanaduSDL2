@@ -287,6 +287,7 @@ void set_se_data(const char *symbol, const char *filename)
     { "USE_CROSS",			&se_data.item[21]	},
     { "BOSS_HIT",			&se_data.boss_hit	},
     { "BOSS_BREATH",			&se_data.boss_breath	},
+    { "ENCOUNT",			&se_data.encount	},
     { "OPENING0",			&se_data.opening0	},
     { "OPENING1",			&se_data.opening1	},
     { "OPENING2",			&se_data.opening2	}

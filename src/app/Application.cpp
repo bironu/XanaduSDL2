@@ -9,6 +9,7 @@
 #include <SDL3/SDL_log.h>
 #include <iostream>
 
+const bool *Application::keybordState_ = ::SDL_GetKeyboardState(nullptr);
 Application *Application::instance_ = nullptr;
 
 Application::Application(Uint32 flags)
@@ -23,14 +24,7 @@ Application::Application(Uint32 flags)
 	, nextScene_()
 	, return_code_(0)
 {
-	// 旧SDL2版はここで audio_->allocateChannels(MIX_CHANNELS) を呼んでいたが、
-	// SDL2->SDL3移行(コミット516336e)の際に呼び出しが抜けていた。SDL3_mixerの
-	// MIX_*APIはMix_AllocateChannels相当のグローバル既定値を持たないトラック制の
-	// APIのため、効果音(SE)を鳴らすチャンネルは明示的に確保する必要がある。
-	// これが無いとMixer::playSound()がseTracks_を空のまま扱い、常に何も
-	// 再生されない(SEが鳴らない)。8は旧SDL_mixerのMIX_CHANNELS既定値を踏襲。
 	mixer_->allocateChannels(8);
-
 	instance_ = this;
 }
 
