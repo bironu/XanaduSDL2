@@ -57,8 +57,6 @@ std::shared_ptr<Scene> create_scene(int context_id)
   case CONTEXT_ENTER_NUMBER:
   case CONTEXT_ENTER_STRING:
     return std::make_shared<MessageEnterScene>(context_id);
-  case CONTEXT_OPENING:
-    return std::make_shared<OpeningScene>();
   case CONTEXT_ENDING:
     return std::make_shared<EndingScene>();
   default:

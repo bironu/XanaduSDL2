@@ -8,18 +8,12 @@
 #define CONTEXT_BATTLE		4	// 戦闘
 #define CONTEXT_BOSS		5	// ボスステージ
 #define CONTEXT_SHOP		6	// ショップ
-// 7は欠番(旧CONTEXT_CAVE。play_caveへ移行し廃止)
-// 8は欠番(旧CONTEXT_USE。play_use_itemへ移行し廃止)
 #define CONTEXT_EQUIPMENT	9	// 装備
 #define CONTEXT_INVENTORY	10	// 在庫表示画面
-// 11は欠番(旧CONTEXT_ANIMATION。play_animation/play_animation_tileへ移行し廃止)
-// 12は欠番(旧CONTEXT_USER_DEAD。play_user_deadへ移行し廃止)
 #define CONTEXT_ENTER_CHARACTER	13	// 文字入力
 #define CONTEXT_ENTER_NUMBER	14	// 数値入力
 #define CONTEXT_ENTER_STRING	15	// 文字列入力
-#define CONTEXT_OPENING		18	// オープニング
-#define CONTEXT_ENDING		19	// エンディ%s%0
-
+#define CONTEXT_ENDING		19	// エンディング
 #define MAX_CONTEXT		20	// コンテキストの数
 
 #define CONTEXT_RESUME		-1	// 直前のコンテキストを復帰

@@ -5,6 +5,8 @@
 #include "resources/ImageId.h"
 #include "resources/MusicId.h"
 #include "scene/menu/MenuScene.h"
+#include "scene/opening/OpeningScene.h"
+#include "scene/ending/EndingScene.h"
 #include "field.h" // FieldSceneが出来れば削除
 #include "tower.h" // TowerSceneが出来れば削除
 #include "boss.h" // BossSceneが出来れば削除
@@ -268,18 +270,19 @@ void MenuScene::drawItem(int row, int col, int key, const char *s, const SDL_::C
 
 void MenuScene::onGenericKey(const SDL_KeyboardEvent &key)
 {
+    auto &app = getApplication();
 	switch (key.key) {
 	case SDLK_L: state_ = State::Load; onEnter(); break;
 	case SDLK_1: user.environment.scenario = 0; onEnter(); break;
 	case SDLK_2: user.environment.scenario = 1; onEnter(); break;
 	case SDLK_N:
 		state_ = State::Game;
-		extend_context(CONTEXT_OPENING);
+		app.registerNextScene(std::make_shared<OpeningScene>());
 		return;
 	case SDLK_D: state_ = State::Debug; onEnter(); break;
 	case SDLK_B: state_ = State::Boss; onEnter(); break;
-	case SDLK_O: extend_context(CONTEXT_OPENING); break;
-	case SDLK_E: extend_context(CONTEXT_ENDING); break;
+	case SDLK_O: app.registerNextScene(std::make_shared<OpeningScene>()); break;
+	case SDLK_E: app.registerNextScene(std::make_shared<EndingScene>()); break;
 	case SDLK_V: state_ = State::Version; onEnter(); break;
 	default: return;
 	}
