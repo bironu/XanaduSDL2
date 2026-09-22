@@ -10,12 +10,8 @@
 #include "scene/battle/BattleScene.h"
 #include "scene/boss/BossScene.h"
 #include "scene/shop/ShopScene.h"
-#include "scene/cave/CaveScene.h"
-#include "scene/useitem/UseItemScene.h"
 #include "scene/equip/EquipScene.h"
 #include "scene/inventory/InventoryScene.h"
-#include "scene/animation/AnimationScene.h"
-#include "scene/userdead/UserDeadScene.h"
 #include "scene/message/MessageEnterScene.h"
 #include "scene/opening/OpeningScene.h"
 #include "scene/ending/EndingScene.h"
@@ -53,18 +49,10 @@ std::shared_ptr<Scene> create_scene(int context_id)
     return std::make_shared<BossScene>();
   case CONTEXT_SHOP:
     return std::make_shared<ShopScene>();
-  case CONTEXT_CAVE:
-    return std::make_shared<CaveScene>();
-  case CONTEXT_USE:
-    return std::make_shared<UseItemScene>();
   case CONTEXT_EQUIPMENT:
     return std::make_shared<EquipScene>();
   case CONTEXT_INVENTORY:
     return std::make_shared<InventoryScene>();
-  case CONTEXT_ANIMATION:
-    return std::make_shared<AnimationScene>();
-  case CONTEXT_USER_DEAD:
-    return std::make_shared<UserDeadScene>();
   case CONTEXT_ENTER_CHARACTER:
   case CONTEXT_ENTER_NUMBER:
   case CONTEXT_ENTER_STRING:

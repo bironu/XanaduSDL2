@@ -505,7 +505,7 @@ void battle_loop(void)
   // 死んだ？
   if (user.status.HP < 0) {
     user_damage = NULL;
-    extend_context(init_user_dead(user.x, user.y, update_background));
+    play_user_dead(user.x, user.y, update_background, battle_enter);
     return;
   }
 
@@ -549,7 +549,7 @@ void battle_loop(void)
     // ENTER: アイテム使用
     if (isReturnDown() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
-      extend_context(init_use_item(update_background, battle_room));
+      play_use_item(update_background, battle_room, battle_enter);
       return;
     }
 
@@ -945,9 +945,9 @@ int battle_move_user(int dir)
       emit_message("Lost key");
       playSound(SoundId::lost_key);
       
-      extend_context(init_animation_tile(tile_data.tower_open, 3,
-                                         x * 40, y * 40,
-                                         update_background));
+      play_animation_tile(tile_data.tower_open, 3,
+                          x * 40, y * 40,
+                          update_background, battle_enter);
       update = UPDATE_ABORT;
     }
   }

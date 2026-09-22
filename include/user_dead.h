@@ -1,13 +1,14 @@
 #ifndef user_dead_H
 #define user_dead_H
 
-// コンテキスト保護関数
-extern void user_dead_create(void);
-extern void user_dead_destroy(void);
-extern void user_dead_enter(void);
-extern void user_dead_leave(void);
+#include <functional>
 
-// 初期化関数
-extern int init_user_dead(int x, int y, void (*update_background)(void));
+// ユーザー死亡演出(昏倒→墓標を表示してキー入力待ち→復活/リセット)を
+// 即座に再生する。画面遷移を伴わないため専用Sceneには依存しない。
+// 復活した場合、呼び出し元のゲームループを再開するためonRevive
+// (battle_enter/field_enter等)を呼ぶ。リセットの場合はメニューへ
+// 戻るため呼ばない
+void play_user_dead(int x, int y, std::function<void()> update_background,
+                    std::function<void()> onRevive);
 
 #endif // user_dead_H

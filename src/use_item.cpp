@@ -9,10 +9,7 @@
 #include "app/Application.h"
 
 #define STATE_USE		0	// 初期状態
-#define STATE_CONTINUE		1	// 継続
-#define STATE_WARPED		2	// ワープ完了
-#define STATE_EXIT_SUCCESS	-1	// 成功
-#define STATE_EXIT_FAILURE	-2	// 失敗
+#define STATE_CONTINUE		1	// 継続(use_item_pendant()が複数の扉を1つずつ処理する際の判定用)
 
 // タイマーインターバル
 #define INTERVAL_SPECTACLES	100
@@ -22,7 +19,10 @@
 #define MAX_WARP_FRAME		16
 
 // 画面更新関連
-static void (*thunk_update_background)(void);
+static std::function<void()> thunk_update_background;
+// アイテム使用完了後、呼び出し元のゲームループ(タイマー・描画)を再開する
+// (battle_enter/field_enter等)
+static std::function<void()> thunk_on_resume;
 
 // アイテム全般
 static room_t *use_item_room;
@@ -76,112 +76,87 @@ static const char *use_item_response[MAX_ITEM_TYPE] = {
   "Make Wall", "Unlock door", "Melted wall", "Put ladder", "CHR-up"
 };
 
-int init_use_item(void (*update_background)(void), room_t *room)
-{
-  thunk_update_background = update_background;
-  use_item_room = room;
-  use_item_state = STATE_USE;
-  return CONTEXT_USE;
-}
-
 namespace
 {
 constexpr SoundId kUseItemSoundIds[] = { SoundId::invoke, SoundId::treasure, SoundId::lost_key, SoundId::get };
 }
 
-void use_item_create(void)
+void play_use_item(std::function<void()> update_background, room_t *room,
+                   std::function<void()> onResume)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kUseItemSoundIds) {
     res.loadSound(mixer, id);
   }
-}
 
-void use_item_destroy(void)
-{
-  auto &res = Resources::instance();
-  for (SoundId id : kUseItemSoundIds) {
-    res.unloadSound(id);
+  thunk_update_background = std::move(update_background);
+  thunk_on_resume = std::move(onResume);
+  use_item_room = room;
+  use_item_state = STATE_USE;
+
+  int item_type = goods_data[GOODS_MAGIC_ITEM]
+                            [user.equipment[GOODS_MAGIC_ITEM]].type;
+  int skill = user.inventory[GOODS_MAGIC_ITEM]
+                            [user.equipment[GOODS_MAGIC_ITEM]].skill;
+
+  if (0 <= item_type && item_type < MAX_ITEM_TYPE) {
+    // 反応メッセージを表示
+    emit_message(use_item_response[item_type]);
+  }
+
+  playSound(SoundId::invoke); // se
+
+  switch (item_type) {
+  case ITEM_SPECTACLES:   use_item_spectacles(); break;
+  case ITEM_RED_POTION:   use_item_healing(skill); break;
+  case ITEM_LAMP:         use_item_ignited(); break;
+  case ITEM_BLACK_ONYX:   use_item_warp_level(+1); break;
+  case ITEM_FIRE_CRYSTAL: use_item_warp_level(-1); break;
+  case ITEM_MATTOCK:      use_item_mattock(); break;
+  case ITEM_HOURGLASS:
+    use_item_continuance(EFFECT_HOURGLASS, skill);
+    break;
+  case ITEM_WINGED_BOOTS:
+    if (use_item_room == NULL) {
+      use_item_continuance(EFFECT_WINGED_BOOTS, skill);
+    } else {
+      use_item_no_response();
+      restore_context(0);
+    }
+    break;
+  case ITEM_MANTLE:
+    use_item_continuance(EFFECT_MANTLE, skill);
+    break;
+  case ITEM_DEMONS_RING:
+    use_item_metamorphosis(EFFECT_DEMONS_RING, skill);
+    break;
+  case ITEM_BALANCE:      use_item_balance(); break;
+  case ITEM_PENDANT:      use_item_pendant(); break;
+  case ITEM_CANDLE:
+    use_item_metamorphosis(EFFECT_CANDLE, skill);
+    break;
+  case ITEM_RUBY:
+    use_item_doping(EFFECT_RUBY, skill);
+    break;
+  case ITEM_BROWN_POTION:
+    use_item_doping(EFFECT_BROWN_POTION, skill);
+    break;
+  case ITEM_MIRROR:       use_item_doping(EFFECT_MIRROR, skill); break;
+  case ITEM_BOTTLE:       use_item_doping(EFFECT_BOTTLE, skill); break;
+    // scenario 2
+  case ITEM_SILVER_ROSE:  use_item_silver_rose(); break;
+  case ITEM_KEY:          use_item_pendant(); break;
+  case ITEM_ACID:         use_item_acid(); break;
+  case ITEM_LADDER:       use_item_ladder(); break;
+  case ITEM_CROSS:        use_item_doping(EFFECT_BOTTLE, skill); break;
+  default:
+    break;
   }
 }
 
-void use_item_enter(void)
-{
-  if (use_item_state == STATE_USE || use_item_state == STATE_CONTINUE) {
-    
-    int item_type = goods_data[GOODS_MAGIC_ITEM]
-                              [user.equipment[GOODS_MAGIC_ITEM]].type;
-    int skill = user.inventory[GOODS_MAGIC_ITEM]
-                              [user.equipment[GOODS_MAGIC_ITEM]].skill;
-    
-    if (0 <= item_type && item_type < MAX_ITEM_TYPE) {
-      // 反応メッセージを表示
-      emit_message(use_item_response[item_type]);
-    }
-    
-    playSound(SoundId::invoke); // se
-    
-    switch (item_type) {
-    case ITEM_SPECTACLES:   use_item_spectacles(); break;
-    case ITEM_RED_POTION:   use_item_healing(skill); break;
-    case ITEM_LAMP:         use_item_ignited(); break;
-    case ITEM_BLACK_ONYX:   use_item_warp_level(+1); break;
-    case ITEM_FIRE_CRYSTAL: use_item_warp_level(-1); break;
-    case ITEM_MATTOCK:      use_item_mattock(); break;
-    case ITEM_HOURGLASS:
-      use_item_continuance(EFFECT_HOURGLASS, skill);
-      break;
-    case ITEM_WINGED_BOOTS:
-      if (use_item_room == NULL) {
-        use_item_continuance(EFFECT_WINGED_BOOTS, skill);
-      } else {
-        use_item_no_response();
-        restore_context(0);
-      }
-      break;
-    case ITEM_MANTLE:
-      use_item_continuance(EFFECT_MANTLE, skill);
-      break;
-    case ITEM_DEMONS_RING:
-      use_item_metamorphosis(EFFECT_DEMONS_RING, skill);
-      break;
-    case ITEM_BALANCE:      use_item_balance(); break;
-    case ITEM_PENDANT:      use_item_pendant(); break;
-    case ITEM_CANDLE:
-      use_item_metamorphosis(EFFECT_CANDLE, skill);
-      break;
-    case ITEM_RUBY:
-      use_item_doping(EFFECT_RUBY, skill);
-      break;
-    case ITEM_BROWN_POTION:
-      use_item_doping(EFFECT_BROWN_POTION, skill);
-      break;
-    case ITEM_MIRROR:       use_item_doping(EFFECT_MIRROR, skill); break;
-    case ITEM_BOTTLE:       use_item_doping(EFFECT_BOTTLE, skill); break;
-      // scenario 2
-    case ITEM_SILVER_ROSE:  use_item_silver_rose(); break;
-    case ITEM_KEY:          use_item_pendant(); break;
-    case ITEM_ACID:         use_item_acid(); break;
-    case ITEM_LADDER:       use_item_ladder(); break;
-    case ITEM_CROSS:        use_item_doping(EFFECT_BOTTLE, skill); break;
-    default:
-      resume_context();
-    }
-  } else if (use_item_state == STATE_WARPED) {
-    // ワープ先レベルでの処理
-    use_item_past_level();
-  } else {
-    restore_context(use_item_state == STATE_EXIT_SUCCESS);
-  }
-}
-
-void use_item_leave(void)
-{
-  kill_timer();
-}
-
-// 以前のコンテキストを復元する
+// アイテム使用処理を終える。画面遷移を伴わないため、単に後片付けをする
+// だけでよい(旧: UseItemSceneをfinish()して前のSceneに戻す役割だった)
 void restore_context(int consumed)
 {
   if (consumed) {
@@ -203,10 +178,20 @@ void restore_context(int consumed)
   }
   user_hidden = 0; // ユーザーを見えるようにする
 
+  auto &res = Resources::instance();
+  for (SoundId id : kUseItemSoundIds) {
+    res.unloadSound(id);
+  }
+
 #ifdef NO_PAUSE
-  resume_context();
+  if (thunk_on_resume) {
+    thunk_on_resume();
+  }
 #else
-  begin_pause(SDL_SCANCODE_RETURN, finish_current_context);
+  // ENTERキーが離されるまで待つ(押しっぱなしで別アイテムを連続使用
+  // してしまうのを防ぐdebounce)。完了後、死亡演出中と同様に止めていた
+  // 呼び出し元のゲームループ(タイマー・描画)を再開する
+  begin_pause(SDL_SCANCODE_RETURN, thunk_on_resume);
 #endif
 }
 
@@ -300,7 +285,7 @@ void loop_spectacles_in_field(void)
         return;
       }
   }
-  (*thunk_update_background)();
+  thunk_update_background();
   inverse_image(clip_main, spectacles_x, spectacles_y, mask_damaged);
 }
 
@@ -372,10 +357,9 @@ void use_item_mattock(void)
       int y = (point - top) / FIELD_WIDTH * 40;
       
       level_data.field[point] = tile_data.pattern1;
-      
-      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
-      extend_context(init_animation_tile(tile_data.digging, 3, x, y,
-                                         thunk_update_background));
+
+      play_animation_tile(tile_data.digging, 3, x, y,
+                          thunk_update_background, []{ restore_context(1); });
       return;
     }
   }
@@ -434,7 +418,7 @@ void loop_balance(void)
     }
   }
   
-  (*thunk_update_background)();
+  thunk_update_background();
   
   if (!something_opening) {
     // すべて開いた
@@ -474,8 +458,8 @@ void use_item_pendant(void)
         
         use_item_state = STATE_CONTINUE;
         playSound(SoundId::lost_key);
-        extend_context(init_animation_tile(tile_data.field_open, 3, x, y,
-                                           thunk_update_background));
+        play_animation_tile(tile_data.field_open, 3, x, y,
+                            thunk_update_background, use_item_pendant);
         return;
       }
     }
@@ -509,8 +493,8 @@ void use_item_pendant(void)
         playSound(SoundId::lost_key);
         x = room_door_position[i].x * 40;
         y = room_door_position[i].y * 40;
-        extend_context(init_animation_tile(tile_data.tower_open, 3, x, y,
-                                           thunk_update_background));
+        play_animation_tile(tile_data.tower_open, 3, x, y,
+                            thunk_update_background, use_item_pendant);
         return;
       }
     }
@@ -592,28 +576,28 @@ void use_item_warp_level(int up_down)
     // scenario 2
     max_dungeon_level = 10;
     
+    user_hidden = 1; // ユーザーを見えなくする
+
     if(0 <= to_level && to_level < max_dungeon_level) {
       user.environment.dungeon_level = to_level;
-      use_item_state = STATE_WARPED;
-    } else
-      use_item_state = STATE_EXIT_FAILURE;
-    
-    user_hidden = 1; // ユーザーを見えなくする
-    extend_context(init_animation(clip_main, warp_frames, MAX_WARP_FRAME,
-                                  thunk_update_background));
+      play_animation(clip_main, warp_frames, MAX_WARP_FRAME,
+                     thunk_update_background, use_item_past_level);
+    } else {
+      play_animation(clip_main, warp_frames, MAX_WARP_FRAME,
+                     thunk_update_background, []{ restore_context(0); });
+    }
   }
 }
 
 void use_item_past_level(void)
 {
   init_level(user.environment.dungeon_level, user_path.empty() ? nullptr : user_path.c_str());
-  use_item_state = STATE_EXIT_SUCCESS;
 
   format_message("Level %d", user.environment.dungeon_level + 1);
-  
+
   // ワープ完了
-  extend_context(init_animation(clip_main, warp_frames, MAX_WARP_FRAME,
-                                thunk_update_background));
+  play_animation(clip_main, warp_frames, MAX_WARP_FRAME,
+                 thunk_update_background, []{ restore_context(1); });
 }
 
 void use_item_silver_rose(void)
@@ -635,11 +619,10 @@ void use_item_silver_rose(void)
     if (0 <= point && point < FIELD_SIZE) {
       level_data.field[point] = tile_data.stone;
 
-      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
-      extend_context(init_animation_tile(making, 3,
-                                         user.x + dx * 40,
-                                         user.y + dy * 40,
-                                         thunk_update_background));
+      play_animation_tile(making, 3,
+                          user.x + dx * 40,
+                          user.y + dy * 40,
+                          thunk_update_background, []{ restore_context(1); });
       return;
     }
   } else {
@@ -658,9 +641,8 @@ void use_item_silver_rose(void)
           break;
         }
       }
-      use_item_state = STATE_EXIT_SUCCESS; // 成功裏に抜ける
-      extend_context(init_animation_tile(making, 3, x * 40, y * 40,
-                                         thunk_update_background));
+      play_animation_tile(making, 3, x * 40, y * 40,
+                          thunk_update_background, []{ restore_context(1); });
       return;
     }
   }

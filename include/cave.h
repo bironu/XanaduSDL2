@@ -1,12 +1,11 @@
 #ifndef cave_H
 #define cave_H
 
-// コンテキスト保護関数
-extern void cave_destroy(void);
-extern void cave_enter(void);
-extern void cave_leave(void);
+#include <functional>
 
-// 初期化関数
-extern int init_cave(int to_level);
+// 洞窟(レベル間の縦穴)に入っていく演出を再生し、指定レベルへ移動する。
+// 画面遷移を伴わないため専用Sceneには依存しない。完了後、呼び出し元の
+// ゲームループを再開するためonResume(field_enter等)を呼ぶ
+void play_cave(int to_level, std::function<void()> onResume);
 
 #endif // cave_H

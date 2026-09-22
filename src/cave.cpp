@@ -4,43 +4,7 @@
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
 
-static void update_background(void);
-
-int init_cave(int to_level)
-{
-  save_user();
-  user.environment.dungeon_level = to_level;
-  init_level(to_level, user_path.empty() ? nullptr : user_path.c_str());
-
-  Resources::instance().loadImage(ImageId::picture_cave);
-  visual_image = Resources::instance().getImage(ImageId::picture_cave);
-  
-  emit_message("Enter-Cave");
-  return CONTEXT_CAVE;
-}
-
-void cave_enter(void)
-{
-  static animation_frame_t frames[20];
-  int i;
-  
-  // 歩いていくユーザーの後ろ姿
-  for (i = 0; i < 20; i++) {
-    frames[i].image = frame_user[battle_frame_user[8] + i % 2];
-    frames[i].x = 160;
-    frames[i].y = 320 - i * 8;
-  }
-  switch_context(init_animation(clip_main, frames, 20, update_background));
-}
-
-void cave_leave(void)
-{
-}
-
-void cave_destroy(void)
-{
-  Resources::instance().unloadImage(ImageId::picture_cave);
-}
+namespace {
 
 void update_background(void)
 {
@@ -50,4 +14,33 @@ void update_background(void)
     draw_image(clip_main, 0, 0, visual_image);
   }
   update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
+}
+
+} // namespace
+
+void play_cave(int to_level, std::function<void()> onResume)
+{
+  save_user();
+  user.environment.dungeon_level = to_level;
+  init_level(to_level, user_path.empty() ? nullptr : user_path.c_str());
+
+  Resources::instance().loadImage(ImageId::picture_cave);
+  visual_image = Resources::instance().getImage(ImageId::picture_cave);
+
+  emit_message("Enter-Cave");
+
+  // 歩いていくユーザーの後ろ姿
+  static animation_frame_t frames[20];
+  for (int i = 0; i < 20; i++) {
+    frames[i].image = frame_user[battle_frame_user[8] + i % 2];
+    frames[i].x = 160;
+    frames[i].y = 320 - i * 8;
+  }
+
+  play_animation(clip_main, frames, 20, update_background, [onResume]() {
+    Resources::instance().unloadImage(ImageId::picture_cave);
+    if (onResume) {
+      onResume();
+    }
+  });
 }

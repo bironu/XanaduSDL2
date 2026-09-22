@@ -1,9 +1,10 @@
 #include "scene/GameScene.h"
 #include "app/Application.h"
+#include "keyboard.h"
 #include "message.h"
-#include "pause.h"
 #include "sdl/LegacyPlatform.h"
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_timer.h>
 #include <cctype>
 
 namespace {
@@ -16,6 +17,8 @@ Uint32 gameTimerEventType()
 	static const Uint32 type = SDL_RegisterEvents(1);
 	return type;
 }
+
+constexpr uint32_t kPauseMaxWaitMs = 500; // 旧WAIT_INTERVAL(pauseForのタイムアウト)
 
 // thunk_key_event に渡す文字コードへの変換(Shift状態を反映したUS配列相当の文字)。
 int toCharCode(const SDL_KeyboardEvent &key)
@@ -75,16 +78,16 @@ void GameScene::onSuspend()
 
 bool GameScene::onIdle(uint32_t tick)
 {
-    pause_update(tick);
+    updateWait(tick);
     presentLegacyFrame();
 
-    // ポーズ中はここでtrueを返し続けてonIdleのポーリングを続けさせる。
+    // 待機中はここでtrueを返し続けてonIdleのポーリングを続けさせる。
     // Scene::onIdle()はタスク未登録時false(=Application::run()が
     // SDL_WaitEventでブロックする)を返すため、falseのままだと誰も
     // イベントを起こさない待機(SE再生終了待ち等)では、そのイベントが
-    // 来るまでpause_update()自体が二度と呼ばれず、ポーズが永遠に
+    // 来るまでupdateWait()自体が二度と呼ばれず、待機が永遠に
     // 解除されなくなる
-    if (pause_active()) {
+    if (waiting_) {
         return true;
     }
 
@@ -93,9 +96,9 @@ bool GameScene::onIdle(uint32_t tick)
 
 void GameScene::dispatch(const SDL_Event &event)
 {
-	// ポーズ中(XanaduPause)は元のコンテキストへの入力を止める
+	// 待機中(GameScene::wait)は元のコンテキストへの入力を止める
 	// (旧PauseSceneがSceneスタックの最上段で入力を奪っていたのと同じ役割)
-	if (pause_active()) {
+	if (waiting_) {
 		return;
 	}
 
@@ -137,4 +140,39 @@ void GameScene::killGameTimer()
 {
 	getApplication().killTimer();
 	onTimer_ = nullptr;
+}
+
+void GameScene::wait(std::function<bool()> isDone, std::function<void()> onComplete, uint32_t maxWaitMs)
+{
+	killGameTimer(); // 呼び出し元の周期処理を止める。再開はonCompleteの責任
+
+	if (maxWaitMs > 0) {
+		const uint32_t deadline = SDL_GetTicks() + maxWaitMs;
+		auto inner = isDone;
+		isDone = [inner, deadline]() { return inner() || SDL_GetTicks() >= deadline; };
+	}
+
+	waiting_ = true;
+	waitIsDone_ = std::move(isDone);
+	waitOnComplete_ = std::move(onComplete);
+}
+
+void GameScene::pauseFor(int clearkey, std::function<void()> onComplete)
+{
+	const SDL_Scancode key = static_cast<SDL_Scancode>(clearkey);
+	wait([key]() { return !isKeyDown(key); }, std::move(onComplete), kPauseMaxWaitMs);
+}
+
+void GameScene::updateWait(uint32_t /*tick*/)
+{
+	if (!waiting_ || !waitIsDone_ || !waitIsDone_()) {
+		return;
+	}
+	waiting_ = false;
+	waitIsDone_ = nullptr;
+	auto onComplete = std::move(waitOnComplete_);
+	waitOnComplete_ = nullptr;
+	if (onComplete) {
+		onComplete();
+	}
 }
