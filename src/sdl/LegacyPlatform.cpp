@@ -288,14 +288,15 @@ int bgm_mute(void)
 	return user.config.mute;
 }
 
-void playSound(SoundId id)
+int playSound(SoundId id)
 {
 	if (user.config.mute) {
-		return;
+		return -1;
 	}
 	if (auto chunk = Resources::instance().getSound(id)) {
-		Application::instance().getMixer().playSound(*chunk, -1, 0);
+		return Application::instance().getMixer().playSound(*chunk, -1, 0);
 	}
+	return -1;
 }
 
 void playBgm(MusicId id)

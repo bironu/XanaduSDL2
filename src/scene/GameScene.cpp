@@ -67,6 +67,17 @@ bool GameScene::onIdle(uint32_t tick)
 {
     pause_update(tick);
     presentLegacyFrame();
+
+    // ポーズ中はここでtrueを返し続けてonIdleのポーリングを続けさせる。
+    // Scene::onIdle()はタスク未登録時false(=Application::run()が
+    // SDL_WaitEventでブロックする)を返すため、falseのままだと誰も
+    // イベントを起こさない待機(SE再生終了待ち等)では、そのイベントが
+    // 来るまでpause_update()自体が二度と呼ばれず、ポーズが永遠に
+    // 解除されなくなる
+    if (pause_active()) {
+        return true;
+    }
+
     return Scene::onIdle(tick);
 }
 

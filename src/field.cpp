@@ -16,6 +16,7 @@
 #include "resources/SoundId.h"
 #include "resources/MusicId.h"
 #include "app/Application.h"
+#include "sdl/SDLMixMixer.h"
 
 namespace
 {
@@ -917,7 +918,9 @@ int field_gravitate_monsters(void)
   return n;
 }
 
-// 戦闘を開始する
+// 戦闘を開始する。
+// 遭遇音・ポーズ(進行/操作停止)はここではなくBattleScene側
+// (battle_enter、画面がbattleに切り替わった後)で行う
 void field_begin_battle()
 {
   // モンスターの戦闘時フォーメーション
@@ -928,9 +931,6 @@ void field_begin_battle()
   };
   int i, diff;
   room_t *room = &user.environment.field_room;
-
-  // 遭遇音
-  playSound(SoundId::encount);
   tomb_t *ma = monster_encountered;
 
   // 遭遇したモンスターの出現位置番号を控えておく

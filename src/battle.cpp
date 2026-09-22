@@ -10,6 +10,7 @@
 #include "resources/SoundId.h"
 #include "sdl/LegacyPlatform.h"
 #include "app/Application.h"
+#include "sdl/SDLMixMixer.h"
 
 #define UPDATE_ABORT		-1
 
@@ -384,14 +385,25 @@ void save_battle_monsters(void)
 
 namespace
 {
+// SoundId::encountはfield.cpp(kFieldSoundIds)側でも管理されているが、
+// switch_context(init_battle(...))の実行順序上、FieldScene::onDestroy()
+// (アンロード)の方がBattleScene::onCreate()より先に走るため、battle_enter()
+// 側で確実に鳴らすにはここでも明示的にロードしておく必要がある
 constexpr SoundId kBattleSoundIds[] = {
 	SoundId::dead, SoundId::magic, SoundId::failed, SoundId::lost_key,
 	SoundId::attack, SoundId::trapped, SoundId::treasure, SoundId::get,
-	SoundId::poison,
+	SoundId::poison, SoundId::encount,
 	SoundId::c_needle, SoundId::c_mittar, SoundId::c_deluge, SoundId::c_fire,
 	SoundId::c_thunder, SoundId::c_poison, SoundId::c_corros, SoundId::c_tilte,
 	SoundId::c_death,
 };
+
+// battle_create()(Scene新規生成時のみ)で立てる。battle_enter()側で一度
+// だけ消費し、遭遇音の待機を行う(Ctrl-S/宝箱ウエイト等、begin_pauseの
+// 再開先としてbattle_enter()が呼ばれる際は鳴らさない)
+bool need_encount_sound = false;
+
+void battle_enter_continue(void);
 }
 
 void battle_create(void)
@@ -401,6 +413,7 @@ void battle_create(void)
   for (SoundId id : kBattleSoundIds) {
     res.loadSound(mixer, id);
   }
+  need_encount_sound = true;
 }
 
 void battle_destroy(void)
@@ -413,16 +426,40 @@ void battle_destroy(void)
 
 void battle_enter(void)
 {
-  // 画面の描画
+  // 画面の描画。遭遇音の待機中もフィールドの残像ではなく戦闘画面が
+  // 見えるよう、SEを鳴らすより先に更新しておく
   update_background();
   status_refresh(in_battle());
 
+  if (need_encount_sound) {
+    need_encount_sound = false;
+
+    // 遭遇音が鳴り終わるまでゲーム進行・操作を止め、いきなり戦闘が
+    // 始まらないようにする。その間BGMはミュートする
+    const int channel = playSound(SoundId::encount);
+    Application::instance().getMixer().setMusicGain(0.0f);
+    begin_wait(
+      [channel]() { return !Application::instance().getMixer().isChannelPlaying(channel); },
+      []() {
+        Application::instance().getMixer().setMusicGain(1.0f);
+        battle_enter_continue();
+      });
+    return;
+  }
+
+  battle_enter_continue();
+}
+
+namespace
+{
+void battle_enter_continue(void)
+{
   if (in_battle()) {
     // 戦闘時のステータス画面
     int i;
 
     status_draw_text(7, 0, monster_status->name, SDL_::Color::RED);
-    
+
     for (i = 0; i < battle_max_monsters; i++) {
       int row = i + STATUS_MONSTER_HP_LINE;
       if (battle_monsters[i].HP >= 0)
@@ -438,6 +475,7 @@ void battle_enter(void)
 
   // タイマーの設定
   set_timer(BATTLE_INTERVAL, battle_loop);
+}
 }
 
 void battle_leave(void)

@@ -78,6 +78,14 @@ int Mixer::playSound(Audio &sound, int channel, int loops)
 	return index;
 }
 
+bool Mixer::isChannelPlaying(int channel) const
+{
+	if (channel < 0 || static_cast<std::size_t>(channel) >= seTracks_.size()) {
+		return false;
+	}
+	return ::MIX_TrackPlaying(seTracks_[channel]->get());
+}
+
 bool Mixer::playMusic(Audio &sound, int loops)
 {
 	::MIX_SetTrackAudio(musicTrack_->get(), sound.get());
@@ -107,6 +115,11 @@ void Mixer::resumeMusic()
 void Mixer::rewindMusic()
 {
 	::MIX_SetTrackPlaybackPosition(musicTrack_->get(), 0);
+}
+
+void Mixer::setMusicGain(float gain)
+{
+	::MIX_SetTrackGain(musicTrack_->get(), gain);
 }
 
 bool Mixer::setSoundFonts(const char *path)

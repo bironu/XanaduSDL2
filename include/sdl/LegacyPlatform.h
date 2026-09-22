@@ -18,7 +18,7 @@ enum class MusicId;
 void initLegacyGraphics(Resources &res);
 
 // 効果音。mute中、または該当idが未ロードなら何もしない
-void playSound(SoundId id);
+int playSound(SoundId id); // 再生に使ったchannel(Mixer::isChannelPlaying用)を返す。ミュート/未ロード時は-1
 
 // BGM。Resources::instance().playBgm()のApplication::instance()経由ラッパ
 void playBgm(MusicId id);

@@ -28,12 +28,14 @@ public:
 
 	int allocateChannels(int);
 	int playSound(Audio &, int = -1, int = 0);
+	bool isChannelPlaying(int channel) const;
 	bool playMusic(Audio &, int = -1);
 	bool isMusicPlaying() const;
 	bool stopMusic();
 	void pauseMusic();
 	void resumeMusic();
     void rewindMusic();
+    void setMusicGain(float gain); // 0.0(無音)〜1.0(通常音量)
     bool setSoundFonts(const char *);
 
 	// AudioがMIDI読み込み時にMIX_LoadAudioWithProperties()へ
