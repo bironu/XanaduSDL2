@@ -7,7 +7,6 @@
 #include <SDL3/SDL.h>
 #include <memory>
 #include <stack>
-// #include <vector>
 
 namespace SDL_
 {

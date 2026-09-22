@@ -164,7 +164,6 @@ void OpeningScene::onWindowExpose(const SDL_WindowEvent &window)
 
 void OpeningScene::onTimer()
 {
-    SDL_Log("OpeningScene::onTimer: call ");
     uint32_t interval = onEnter();
     onDraw();
     if (interval == 0) {
