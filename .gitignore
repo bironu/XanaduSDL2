@@ -72,3 +72,6 @@ Testing/
 
 # SoundFont
 audio/*.sf2
+
+# claude skill
+.claude/

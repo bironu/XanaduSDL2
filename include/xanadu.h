@@ -103,9 +103,6 @@ extern void update_region(int x, int y, int width, int height);
 extern void update_immediately(void);
 extern int load_background(ImageId id);
 
-// アプリケーションの再スタート
-extern void restart_application(void);
-
 // タイマー
 extern void set_timer(int interval, void (*timer_proc)(void));
 extern void kill_timer(void);

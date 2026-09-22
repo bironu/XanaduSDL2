@@ -1,5 +1,6 @@
 #include "sdl/LegacyPlatform.h"
 #include "xanadu.h"
+#include "goods.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
 #include "resources/SoundId.h"
@@ -42,10 +43,12 @@ const rectangle_t rect_user_guage = {  56,  32, 240,  40 };
 const rectangle_t rect_boss_guage = { 384,  32, 240,  40 };
 
 // ---- スプライト/フォント等のリソース ----
-// フレームテーブルは各ロード関数(load_user_image, load_tile_image等)が
-// 必要になった時点で埋める。frame_magics/frame_goods/frame_brownbox/
-// frame_whitebox/frame_specials/mask_damaged/pattern_guage/pattern_status は
-// 対応するローダが未移植のため、現状は未ロード(nullptr)のまま。
+// frame_user/frame_tiles/frame_monstersは各ロード関数(load_user_image,
+// load_tile_image等)が必要になった時点で埋める。frame_magics/frame_goods/
+// frame_brownbox/frame_whitebox/frame_specials/mask_damagedは常に同じ
+// シートを使う固定リソースなので、initLegacyGraphics()で一度だけ埋める。
+// pattern_guage/pattern_statusに対応するローダは未移植のため、現状は
+// 未ロード(nullptr)のまま。
 
 SDL_::SubImage frame_user[10];
 SDL_::SubImage frame_monsters[N_MONSTERS][4];
@@ -91,6 +94,55 @@ Uint32 SDLCALL legacyTimerCallback(void *userdata, SDL_TimerID /*timerID*/, Uint
 	SDL_PushEvent(&event);
 	return interval; // 同じ間隔で繰り返す(one-shotにはしない)
 }
+
+// シート画像(x, y, w, h)の1コマ分を、独立したImageとして切り出す。
+// 切り出し先をシートのカラーキー色で塗り潰してからblitすることで、シート側の
+// 透過部分をコピー先でも透過のまま保持し、切り出したImage自身にも同じ
+// カラーキーを設定する(draw_sprite/inverse_imageがこのImage単体を透過合成
+// できるようにするため)
+std::shared_ptr<SDL_::Image> cropSprite(const std::shared_ptr<SDL_::Image> &sheet, int x, int y, int w, int h)
+{
+	auto frame = create_image(w, h);
+	const Uint32 colorKey = sheet->getColorKey();
+	frame->fillRect(colorKey);
+	frame->blit(sheet, Rect(x, y, w, h), 0, 0);
+	frame->setColorKey(colorKey);
+	return frame;
+}
+
+// frame_magics/frame_specials/frame_goods/frame_brownbox/frame_whitebox/
+// mask_damagedは、ダンジョンや装備に応じて切り替わるframe_tiles等と違い
+// 常に同じシートを使うので、ここで一度だけ読み込んでコマ切り出しする
+void loadBattleSprites(Resources &res)
+{
+	res.loadImage(ImageId::user_magic);
+	auto magicSheet = res.getImage(ImageId::user_magic);
+	for (int i = 0; i < N_MAGICS * 2; i++) {
+		frame_magics[i] = cropSprite(magicSheet, i * 16, 0, 16, 16);
+	}
+
+	res.loadImage(ImageId::user_effect);
+	auto effectSheet = res.getImage(ImageId::user_effect);
+	for (int i = 0; i < N_SPECIALS; i++) {
+		frame_specials[i] = cropSprite(effectSheet, i * 40, 0, 40, 40);
+	}
+
+	res.loadImage(ImageId::user_goods);
+	auto goodsSheet = res.getImage(ImageId::user_goods);
+	for (int i = 0; i < N_GOODS; i++) {
+		frame_goods[i] = cropSprite(goodsSheet, i * 40, 0, 40, 40);
+	}
+	// 白箱・茶箱もgoods.bmpの先頭8コマを流用する(旧init.cのindex_whitebox/
+	// index_brownbox参照と同じ)
+	for (int i = 0; i < 4; i++) {
+		frame_whitebox[i] = frame_goods[index_whitebox[i]];
+		frame_brownbox[i] = frame_goods[index_brownbox[i]];
+	}
+
+	res.loadImage(ImageId::user_damage);
+	auto damageSheet = res.getImage(ImageId::user_damage);
+	mask_damaged = cropSprite(damageSheet, 0, 0, 40, 40);
+}
 }
 
 void initLegacyGraphics(Resources &res)
@@ -107,6 +159,8 @@ void initLegacyGraphics(Resources &res)
 	if (fontAtlas) {
 		legacyFont = std::make_unique<SDL_::BitmapFont>(*fontAtlas);
 	}
+
+	loadBattleSprites(res);
 }
 
 void presentLegacyFrame()

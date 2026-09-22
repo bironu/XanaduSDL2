@@ -313,16 +313,19 @@ void MenuScene::onDebugKey(const SDL_KeyboardEvent &key)
 	case SDLK_A: user.environment.dungeon_level =  9; break;
 	case SDLK_B: user.environment.dungeon_level = 10; break;
 	case SDLK_F:
+		load_user_image();
 		init_level(user.environment.dungeon_level, nullptr);
 		switch_context(CONTEXT_FIELD);
 		return;
 	case SDLK_T:
+		load_user_image();
 		init_level(user.environment.dungeon_level, nullptr);
 		user.x = 0;
 		user.y = 4 * 40;
 		switch_context(CONTEXT_TOWER);
 		return;
 	case SDLK_O:
+		load_user_image();
 		init_level(-1, nullptr);
 		user.point = field_offset_XY(4, 3);
 		switch_context(CONTEXT_FIELD);

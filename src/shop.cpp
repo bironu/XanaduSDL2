@@ -140,6 +140,10 @@ int init_shop(int id)
 {
   shop_id = id;
 
+  // 前の文脈(王城の名前入力等)の残り行が持ち越されないよう、
+  // メッセージログを消してから店のメッセージを出す
+  flush_message();
+
   // BGM
   playBgm(resolveShopMusic(user.environment.scenario, shop_id));
 
