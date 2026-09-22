@@ -34,6 +34,7 @@ target_link_libraries(scene     PRIVATE Lua::Lua sol2::sol2)
 set(XANADU_CORE_SOURCES
   animation.cpp
   battle.cpp
+  battle/BattleState.cpp
   boss.cpp
   cave.cpp
   context.cpp

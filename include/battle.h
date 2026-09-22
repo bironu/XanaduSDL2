@@ -2,6 +2,7 @@
 #define battle_H
 
 #include "dungeon.h"
+#include <functional>
 
 // 戦闘時の魔法に関する情報を保持する構造体
 typedef struct {
@@ -31,17 +32,25 @@ typedef struct {
   magic_t	magics[MAX_MEMBER + 1];	// 魔法情報
 } battle_t;
 
+// monster_t::stateに入る値。BattleState/BattleScene両方から使うためここに置く
+constexpr short MONSTER_ALIVE     = 0; // 生きている
+constexpr short MONSTER_KILLED    = 1; // 殺された
+constexpr short MONSTER_DEAD      = 3; // 死んだ
+constexpr short MONSTER_DISAPPEAR = 4; // 消滅した
+constexpr short MONSTER_RIP       = 5; // 永眠中
+
 extern const int battle_frame_user[10];
 
-// コンテキスト保護関数
-extern void battle_create(void);
-extern void battle_destroy(void);
-extern void battle_enter(void);
-extern void battle_leave(void);
+// 部屋の四辺のドアの位置(point_t型はxanadu.h由来のためここでは宣言できない。
+// 実体はsrc/battle/BattleState.cpp。使う側はuse_item.cppのように
+// ローカルにextern宣言すること)
 
-// 初期化関数
+// 初期化関数。実体はBattleState(include/battle/BattleState.h)への
+// 薄いブリッジ(src/battle.cpp)。field.cpp/tower.cppからBattleScene生成前に、
+// init_battle_monsters/replace_battle_mapはtower.cpp/use_item.cppから
+// BattleSceneの生存期間と無関係に直接呼ばれるため、この形で残している
 extern int init_battle(room_t *room, const battle_t *suspended,
-                       int (*thunk_escape)(int dir));
+                       std::function<int(int)> thunk_escape);
 extern void init_battle_monsters(const battle_t *suspended);
 extern void save_battle_monsters(void);
 

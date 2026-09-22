@@ -6,6 +6,7 @@
 #include "scene/menu/MenuScene.h"
 #include "sdl/SDLMixMixer.h"
 #include "sdl/LegacyPlatform.h"
+#include "battle/BattleState.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -24,6 +25,8 @@ int main(int argc, char *argv[])
 
 	Resources res;
     res.reload();
+
+	BattleState battleState;
 	const int width = res.getWindowWidth();
 	const int height = res.getWindowHeight();
 
