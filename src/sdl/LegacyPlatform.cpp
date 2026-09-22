@@ -1,8 +1,9 @@
 #include "sdl/LegacyPlatform.h"
 #include "xanadu.h"
-#include "audio.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
 #include "sdl/SDLBitmapFont.h"
 #include "sdl/SDLTexture.h"
 #include "sdl/SDLRenderer.h"
@@ -13,7 +14,6 @@
 #include "app/Application.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
-#include <array>
 #include <memory>
 #include <string>
 
@@ -62,74 +62,6 @@ std::shared_ptr<SDL_::Image> visual_image;
 
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
-
-// se_play/se_loadで使う効果音サウンドのキャッシュ。SE_*の定義値をそのまま
-// インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
-constexpr int SE_CHUNK_COUNT = SE_ENCOUNT + 1;
-std::array<std::shared_ptr<SDL_::Mix_::Audio>, SE_CHUNK_COUNT> seChunks;
-
-std::shared_ptr<SDL_::Mix_::Audio> load_se_chunk(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		return nullptr;
-	}
-	auto chunk = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/wave/") + filename).c_str());
-	return chunk->get() ? chunk : nullptr;
-}
-
-// se_load()で明示的にロードされないSE番号は、wave.txtから読み込まれた
-// se_dataのファイル名をそのまま使う
-const char *default_se_filename(int id)
-{
-	switch (id) {
-	case SE_MAGIC_HIT:    return se_data.magic_hit;
-	case SE_MAGIC_FAILED: return se_data.magic_failed;
-	case SE_DAMAGED:      return se_data.damaged;
-	case SE_TRAPPED:      return se_data.trapped;
-	case SE_MONSTER_DEAD: return se_data.monster_dead;
-	case SE_OPEN_BOX:     return se_data.open_box;
-	case SE_TREASURE:     return se_data.treasure;
-	case SE_GET:          return se_data.get;
-	case SE_GET_POISON:   return se_data.get_poison;
-	case SE_LOST_KEY:     return se_data.lost_key;
-	case SE_ENCOUNT:      return se_data.encount;
-	default:
-		if (SE_CAST_NEEDLE <= id && id <= SE_CAST_DEATH) {
-			return se_data.cast[id - SE_CAST_NEEDLE];
-		}
-		return nullptr;
-	}
-}
-
-std::shared_ptr<SDL_::Mix_::Audio> resolve_se_chunk(int id)
-{
-	if (id < 0 || id >= SE_CHUNK_COUNT) {
-		return nullptr;
-	}
-	if (!seChunks[id]) {
-		seChunks[id] = load_se_chunk(default_se_filename(id));
-	}
-	return seChunks[id];
-}
-
-// 現在再生中(またはロード済み)のBGM。SDL_::Mix_::MixerはBGM用の
-// MIX_Trackを1つしか持たないため、チャンクと違いスロット配列ではなく単一の
-// キャッシュで管理する
-std::shared_ptr<SDL_::Mix_::Audio> currentMusic;
-std::string currentBgmFilename;
-
-std::shared_ptr<SDL_::Mix_::Audio> load_bgm_music(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		return nullptr;
-	}
-	// isMusic=trueを明示し、MIX_LoadAudioWithProperties()経由の
-	// FluidSynth用SoundFontパス指定(loadAudio()、SDLMixAudio.cpp参照)を
-	// 使う。省略するとisMusic=falseのMIX_LoadAudio()経由になり、
-	// SoundFontが指定されないままMIDIが再生されてしまう。
-	auto music = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/midi/") + filename).c_str(), true);
-	return music->get() ? music : nullptr;
-}
 
 // ---- 旧C実装のset_timer/kill_timer(WM_TIMER相当)のSDL3版 ----
 // SDL_AddTimer()のコールバックは専用スレッドで呼ばれるため、そこから直接
@@ -180,8 +112,6 @@ void initLegacyGraphics(Resources &res)
 void initLegacySound(Resources &res)
 {
 	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
-	init_se();
-	init_bgm();
 }
 
 void presentLegacyFrame()
@@ -224,9 +154,10 @@ void update_immediately(void)
     presentLegacyFrame();
 }
 
-int load_background(const char *filename)
+int load_background(ImageId id)
 {
-	auto img = load_image(filename);
+	Resources::instance().loadImage(id);
+	auto img = Resources::instance().getImage(id);
 	if (!img) {
 		return 1;
 	}
@@ -285,53 +216,6 @@ int se_enabled(void)
 	return !user.config.mute;
 }
 
-void bgm_play(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		bgm_stop();
-		return;
-	}
-	// 同じ曲を鳴らし直さない(フィールド再訪等で毎回呼ばれても再生が
-	// 途切れないように)。ただし、Mixer::stopMusic()等をbgm_stop()を経由せず
-	// 直接呼ぶ箇所(MenuScene::onSuspend()等)があり、そちらはこのキャッシュを
-	// クリアしないため、実際に再生中かどうかも合わせて確認する。
-	if (currentMusic && currentBgmFilename == filename &&
-	    Application::instance().getMixer().isMusicPlaying()) {
-		return;
-	}
-	auto music = load_bgm_music(filename);
-	if (!music) {
-		return;
-	}
-	currentMusic = music;
-	currentBgmFilename = filename;
-	Application::instance().getMixer().playMusic(*currentMusic, -1);
-	if (user.config.mute) {
-		// ミュート中でも曲自体はロード・開始しておき、一時停止扱いにする
-		// (bgm_mute()で解除した際にresumeMusic()で復帰できるようにするため)
-		Application::instance().getMixer().pauseMusic();
-	}
-}
-
-void bgm_stop(void)
-{
-	Application::instance().getMixer().stopMusic();
-	currentMusic.reset();
-	currentBgmFilename.clear();
-}
-
-void bgm_pause(void)
-{
-	Application::instance().getMixer().pauseMusic();
-}
-
-void bgm_restart(void)
-{
-	if (currentMusic) {
-		Application::instance().getMixer().playMusic(*currentMusic, -1);
-	}
-}
-
 void bgm_tempo(int)
 {
 	// SDL3_mixerのMIX_Track APIにはMIDIテンポを変更する機能が見当たらないため未対応
@@ -345,33 +229,27 @@ void bgm_random(int)
 int bgm_mute(void)
 {
 	user.config.mute = !user.config.mute;
-	if (currentMusic) {
-		if (user.config.mute) {
-			Application::instance().getMixer().pauseMusic();
-		}
-		else {
-			Application::instance().getMixer().resumeMusic();
-		}
+	auto &mixer = Application::instance().getMixer();
+	if (user.config.mute) {
+		mixer.pauseMusic();
+	}
+	else {
+		mixer.resumeMusic();
 	}
 	return user.config.mute;
 }
 
-void se_play(int id)
+void playSound(SoundId id)
 {
 	if (user.config.mute) {
 		return;
 	}
-	auto chunk = resolve_se_chunk(id);
-	if (!chunk) {
-		return;
+	if (auto chunk = Resources::instance().getSound(id)) {
+		Application::instance().getMixer().playSound(*chunk, -1, 0);
 	}
-	Application::instance().getMixer().playSound(*chunk, -1, 0);
 }
 
-void se_load(int id, const char *filename)
+void playBgm(MusicId id)
 {
-	if (id < 0 || id >= SE_CHUNK_COUNT) {
-		return;
-	}
-	seChunks[id] = load_se_chunk(filename);
+	Resources::instance().playBgm(Application::instance().getMixer(), id);
 }

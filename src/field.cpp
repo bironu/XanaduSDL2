@@ -10,6 +10,40 @@
 #include "user_dead.h"
 #include "animation.h"
 #include "pause.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
+#include "app/Application.h"
+
+namespace
+{
+constexpr SoundId kFieldSoundIds[] = { SoundId::lost_key, SoundId::trapped, SoundId::encount };
+}
+
+MusicId resolveFieldMusic(int scenario, int dungeonLevel)
+{
+	if (scenario == 0) {
+		return MusicId::xanadu; // XA1_DEFAULT_FIELDが全レベルに適用される(個別上書きなし)
+	}
+	static constexpr MusicId kXa2Field[MAX_DUNGEON_LEVEL] = {
+		MusicId::xana2_XANA2_01, MusicId::xana2_XANA2_02, MusicId::xana2_XANA2_03,
+		MusicId::xana2_XANA2_04, MusicId::xana2_XANA2_05, MusicId::xana2_XANA2_06,
+		MusicId::xana2_XANA2_07, MusicId::xana2_XANA2_08, MusicId::xana2_XANA2_09,
+		MusicId::xana2_XANA2_10, MusicId::xana2_XANA2_11,
+	};
+	if (dungeonLevel < 0 || MAX_DUNGEON_LEVEL <= dungeonLevel) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveFieldMusic: dungeon_level out of range %d\n", dungeonLevel);
+		return MusicId::none;
+	}
+	return kXa2Field[dungeonLevel];
+}
+
+// タワーは現状の設定ではフィールドと同じ曲になる(未設定時にフィールドへフォールバックするため)
+MusicId resolveTowerMusic(int scenario, int dungeonLevel)
+{
+	return resolveFieldMusic(scenario, dungeonLevel);
+}
 
 #define GRAVITY_RATE		0	// 重力発生タイミング
 #define GRAVITY_WAIT		1	// 入力用重力ウエイト
@@ -106,7 +140,7 @@ int init_training_ground(int scenario)
   field_warp_count = 0;
 
   // BGM
-  bgm_play(bgm_data.dungeon[0].field[10]);
+  playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
 
   return CONTEXT_FIELD;
 }
@@ -146,13 +180,12 @@ int init_field(void)
 {
   // BGM
   if (in_training_ground()) {
-    bgm_play(bgm_data.dungeon[0].field[10]);
+    playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
   } else {
-    bgm_play(bgm_data.dungeon[user.environment.scenario]
-             .field[user.environment.dungeon_level]);
+    playBgm(resolveFieldMusic(user.environment.scenario, user.environment.dungeon_level));
     bgm_tempo(0); // テンポ
   }
-  
+
   // 戦闘中だった？
   if (in_battle())
     return init_battle(&user.environment.field_room,
@@ -164,6 +197,12 @@ int init_field(void)
 
 void field_enter(void)
 {
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kFieldSoundIds) {
+    res.loadSound(mixer, id);
+  }
+
   // 変数の初期化
   gravity_clock = GRAVITY_RATE;
   monster_encountered = NULL;
@@ -184,14 +223,13 @@ void field_enter(void)
 
   // 背景フレーム(枠)。ボス撃破後はboss.cppのrestore_context()が再描画するが、
   // フィールドへの最初の入場時にも描いておく必要がある
-  load_background(IMAGE_DIR "/user/frame.bmp");
+  load_background(ImageId::user_frame);
 
   // BGM
   if (in_training_ground()) {
-    bgm_play(bgm_data.dungeon[0].field[10]);
+    playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
   } else {
-    bgm_play(bgm_data.dungeon[user.environment.scenario]
-             .field[user.environment.dungeon_level]);
+    playBgm(resolveFieldMusic(user.environment.scenario, user.environment.dungeon_level));
     bgm_tempo(0); // テンポ
   }
 
@@ -211,6 +249,11 @@ void field_enter(void)
 
 void field_leave(void)
 {
+  auto &res = Resources::instance();
+  for (SoundId id : kFieldSoundIds) {
+    res.unloadSound(id);
+  }
+  Resources::instance().unloadImage(ImageId::user_frame);
   kill_timer();
 }
 
@@ -508,7 +551,7 @@ retry:
           ? tile_data.pattern0
           : tile_data.pattern1;
       
-        se_play(SE_LOST_KEY); // SE
+        playSound(SoundId::lost_key); // SE
         emit_message("Lost key");
       
         // 扉を開ける
@@ -661,7 +704,7 @@ void user_fall_hazard(void)
   status_update_HP(SDL_::Color::RED);
   
   field_user_trapped = 1;
-  se_play(SE_TRAPPED);
+  playSound(SoundId::trapped);
 }
 
 int open_tombs(void)
@@ -878,7 +921,7 @@ void field_begin_battle()
   room_t *room = &user.environment.field_room;
 
   // 遭遇音
-  se_play(SE_ENCOUNT);
+  playSound(SoundId::encount);
   tomb_t *ma = monster_encountered;
 
   // 遭遇したモンスターの出現位置番号を控えておく

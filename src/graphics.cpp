@@ -9,16 +9,6 @@ std::shared_ptr<SDL_::Image> create_image(int width, int height)
   return std::make_shared<SDL_::Image>(width, height);
 }
 
-std::shared_ptr<SDL_::Image> load_image(const char *filename)
-{
-  // 左上ピクセル色をカラーキー(透過色)として設定する(SDL_::Image(file, isColorKey)参照)。
-  // load_imageで読み込んだシートはdraw_sprite()(カラーキーを尊重)とdraw_image()
-  // (常に不透明合成、カラーキーを一時無効化)の両方から使われるため、ここで常に
-  // 設定しておいても不透明合成側には影響しない。
-  auto img = std::make_shared<SDL_::Image>(filename, true);
-  return img->isEnabled() ? img : nullptr;
-}
-
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
   if (!dst || !src) {

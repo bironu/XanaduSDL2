@@ -11,8 +11,10 @@
 #endif
 
 #include "graphics.h"
-#include "audio.h"
+#include "sdl/LegacyPlatform.h"
 #include "keyboard.h"
+
+enum class ImageId;
 
 #include "context.h"
 #include "dungeon.h"
@@ -100,7 +102,7 @@ extern const rectangle_t rect_endingroll;
 
 extern void update_region(int x, int y, int width, int height);
 extern void update_immediately(void);
-extern int load_background(const char *filename);
+extern int load_background(ImageId id);
 
 #define update(r) (update_region((r).x, (r).y, (r).width, (r).height))
 

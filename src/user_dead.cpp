@@ -2,6 +2,9 @@
 #include "user_dead.h"
 #include "status.h"
 #include "animation.h"
+#include "resources/Resources.h"
+#include "resources/SoundId.h"
+#include "app/Application.h"
 
 #define STATE_SWOON		0	// 昏倒
 #define STATE_GRAVE		1	// 埋葬
@@ -31,6 +34,8 @@ int init_user_dead(int x, int y, void (*update_background)(void))
 
 void user_dead_enter(void)
 {
+  Resources::instance().loadSound(Application::instance().getMixer(), SoundId::elixer);
+
   switch (user_dead_state) {
   case STATE_SWOON:
     {
@@ -86,8 +91,7 @@ void user_dead_enter(void)
       user.status.ELX--;
 
       // SE
-      se_load(SE_SOMEWHAT1, se_data.use_elixer);
-      se_play(SE_SOMEWHAT1);
+      playSound(SoundId::elixer);
 
       status_update_HP(SDL_::Color::WHITE);
       restore_context();
@@ -99,6 +103,7 @@ void user_dead_enter(void)
 
 void user_dead_leave(void)
 {
+  Resources::instance().unloadSound(SoundId::elixer);
 }
 
 void restore_context(void)

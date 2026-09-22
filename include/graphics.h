@@ -15,7 +15,6 @@
    関数ポインタテーブル)は廃止し、SDL_::Image(SDL_Surfaceのラッパ)を直接使う */
 
 std::shared_ptr<SDL_::Image> create_image(int width, int height);
-std::shared_ptr<SDL_::Image> load_image(const char *filename);
 
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src);
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src);

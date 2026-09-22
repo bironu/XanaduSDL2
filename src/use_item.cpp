@@ -4,6 +4,9 @@
 #include "status.h"
 #include "use_item.h"
 #include "animation.h"
+#include "resources/Resources.h"
+#include "resources/SoundId.h"
+#include "app/Application.h"
 
 #define STATE_USE		0	// 初期状態
 #define STATE_CONTINUE		1	// 継続
@@ -81,8 +84,19 @@ int init_use_item(void (*update_background)(void), room_t *room)
   return CONTEXT_USE;
 }
 
+namespace
+{
+constexpr SoundId kUseItemSoundIds[] = { SoundId::invoke, SoundId::treasure, SoundId::lost_key, SoundId::get };
+}
+
 void use_item_enter(void)
 {
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kUseItemSoundIds) {
+    res.loadSound(mixer, id);
+  }
+
   if (use_item_state == STATE_USE || use_item_state == STATE_CONTINUE) {
     
     int item_type = goods_data[GOODS_MAGIC_ITEM]
@@ -95,7 +109,7 @@ void use_item_enter(void)
       emit_message(use_item_response[item_type]);
     }
     
-    se_play(SE_USE_ITEM); // se
+    playSound(SoundId::invoke); // se
     
     switch (item_type) {
     case ITEM_SPECTACLES:   use_item_spectacles(); break;
@@ -153,6 +167,10 @@ void use_item_enter(void)
 
 void use_item_leave(void)
 {
+  auto &res = Resources::instance();
+  for (SoundId id : kUseItemSoundIds) {
+    res.unloadSound(id);
+  }
   kill_timer();
 }
 
@@ -386,13 +404,14 @@ void loop_balance(void)
     if (mm->type == MEMBER_BOX) {
       if (--mm->frame >= 0) {
         if (!something_opening) {
-          se_play(SE_OPEN_BOX);
+          // 宝箱を開ける音はget.wavを使う
+          playSound(SoundId::get);
         }
       } else {
         int goods = monster_data[use_item_room->monster_id].goods;
         
         if (!something_opening) {
-          se_play(SE_TREASURE);
+          playSound(SoundId::treasure);
         }
         mm->type = MEMBER_GOODS;
         if (mm->value == 1) {
@@ -447,7 +466,7 @@ void use_item_pendant(void)
           : tile_data.pattern1;
         
         use_item_state = STATE_CONTINUE;
-        se_play(SE_LOST_KEY);
+        playSound(SoundId::lost_key);
         extend_context(init_animation_tile(tile_data.field_open, 3, x, y,
                                            thunk_update_background));
         return;
@@ -462,7 +481,7 @@ void use_item_pendant(void)
       level_data.field[user.point] = tile_data.cave_next;
       
       use_item_state = STATE_CONTINUE;
-      se_play(SE_LOST_KEY);
+      playSound(SoundId::lost_key);
     }
   } else {
     // たぶんタワー内部
@@ -480,7 +499,7 @@ void use_item_pendant(void)
                            room_door_position[i].y, tile_data.floor);
 
         use_item_state = STATE_CONTINUE;
-        se_play(SE_LOST_KEY);
+        playSound(SoundId::lost_key);
         x = room_door_position[i].x * 40;
         y = room_door_position[i].y * 40;
         extend_context(init_animation_tile(tile_data.tower_open, 3, x, y,

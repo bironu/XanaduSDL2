@@ -2,6 +2,7 @@
 #include "battle.h"
 #include "user.h"
 #include "boss.h"
+#include "field.h"
 
 static int tower_battle_escape(int);
 
@@ -9,8 +10,7 @@ static int tower_battle_escape(int);
 int init_tower(void)
 {
   // BGM
-  bgm_play(bgm_data.dungeon[user.environment.scenario]
-           .tower[user.environment.dungeon_level]);
+  playBgm(resolveTowerMusic(user.environment.scenario, user.environment.dungeon_level));
   bgm_tempo(0); // テンポ
   
   // 戦闘中だった？
@@ -34,8 +34,7 @@ void tower_enter(void)
     extend_context(init_boss(boss_id));
   } else {
     // BGM
-    bgm_play(bgm_data.dungeon[user.environment.scenario]
-             .tower[user.environment.dungeon_level]);
+    playBgm(resolveTowerMusic(user.environment.scenario, user.environment.dungeon_level));
     bgm_tempo(0); // テンポ
 
     user.environment.in_tower = 1;

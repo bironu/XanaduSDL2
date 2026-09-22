@@ -1,5 +1,7 @@
 #include "user.h"
 #include "status.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 
 // 戦士の称号
 const rank_data_t fighter_rank[MAX_RANK + 1] = {
@@ -51,12 +53,24 @@ std::string user_path;
 user_t user;
 int user_hidden;
 
-static std::shared_ptr<SDL_::Image> user_base;
-static std::shared_ptr<SDL_::Image> user_base_0;
-
-static int current_page;
+static int current_page = -1;
 
 static int load_page0(int row);
+
+namespace
+{
+ImageId userPageImageId(int page)
+{
+	switch (page) {
+	case 1: return ImageId::user_user1;
+	case 2: return ImageId::user_user2;
+	case 3: return ImageId::user_user3;
+	default:
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "userPageImageId: unknown page %d\n", page);
+		return ImageId::user_user1;
+	}
+}
+}
 
 // 現在のユーザーの装備にふさわしいイメージをロードする
 int load_user_image(void)
@@ -64,40 +78,34 @@ int load_user_image(void)
   int weapon_type;
   int shield_type;
   int armour_type;
-  int magic_item_type;
   int page, row, i;
-  
+
   weapon_type = weapon_data()[user.equipment[GOODS_WEAPON]].type;
   shield_type = shield_data()[user.equipment[GOODS_SHIELD]].type;
   armour_type = armour_data()[user.equipment[GOODS_ARMOUR]].type;
-  
-  magic_item_type =
-    goods_data[GOODS_MAGIC_ITEM][user.equipment[GOODS_MAGIC_ITEM]].type;
-  
-  // 効果音の読み込み
-  se_load(SE_USER_HIT, se_data.user_hit[weapon_type]);
-  se_load(SE_USE_ITEM, se_data.item[magic_item_type]);
-  
+
   if (using_demons_ring()) {
     // 姿は見えない
     return load_page0(0);
   }
   if (using_candle()) {
     // モンスターに変身
-    return load_page0(1); 
+    return load_page0(1);
   }
 
   page = armour_type + 1;
 
   // 現在読み込んでいるページ？
   if (current_page != page) {
-    char path[BUFSIZ];
-    
-    sprintf(path, IMAGE_DIR "/user/user%d.bmp", page);
-    user_base = load_image(path);
+    ImageId newId = userPageImageId(page);
+    if (current_page >= 0) {
+      Resources::instance().unloadImage(userPageImageId(current_page));
+    }
+    Resources::instance().loadImage(newId);
     current_page = page;
   }
-  
+  auto user_base = Resources::instance().getImage(userPageImageId(current_page));
+
   // 何行め？
   row = (weapon_type + shield_type * MAX_WEAPON_TYPE) * 40;
   for (i = 0; i < 10; i++) {
@@ -115,10 +123,9 @@ int load_user_unarmed(void)
 int load_page0(int row)
 {
   int i;
-  
-  if (!user_base_0) {
-    user_base_0 = load_image(IMAGE_DIR "/user/user0.bmp");
-  }
+
+  Resources::instance().loadImage(ImageId::user_user0);
+  auto user_base_0 = Resources::instance().getImage(ImageId::user_user0);
   for (i = 0; i < 10; i++) {
     frame_user[i] = SDL_::SubImage{user_base_0, Rect(i * 40, row * 40, 40, 40)};
   }

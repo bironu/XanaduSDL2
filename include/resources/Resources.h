@@ -40,6 +40,11 @@ public:
 	Resources();
 	~Resources();
 
+	// 旧C時代の自由関数(dungeon.cpp/cave.cpp/user.cpp/boss.cpp/shop.cpp/
+	// inventory.cpp 等)からリソースへアクセスするための参照。Application::instance()
+	// と同じ橋渡し用の簡易実装。インスタンスは常に高々1つしか生成されない前提。
+	static Resources &instance() { return *instance_; }
+
 	void setWindowWidth(int width) { windowWidth_ = width; }
 	void setWindowHeight(int height) { windowHeight_ = height; }
 	int getWindowWidth() const { return windowWidth_; }
@@ -66,6 +71,11 @@ public:
     void unloadMusic(MusicId id);
     std::shared_ptr<SDL_::Mix_::Audio> getMusic(const MusicId &) const;
 
+    // 現在再生中(またはロード済み)のBGMをidで指定し直す。同じidが既に再生中なら
+    // 何もしない(曲の鳴らし直しを防ぐ)。idを切り替えた場合、旧トラックは
+    // Mixerへの再配線(playMusic)が完了した後でunloadMusicする。
+    bool playBgm(SDL_::Mix_::Mixer &mixer, MusicId id);
+
     void reload();
 
 private:
@@ -80,6 +90,9 @@ private:
     mutable std::unordered_map<SoundId, std::shared_ptr<SDL_::Mix_::Audio>> mapSound_;
     mutable std::unordered_map<MusicId, std::shared_ptr<SDL_::Mix_::Audio>> mapMusic_;
 	std::unordered_map<uint32_t, std::shared_ptr<SDL_::Joystick>> mapJoystick_;
+    MusicId currentMusicId_;
+
+	static Resources *instance_; // TODO: singletonはやめる
 };
 
 #endif // RESOURCES_H_

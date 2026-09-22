@@ -3,6 +3,12 @@
 
 #include "xanadu.h"
 
+enum class MusicId;
+
+// フィールド/タワーBGM。scenario(0/1)・迷宮レベル(0..MAX_DUNGEON_LEVEL-1)から曲を解決する
+MusicId resolveFieldMusic(int scenario, int dungeonLevel);
+MusicId resolveTowerMusic(int scenario, int dungeonLevel);
+
 // フィールドの一次元座標に変換
 #define field_offset_XY(x, y)	((x) + (y) * FIELD_WIDTH)
 

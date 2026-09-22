@@ -1,6 +1,8 @@
 #include "cave.h"
 #include "user.h"
 #include "animation.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 
 static void update_background(void);
 
@@ -10,7 +12,8 @@ int init_cave(int to_level)
   user.environment.dungeon_level = to_level;
   init_level(to_level, user_path.empty() ? nullptr : user_path.c_str());
 
-  visual_image = load_image(IMAGE_DIR "/picture/cave.bmp");
+  Resources::instance().loadImage(ImageId::picture_cave);
+  visual_image = Resources::instance().getImage(ImageId::picture_cave);
   
   emit_message("Enter-Cave");
   return CONTEXT_CAVE;
@@ -32,6 +35,7 @@ void cave_enter(void)
 
 void cave_leave(void)
 {
+  Resources::instance().unloadImage(ImageId::picture_cave);
 }
 
 void update_background(void)

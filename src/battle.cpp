@@ -6,8 +6,30 @@
 #include "inventory.h"
 #include "user_dead.h"
 #include "animation.h"
+#include "resources/Resources.h"
+#include "resources/SoundId.h"
+#include "sdl/LegacyPlatform.h"
+#include "app/Application.h"
 
 #define UPDATE_ABORT		-1
+
+// 魔法詠唱SE。scroll_typeはSCROLL_NEEDLE(0)..SCROLL_DEATH(8)(goods.h参照)
+namespace
+{
+SoundId resolveCastSound(int scrollType)
+{
+	static constexpr SoundId kCastSounds[MAX_SCROLL_TYPE] = {
+		SoundId::c_needle, SoundId::c_mittar, SoundId::c_deluge,
+		SoundId::c_fire,   SoundId::c_thunder, SoundId::c_poison,
+		SoundId::c_corros, SoundId::c_tilte,   SoundId::c_death,
+	};
+	if (scrollType < 0 || MAX_SCROLL_TYPE <= scrollType) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveCastSound: scroll_type out of range %d\n", scrollType);
+		return SoundId::invoke;
+	}
+	return kCastSounds[scrollType];
+}
+}
 
 #define BATTLE_INTERVAL		70	// 戦闘時インターバル
 
@@ -360,8 +382,26 @@ void save_battle_monsters(void)
   memcpy(user.battle.magics, battle_magics, sizeof(battle_magics));
 }
 
+namespace
+{
+constexpr SoundId kBattleSoundIds[] = {
+	SoundId::dead, SoundId::magic, SoundId::failed, SoundId::lost_key,
+	SoundId::attack, SoundId::trapped, SoundId::treasure, SoundId::get,
+	SoundId::poison,
+	SoundId::c_needle, SoundId::c_mittar, SoundId::c_deluge, SoundId::c_fire,
+	SoundId::c_thunder, SoundId::c_poison, SoundId::c_corros, SoundId::c_tilte,
+	SoundId::c_death,
+};
+}
+
 void battle_enter(void)
 {
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kBattleSoundIds) {
+    res.loadSound(mixer, id);
+  }
+
   // 画面の描画
   update_background();
   status_refresh(in_battle());
@@ -391,6 +431,10 @@ void battle_enter(void)
 
 void battle_leave(void)
 {
+  auto &res = Resources::instance();
+  for (SoundId id : kBattleSoundIds) {
+    res.unloadSound(id);
+  }
   kill_timer();
 }
 
@@ -574,7 +618,7 @@ void battle_loop_attack(void)
       mo->monster_timer = dead_time();
       mo->state = MONSTER_DEAD;
       update = 1;
-      se_play(SE_MONSTER_DEAD);
+      playSound(SoundId::dead);
       break;
 
     case MONSTER_DEAD:
@@ -636,7 +680,7 @@ void battle_loop_magic(void)
         timer = dead_time();
         user_deg_phase = DEG_PHASE_DEAD;
       }
-      se_play(SE_MAGIC_HIT);
+      playSound(SoundId::magic);
       update = 1;
     }
     break;
@@ -652,7 +696,7 @@ void battle_loop_magic(void)
       }
       timer = dead_time();
       user_deg_phase = DEG_PHASE_DISAPPEAR;
-      se_play(SE_MONSTER_DEAD);
+      playSound(SoundId::dead);
       update = 1;
     }
     break;
@@ -854,7 +898,7 @@ int battle_move_user(int dir)
       }
       
       emit_message("Lost key");
-      se_play(SE_LOST_KEY);
+      playSound(SoundId::lost_key);
       
       extend_context(init_animation_tile(tile_data.tower_open, 3,
                                          x * 40, y * 40,
@@ -1233,7 +1277,7 @@ void battle_attack_monster(member_t *mm)
         user_skill_up(GOODS_WEAPON, 1);
       }
       user_attack = mm;
-      se_play(SE_USER_HIT);
+      playSound(SoundId::attack);
     }
   }
 }
@@ -1257,12 +1301,12 @@ int magic_attack_monster(member_t *mm, magic_t *ma, int deg)
       }
 
       user_attack = mm;
-      se_play(SE_MAGIC_HIT);
+      playSound(SoundId::magic);
     }
     return 1;
   } else {
     if (!deg) {
-      se_play(SE_MAGIC_FAILED);
+      playSound(SoundId::failed);
       emit_message("Failed!"); // Deg 系でなければ、一回ごと
     }
     return 0;
@@ -1346,7 +1390,7 @@ void battle_attack_user(member_t *mm)
     }
     
     if (user_damage == NULL) {
-      se_play(SE_DAMAGED);
+      playSound(SoundId::attack);
     }
     user_damage = mm; // 1 ターンに複数回攻撃されることがある
   }
@@ -1369,9 +1413,9 @@ void magic_attack_user(magic_t *ma)
     
     if (user_damage == NULL) {
 #if 0
-      se_play(SE_MAGIC_HIT);
+      playSound(SoundId::magic);
 #else
-      se_play(SE_TRAPPED);
+      playSound(SoundId::trapped);
 #endif 
     }
     user_damage = ma;
@@ -1408,9 +1452,10 @@ void battle_open_box(member_t *um)
       }
       um->frame = index_goods[um->value];
 
-      se_play(SE_TREASURE);
+      playSound(SoundId::treasure);
     } else {
-      se_play(SE_OPEN_BOX);
+      // 宝箱を開ける音はget.wavを使う
+      playSound(SoundId::get);
     }
   }
 }
@@ -1420,7 +1465,7 @@ void battle_get_goods(member_t *gm)
 {
   int goods_type, goods_numb;
   
-  se_play(SE_GET);
+  playSound(SoundId::get);
   
   gm->type = MEMBER_UNUSED;
 
@@ -1449,7 +1494,7 @@ void battle_get_goods(member_t *gm)
       decrement_user_HP(user.status.HP / 2, 1);
       emit_message("It's poison");
       user_damage = gm;
-      se_play(SE_GET_POISON);
+      playSound(SoundId::poison);
       return;
     }
   } else if (goods_type < GOODS_OTHER_ITEM) {
@@ -1526,7 +1571,7 @@ void battle_cast_spell(magic_t *ma, int scroll_id, int INT,
       } else {
       failed:
         // 失敗
-        se_play(SE_MAGIC_FAILED);
+        playSound(SoundId::failed);
         emit_message("Failed!");
         return;
       }
@@ -1538,7 +1583,7 @@ void battle_cast_spell(magic_t *ma, int scroll_id, int INT,
       magic_attack_user(ma); // 1 ターンに二回以上攻撃しない
     }
   }
-  se_play(SE_CAST_NEEDLE + scroll_type);
+  playSound(resolveCastSound(scroll_type));
 }
 
 static member_t *move_magic(magic_t *ma)
@@ -1612,8 +1657,8 @@ int battle_move_magic(void)
         // 宝箱、お宝に命中
         ma->lifetime = 0;
         user_attack = something;
-        // se_play(SE_MAGIC_HIT);
-        se_play(SE_USER_HIT);
+        // playSound(SoundId::magic);
+        playSound(SoundId::attack);
       }
     }
     update = 1;
