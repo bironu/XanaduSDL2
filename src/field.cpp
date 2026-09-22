@@ -1,6 +1,7 @@
 #include "field.h"
 #include "battle.h"
 #include "boss.h"
+#include "tower.h"
 #include "shop.h"
 #include "cave.h"
 #include "equip.h"
@@ -296,7 +297,7 @@ void field_loop(void)
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, SDL_SCANCODE_S));
+      begin_pause(SDL_SCANCODE_S, field_enter);
       return;
     }
   } else {
@@ -1233,7 +1234,7 @@ void field_enter_where(void)
       user.frame = battle_frame_user[8];
 
       switch_context(CONTEXT_TOWER);
-      extend_context(init_pause(50, SDL_SCANCODE_SPACE));
+      begin_pause(SDL_SCANCODE_SPACE, tower_enter);
       return;
     }
   }

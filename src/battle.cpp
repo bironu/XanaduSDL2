@@ -494,7 +494,7 @@ void battle_loop(void)
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, SDL_SCANCODE_S));
+      begin_pause(SDL_SCANCODE_S, battle_enter);
       return;
     }
     // Ctrl-Q: 保存
@@ -1451,7 +1451,7 @@ void battle_open_box(member_t *um)
     
       if (um->value == 1) {
         // ウエイト: 危険なものが入っているかもしれない
-        extend_context(init_pause(200, SDL_SCANCODE_SPACE));
+        begin_pause(SDL_SCANCODE_SPACE, battle_enter);
         um->value = monster_status->goods; // 赤箱
       } else {
         um->value = monster_status->goods == GOODS_FOOD

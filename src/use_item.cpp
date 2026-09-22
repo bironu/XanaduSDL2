@@ -206,7 +206,7 @@ void restore_context(int consumed)
 #ifdef NO_PAUSE
   resume_context();
 #else
-  switch_context(init_pause(50, SDL_SCANCODE_RETURN));
+  begin_pause(SDL_SCANCODE_RETURN, finish_current_context);
 #endif
 }
 

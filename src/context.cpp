@@ -17,7 +17,6 @@
 #include "scene/animation/AnimationScene.h"
 #include "scene/userdead/UserDeadScene.h"
 #include "scene/message/MessageEnterScene.h"
-#include "scene/pause/PauseScene.h"
 #include "scene/opening/OpeningScene.h"
 #include "scene/ending/EndingScene.h"
 
@@ -70,8 +69,6 @@ std::shared_ptr<Scene> create_scene(int context_id)
   case CONTEXT_ENTER_NUMBER:
   case CONTEXT_ENTER_STRING:
     return std::make_shared<MessageEnterScene>(context_id);
-  case CONTEXT_PAUSE:
-    return std::make_shared<PauseScene>();
   case CONTEXT_OPENING:
     return std::make_shared<OpeningScene>();
   case CONTEXT_ENDING:
@@ -131,4 +128,15 @@ int current_context_id(void)
   auto current = Application::instance().getCurrentScene();
   auto game = std::dynamic_pointer_cast<GameScene>(current);
   return game ? game->contextId() : CONTEXT_NULL;
+}
+
+// XanaduPause(pause.cpp)の完了コールバックから呼ばれる。
+// 旧switch_context(init_pause(...))が担っていた「ポーズ後に現在の
+// Sceneを終了し、前のSceneへ戻る」効果をfinish()で直接再現する
+void finish_current_context(void)
+{
+  auto current = Application::instance().getCurrentScene();
+  if (current) {
+    current->finish();
+  }
 }

@@ -1,5 +1,6 @@
 #include "scene/GameScene.h"
 #include "message.h"
+#include "pause.h"
 #include "sdl/LegacyPlatform.h"
 #include <SDL3/SDL_events.h>
 #include <cctype>
@@ -64,12 +65,19 @@ void GameScene::onSuspend()
 
 bool GameScene::onIdle(uint32_t tick)
 {
+    pause_update(tick);
     presentLegacyFrame();
     return Scene::onIdle(tick);
 }
 
 void GameScene::dispatch(const SDL_Event &event)
 {
+	// ポーズ中(XanaduPause)は元のコンテキストへの入力を止める
+	// (旧PauseSceneがSceneスタックの最上段で入力を奪っていたのと同じ役割)
+	if (pause_active()) {
+		return;
+	}
+
 	switch (event.type) {
 	case SDL_EVENT_KEY_DOWN:
 	case SDL_EVENT_KEY_UP:

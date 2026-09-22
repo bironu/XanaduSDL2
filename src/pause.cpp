@@ -1,34 +1,45 @@
-#include "xanadu.h"
 #include "pause.h"
+#include "keyboard.h"
+#include "xanadu.h"
 
-#define WAIT_INTERVAL		500	// 待ち時間
+#include <SDL3/SDL_timer.h>
 
-static int pause_interval;
-static int pause_clearkey;
-static int pause_time;
-static void pause_loop(void);
+namespace {
 
-int init_pause(int interval, int clearkey)
+constexpr uint32_t kMaxWaitMs = 500; // 旧WAIT_INTERVAL
+
+bool active_ = false;
+uint32_t startTick_ = 0;
+SDL_Scancode clearKey_ = SDL_SCANCODE_UNKNOWN;
+std::function<void()> onComplete_;
+
+} // namespace
+
+void begin_pause(int clearkey, std::function<void()> onComplete)
 {
-  pause_interval = interval;
-  pause_clearkey = clearkey;
-  pause_time = 0;
-  return CONTEXT_PAUSE;
+  kill_timer(); // 呼び出し元の周期処理を止める。再開はonCompleteの責任
+  active_ = true;
+  startTick_ = SDL_GetTicks();
+  clearKey_ = static_cast<SDL_Scancode>(clearkey);
+  onComplete_ = std::move(onComplete);
 }
 
-void pause_enter(void)
+bool pause_active()
 {
-  set_timer(pause_interval, pause_loop);
+  return active_;
 }
 
-void pause_leave(void)
+void pause_update(uint32_t nowTick)
 {
-  kill_timer();
-}
-
-void pause_loop(void)
-{
-  if (!isKeyDown(static_cast<SDL_Scancode>(pause_clearkey)) ||
-      (pause_time += pause_interval) >= WAIT_INTERVAL)
-    resume_context();
+  if (!active_) {
+    return;
+  }
+  if (!isKeyDown(clearKey_) || nowTick - startTick_ >= kMaxWaitMs) {
+    active_ = false;
+    auto onComplete = std::move(onComplete_);
+    onComplete_ = nullptr;
+    if (onComplete) {
+      onComplete();
+    }
+  }
 }

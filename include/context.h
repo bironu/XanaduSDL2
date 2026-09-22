@@ -17,7 +17,6 @@
 #define CONTEXT_ENTER_CHARACTER	13	// 文字入力
 #define CONTEXT_ENTER_NUMBER	14	// 数値入力
 #define CONTEXT_ENTER_STRING	15	// 文字列入力
-#define CONTEXT_PAUSE		16	// 一時停止
 #define CONTEXT_OPENING		18	// オープニング
 #define CONTEXT_ENDING		19	// エンディ%s%0
 
@@ -30,5 +29,6 @@ extern void extend_context(int context_id);
 extern void resume_context(void);
 extern void reset_context(void);
 extern int current_context_id(void);
+extern void finish_current_context(void); // 現在のSceneをfinish()する(XanaduPauseの完了コールバック用)
 
 #endif // context_H
