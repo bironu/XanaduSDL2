@@ -32,11 +32,4 @@ void bgm_random(int random_pitch_bend);
 // Scene::swap()から毎フレーム呼び出される。
 void presentLegacyFrame();
 
-// set_timer()がSDL_AddTimer()で仕掛けたタイマーの発火通知(カスタムSDL_Event)
-// を検出し、対象であれば登録済みのtimer_procを呼び出す。SDL_AddTimerの
-// コールバックは別スレッドで動くため、ゲーム状態を触るtimer_proc本体は
-// 必ずメインスレッドのイベントループ(Application::handlePreEvent)経由で
-// 呼び出す。イベントがタイマー由来であればtrue(消費済み)を返す。
-bool dispatchLegacyTimerEvent(const SDL_Event &event);
-
 #endif // LEGACY_PLATFORM_H_

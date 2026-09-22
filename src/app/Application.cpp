@@ -152,12 +152,6 @@ bool Application::handlePreEvent(Resources &res, TaskManager &manager, SDL_Event
 {
 	bool result = false;
 
-	// set_timer()がSDL_AddTimer()経由で仕掛けたタイマーの発火通知。
-	// timer_proc本体はここ(メインスレッド)で呼び出す。
-	if (dispatchLegacyTimerEvent(event)) {
-		return true;
-	}
-
 	switch(event.type)
 	{
 	case SDL_EVENT_QUIT:

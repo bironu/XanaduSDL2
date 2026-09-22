@@ -1,4 +1,5 @@
 #include "scene/GameScene.h"
+#include "app/Application.h"
 #include "message.h"
 #include "pause.h"
 #include "sdl/LegacyPlatform.h"
@@ -6,6 +7,15 @@
 #include <cctype>
 
 namespace {
+
+// GameSceneのタイマー機構が使う専用イベント型。起動後に一度だけ確保される。
+// 全GameScene派生クラスで共有するが、実際にアクティブなSceneは常に高々
+// 1つ(Application::timer_も単一)なので、種別を分ける必要はない
+Uint32 gameTimerEventType()
+{
+	static const Uint32 type = SDL_RegisterEvents(1);
+	return type;
+}
 
 // thunk_key_event に渡す文字コードへの変換(Shift状態を反映したUS配列相当の文字)。
 int toCharCode(const SDL_KeyboardEvent &key)
@@ -89,6 +99,13 @@ void GameScene::dispatch(const SDL_Event &event)
 		return;
 	}
 
+	if (event.type == gameTimerEventType()) {
+		if (onTimer_) {
+			onTimer_();
+		}
+		return;
+	}
+
 	switch (event.type) {
 	case SDL_EVENT_KEY_DOWN:
 	case SDL_EVENT_KEY_UP:
@@ -103,4 +120,21 @@ void GameScene::dispatch(const SDL_Event &event)
 	default:
 		break;
 	}
+}
+
+void GameScene::setGameTimer(int intervalMs, std::function<void()> onTimer)
+{
+	onTimer_ = std::move(onTimer);
+	getApplication().setTimer(intervalMs, [](Uint32 interval) -> Uint32 {
+		SDL_Event event{};
+		event.type = gameTimerEventType();
+		SDL_PushEvent(&event);
+		return interval; // 同じ間隔で繰り返す(one-shotにはしない)
+	});
+}
+
+void GameScene::killGameTimer()
+{
+	getApplication().killTimer();
+	onTimer_ = nullptr;
 }

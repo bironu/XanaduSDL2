@@ -645,7 +645,7 @@ void battle_loop_attack(void)
   if (mm->type == MEMBER_BOX || mm->type == MEMBER_GOODS) {
     emit_message("Unlucky!");
     mm->type = MEMBER_UNUSED;
-    set_timer_proc(battle_loop); // メインループに戻る
+    set_timer(BATTLE_INTERVAL, battle_loop); // メインループに戻る
     update = 1;
   }
   // ごくまれに消える瞬間にヒットすることがある
@@ -656,7 +656,7 @@ void battle_loop_attack(void)
     case MONSTER_ALIVE:
       status_draw_integer(mm->value + STATUS_MONSTER_HP_LINE, 5,
                           mo->HP, SDL_::Color::WHITE);
-      set_timer_proc(battle_loop); // メインループに戻る
+      set_timer(BATTLE_INTERVAL, battle_loop); // メインループに戻る
       return;
 
     case MONSTER_KILLED:
@@ -684,7 +684,7 @@ void battle_loop_attack(void)
         mm->value = killed_user_magic || in_battle() ? 0 : 1;
         killed_user_magic = 0;
         
-        set_timer_proc(battle_loop); // メインループに戻る
+        set_timer(BATTLE_INTERVAL, battle_loop); // メインループに戻る
         // update = 1; // たぶん無駄なフレーム
       }
       break;
@@ -767,7 +767,7 @@ void battle_loop_magic(void)
   }
   
   if (user_deg_phase == DEG_PHASE_INACTIVE) {
-    set_timer_proc(battle_loop); // メインループに戻る
+    set_timer(BATTLE_INTERVAL, battle_loop); // メインループに戻る
   }
   if (update)
     update_background();

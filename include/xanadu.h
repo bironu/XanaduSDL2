@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <functional>
 
 #ifdef __GNUC__
 #define stricmp(s1, s2)		strcmp((s1), (s2))
@@ -103,10 +104,11 @@ extern void update_region(int x, int y, int width, int height);
 extern void update_immediately(void);
 extern int load_background(ImageId id);
 
-// タイマー
-extern void set_timer(int interval, void (*timer_proc)(void));
+// タイマー。現在アクティブなGameScene(BattleScene等)のsetGameTimer/
+// killGameTimerへ委譲するブリッジ(実装はLegacyPlatform.cpp)。
+// 旧set_timer_procは廃止。procを差し替えたい場合はset_timer()を呼び直すこと
+extern void set_timer(int interval, std::function<void()> timer_proc);
 extern void kill_timer(void);
-extern void set_timer_proc(void (*timer_proc)(void));
 
 extern void beep(void);
 

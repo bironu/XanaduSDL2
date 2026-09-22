@@ -13,6 +13,7 @@
 #include "sdl/SDLMixMixer.h"
 #include "resources/SoundFontId.h"
 #include "app/Application.h"
+#include "scene/GameScene.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
 #include <memory>
@@ -65,35 +66,6 @@ std::shared_ptr<SDL_::Image> visual_image;
 
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
-
-// ---- 旧C実装のset_timer/kill_timer(WM_TIMER相当)のSDL3版 ----
-// SDL_AddTimer()のコールバックは専用スレッドで呼ばれるため、そこから直接
-// timer_proc(ゲーム状態やSDL_Rendererを触る)を呼ぶのは安全ではない。
-// そのため、コールバックはSDL_RegisterEvents()で確保した専用のSDL_Eventを
-// SDL_PushEvent()で積むだけに留め、実際のtimer_proc呼び出しはメインスレッドの
-// イベントループ(Application::handlePreEvent -> dispatchLegacyTimerEvent)側で行う。
-//
-// generation_はset_timer/kill_timerのたびに変化する世代番号。SDL_RemoveTimer()
-// が間に合わず、既にキューへ積まれてしまった古いタイマーのイベントが後から
-// 処理されても、生成時のgenerationと現在のgenerationが一致しなければ無視する。
-Uint32 legacyTimerEventType()
-{
-	static const Uint32 type = SDL_RegisterEvents(1);
-	return type;
-}
-
-void (*legacyTimerProc)(void) = nullptr;
-SDL_TimerID legacyTimerId = 0;
-Sint32 legacyTimerGeneration = 0;
-
-Uint32 SDLCALL legacyTimerCallback(void *userdata, SDL_TimerID /*timerID*/, Uint32 interval)
-{
-	SDL_Event event{};
-	event.type = legacyTimerEventType();
-	event.user.code = static_cast<Sint32>(reinterpret_cast<intptr_t>(userdata));
-	SDL_PushEvent(&event);
-	return interval; // 同じ間隔で繰り返す(one-shotにはしない)
-}
 
 // シート画像(x, y, w, h)の1コマ分を、独立したImageとして切り出す。
 // 切り出し先をシートのカラーキー色で塗り潰してからblitすることで、シート側の
@@ -215,40 +187,24 @@ int load_background(ImageId id)
 	return 0;
 }
 
-void set_timer(int interval, void (*timer_proc)(void))
+// 現在アクティブなGameScene(BattleScene等)のsetGameTimer/killGameTimerへ
+// 委譲するブリッジ。battle.cpp等、まだGameScene派生クラスのメンバ関数に
+// なっていないレガシーC関数群から呼べるよう、xanadu.hにグローバル関数として
+// 公開している
+void set_timer(int interval, std::function<void()> timer_proc)
 {
-	kill_timer();
-	legacyTimerProc = timer_proc;
-	legacyTimerId = SDL_AddTimer(static_cast<Uint32>(interval), legacyTimerCallback,
-	                              reinterpret_cast<void *>(static_cast<intptr_t>(legacyTimerGeneration)));
+	auto scene = std::dynamic_pointer_cast<GameScene>(Application::instance().getCurrentScene());
+	if (scene) {
+		scene->setGameTimer(interval, std::move(timer_proc));
+	}
 }
 
 void kill_timer(void)
 {
-	if (legacyTimerId) {
-		SDL_RemoveTimer(legacyTimerId);
-		legacyTimerId = 0;
+	auto scene = std::dynamic_pointer_cast<GameScene>(Application::instance().getCurrentScene());
+	if (scene) {
+		scene->killGameTimer();
 	}
-	++legacyTimerGeneration; // 積まれた古いイベントを無効化する
-	legacyTimerProc = nullptr;
-}
-
-void set_timer_proc(void (*timer_proc)(void))
-{
-	// 動作中のタイマーはそのままに、次に発火した際に呼ぶ関数だけ差し替える
-	// (battle.cpp等が同じ間隔のまま処理内容だけ切り替えるのに使う)
-	legacyTimerProc = timer_proc;
-}
-
-bool dispatchLegacyTimerEvent(const SDL_Event &event)
-{
-	if (event.type != legacyTimerEventType()) {
-		return false;
-	}
-	if (event.user.code == legacyTimerGeneration && legacyTimerProc) {
-		legacyTimerProc();
-	}
-	return true;
 }
 
 void beep(void)

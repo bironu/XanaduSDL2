@@ -2,6 +2,7 @@
 #define GAME_SCENE_H_
 
 #include "scene/Scene.h"
+#include <functional>
 
 // 旧C実装(src/context.cpp)の「コンテキスト」に対応するSceneの共通基底クラス。
 //
@@ -24,15 +25,17 @@ public:
 	void onDestroy(uint32_t tick) override;
     bool onIdle(uint32_t tick) override;
 
-	// キー入力等のOSイベント処理。挙動は全コンテキスト共通のため、この基底クラスで実装する。
 	void dispatch(const SDL_Event &event) override;
 
+	void setGameTimer(int intervalMs, std::function<void()> onTimer);
+	void killGameTimer();
+
 protected:
-	// 旧*_enter関数、旧*_leave関数に対応
 	virtual void onEnter() = 0;
 	virtual void onLeave() = 0;
 
 private:
+	std::function<void()> onTimer_;
 	const int contextId_;
 };
 

@@ -542,7 +542,7 @@ void boss_loop(void)
     else if (isCtrlDown()) {
       if (isKeyDown(SDL_SCANCODE_Q)) {
         user.status.HP = -1;
-        set_timer_proc(boss_loose_loop);
+        set_timer(BOSS_INTERVAL, boss_loose_loop);
         return;
       }
       else if (key4) user_magic.dir = 4;
@@ -597,11 +597,11 @@ done:
 
   if (user.status.HP <= 0) {
     // ユーザー死亡
-    set_timer_proc(boss_loose_loop);
+    set_timer(BOSS_INTERVAL, boss_loose_loop);
   }
   else if (boss.status.HP < 0) {
     // ボス死亡
-    set_timer_proc(boss_win_loop);
+    set_timer(BOSS_INTERVAL, boss_win_loop);
   }
 }
 
@@ -913,7 +913,7 @@ void magic_attack_boss(void)
     boss.status.HP -= damage;
     // 死んだ？
     if (boss.status.HP < 0) {
-      set_timer_proc(boss_win_loop);
+      set_timer(BOSS_INTERVAL, boss_win_loop);
     } else {
       magic_attacked = 1;
     }
@@ -993,7 +993,7 @@ void boss_win_loop(void)
     } else if (boss_loop_counter < 0) {
       // 踏み潰した？
       if (boss_hit_test(user.x, user.y, boss.x, boss.y)) {
-        set_timer_proc(boss_loose_loop);
+        set_timer(BOSS_INTERVAL, boss_loose_loop);
       } else {
         // 帰還する
         restore_context(1);
@@ -1065,7 +1065,7 @@ int boss_breathe(void)
                         : 120 - (120 - SQUARE_BREATH));
       // ユーザーに命中？
       if (boss_hit_test(user.x, user.y, x, y)) {
-        set_timer_proc(boss_loose_loop);
+        set_timer(BOSS_INTERVAL, boss_loose_loop);
         playSound(SoundId::boss_hit); // SE
         return 0;
       }
