@@ -9,10 +9,10 @@
 void status_erase_line(int row)
 {
   int status_width = rect_status.width;
-  int x, y = row * 16;
-  for (x = 0; x < status_width; x += 16) {
-    draw_image(clip_status, x, y, pattern_status);
-  }
+  int y = row * 16;
+  // pattern_status(旧実装のタイル地紋)は未移植のため、
+  // message.cppのfill_image()と同様に単色で塗りつぶして消去する
+  fill_image(clip_status, 0, y, status_width, 16, SDL_::Color::BLACK);
   update_region(rect_status.x, rect_status.y + y, status_width, 16);
 }
 

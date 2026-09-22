@@ -7,6 +7,16 @@ ShopScene::ShopScene()
 {
 }
 
+void ShopScene::onCreate(uint32_t /*tick*/)
+{
+	shop_create();
+}
+
+void ShopScene::onDestroy(uint32_t /*tick*/)
+{
+	shop_destroy();
+}
+
 void ShopScene::onEnter()
 {
 	shop_enter();

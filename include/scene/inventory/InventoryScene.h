@@ -9,6 +9,7 @@ public:
 	InventoryScene();
 
 protected:
+	void onDestroy(uint32_t tick) override;
 	void onEnter() override;
 	void onLeave() override;
 };

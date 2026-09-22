@@ -66,6 +66,8 @@ private:
 	bool initialized_;
 	bool waitingForKey_;
 	bool rollActive_;
+	// シナリオ1: クレジットロール終了後、xa1_opening_backgroundへのフェード中か
+	bool postRollFadeActive_;
 
 	std::shared_ptr<SDL_::Image> clipOverall_;
 	std::shared_ptr<SDL_::Image> clipEndingRoll_;

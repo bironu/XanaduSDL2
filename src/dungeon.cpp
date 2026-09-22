@@ -1,5 +1,7 @@
 #include "xanadu.h"
 #include "dungeon.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 
 // 地形タイルデータベース
 #define NO_TILE MAX_TILE
@@ -171,22 +173,55 @@ level_data_t level_data;
 
 // 地形タイルデータ
 tile_data_t tile_data;
-static int load_tile_image(const char *path);
+static int load_tile_image(ImageId id);
 
 // モンスターデータ
 monster_status_t monster_data[MAX_MONSTER * MAX_VARIETY];
-static int load_monster_image(const char *path);
+static int load_monster_image(ImageId id);
+
+namespace
+{
+const ImageId kMonsterImageIds1[MAX_DUNGEON_LEVEL] = {
+	ImageId::xa1_monst_0, ImageId::xa1_monst_1, ImageId::xa1_monst_2,
+	ImageId::xa1_monst_3, ImageId::xa1_monst_4, ImageId::xa1_monst_5,
+	ImageId::xa1_monst_6, ImageId::xa1_monst_7, ImageId::xa1_monst_8,
+	ImageId::xa1_monst_9, ImageId::xa1_monst_a,
+};
+const ImageId kMonsterImageIds2[MAX_DUNGEON_LEVEL] = {
+	ImageId::xa2_monst_0, ImageId::xa2_monst_1, ImageId::xa2_monst_2,
+	ImageId::xa2_monst_3, ImageId::xa2_monst_4, ImageId::xa2_monst_5,
+	ImageId::xa2_monst_6, ImageId::xa2_monst_7, ImageId::xa2_monst_8,
+	ImageId::xa2_monst_9, ImageId::xa2_monst_a,
+};
+
+ImageId monsterImageId(bool scenario2, int level)
+{
+	if (level < 0 || MAX_DUNGEON_LEVEL <= level) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "monsterImageId: dungeon level out of range %d\n", level);
+		return ImageId::xa1_monst_0;
+	}
+	return (scenario2 ? kMonsterImageIds2 : kMonsterImageIds1)[level];
+}
+
+ImageId tileImageId(bool scenario2, const dungeon_level_data_t *entry)
+{
+	if (scenario2) {
+		return ImageId::xa2_field;
+	}
+	return entry->tile_database == &training_db ? ImageId::xa1_train : ImageId::xa1_field;
+}
+}
 
 static int load_outoflevel(void)
 {
   int i, j;
-  int error; 
+  int error;
   FILE *fp;
-  
+
   tile_data = scenario1_db;
-  load_tile_image(IMAGE_DIR "/xa1/field.bmp");
-  
-  load_monster_image(IMAGE_DIR "/xa2/outoflevel.bmp");
+  load_tile_image(ImageId::xa1_field);
+
+  load_monster_image(ImageId::xa2_outoflevel);
   for (i = 0; i < N_MONSTERS; i++) {
     for (j = 0; j < 4; j++) {
       frame_monsters[i][j].sheet->setColorKey(0xFF000000);
@@ -243,8 +278,7 @@ int load_level(int level, const char *dir)
   // 地形タイルデータベースの更新
   tile_data = *(dungeons[level].tile_database);
 
-  sprintf(path, IMAGE_DIR "/%s", dungeons[level].map_image);
-  load_tile_image(path);
+  load_tile_image(tileImageId(dungeons == dungeon2, &dungeons[level]));
 
   // レベル情報の読み込み
   if (dir) {
@@ -267,8 +301,7 @@ int load_level(int level, const char *dir)
   }
 
   // モンスターイメージの読み込み
-  sprintf(path, IMAGE_DIR "/%s/%s", subdir, dungeons[level].mon_image);
-  if (load_monster_image(path)) {
+  if (load_monster_image(monsterImageId(dungeons == dungeon2, level))) {
     return 1;
   }
   // モンスター情報の読み込み
@@ -287,17 +320,20 @@ int load_level(int level, const char *dir)
   return 0;
 }
 
-int load_tile_image(const char *path)
+int load_tile_image(ImageId id)
 {
-  static char *current_image;
-  if (!current_image || strcmp(current_image, path) != 0) {
-    static std::shared_ptr<SDL_::Image> tile_base;
+  static bool hasCurrent = false;
+  static ImageId currentId;
+  if (!hasCurrent || currentId != id) {
     int i;
-    
-    free(current_image);
-    
-    current_image = strdup(path);
-    tile_base = load_image(path);
+
+    if (hasCurrent) {
+      Resources::instance().unloadImage(currentId);
+    }
+    Resources::instance().loadImage(id);
+    currentId = id;
+    hasCurrent = true;
+    auto tile_base = Resources::instance().getImage(id);
     for (i = 0; i < N_TILES; i++) {
       frame_tiles[i] = SDL_::SubImage{tile_base, Rect(i * 40, 0, 40, 40)};
     }
@@ -305,12 +341,19 @@ int load_tile_image(const char *path)
   return 0;
 }
 
-int load_monster_image(const char *path)
+int load_monster_image(ImageId id)
 {
-  static std::shared_ptr<SDL_::Image> monster_base;
+  static bool hasCurrent = false;
+  static ImageId currentId;
   int i, j;
 
-  monster_base = load_image(path);
+  if (hasCurrent && currentId != id) {
+    Resources::instance().unloadImage(currentId);
+  }
+  Resources::instance().loadImage(id);
+  currentId = id;
+  hasCurrent = true;
+  auto monster_base = Resources::instance().getImage(id);
   for (i = 0; i < N_MONSTERS; i++) {
     for (j = 0; j < 4; j++) {
       frame_monsters[i][j] = SDL_::SubImage{monster_base, Rect(j * 40, i * 40, 40, 40)};

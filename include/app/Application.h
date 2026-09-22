@@ -7,7 +7,6 @@
 #include <SDL3/SDL.h>
 #include <memory>
 #include <stack>
-#include <vector>
 
 namespace SDL_
 {
@@ -60,6 +59,8 @@ public:
     void setTimer(int interval, SDL_::Timer::Callback timer_proc);
     void killTimer(void);
 
+    static const bool *getKeybordState() { return keybordState_; }
+
 private:
 	bool handlePreEvent(Resources &res, TaskManager &manager, SDL_Event &);
 
@@ -75,6 +76,7 @@ private:
 	std::shared_ptr<Scene> nextScene_;
 	int return_code_;
 
+    static const bool *keybordState_;
 	static Application *instance_; // TODO: singletonはやめる
 };
 

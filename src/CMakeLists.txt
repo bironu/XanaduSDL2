@@ -33,7 +33,6 @@ target_link_libraries(scene     PRIVATE Lua::Lua sol2::sol2)
 # main.c / 旧 src/win32, src/x11 の画面・入力・音声実装層は未移植
 set(XANADU_CORE_SOURCES
   animation.cpp
-  audio.cpp
   battle.cpp
   boss.cpp
   cave.cpp

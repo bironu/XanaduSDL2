@@ -2,6 +2,13 @@
 #include "boss.h"
 #include "battle.h"
 #include "animation.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
+#include "sdl/LegacyPlatform.h"
+#include "app/Application.h"
+#include <unordered_map>
 
 #define STEP_USER_X		8	// ユーザーの進む速さ(水平方向)
 #define STEP_USER_Y		8	// ユーザーの進む速さ(垂直方向)
@@ -31,10 +38,6 @@
 #define breath_fill_up_interval()	(random_integer(16) + 8)
 #define breath_warm_up_interval()	4
 #define breath_breathe_interval()	18
-
-// 効果音
-#define SE_BOSS_HIT		SE_SOMEWHAT1
-#define SE_BOSS_BREATH		SE_SOMEWHAT2
 
 // ボスのステータスに関する情報を保持する構造体
 typedef struct {
@@ -68,7 +71,67 @@ static boss_t	boss;			// ボス情報
 static point_t	*damaged_boss;		// ボスのダメージを受けた場所
 static point_t	*damaged_user;		// ユーザーのダメージを受けた場所
 
-static const char *boss_bgm;
+static MusicId boss_bgm = MusicId::none;
+
+namespace
+{
+// 魔法詠唱SE。scroll_typeはSCROLL_NEEDLE(0)..SCROLL_DEATH(8)(goods.h参照)
+SoundId resolveCastSound(int scrollType)
+{
+	static constexpr SoundId kCastSounds[MAX_SCROLL_TYPE] = {
+		SoundId::c_needle, SoundId::c_mittar, SoundId::c_deluge,
+		SoundId::c_fire,   SoundId::c_thunder, SoundId::c_poison,
+		SoundId::c_corros, SoundId::c_tilte,   SoundId::c_death,
+	};
+	if (scrollType < 0 || MAX_SCROLL_TYPE <= scrollType) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveCastSound: scroll_type out of range %d\n", scrollType);
+		return SoundId::invoke;
+	}
+	return kCastSounds[scrollType];
+}
+
+// ボスBGM。シナリオ1は現状ボス専用曲が無く、フィールド/タワーの曲を継続する(MusicId::none)
+MusicId resolveBossMusic(int scenario, int bossId)
+{
+	if (scenario == 0) {
+		return MusicId::none;
+	}
+	static constexpr MusicId kXa2BossMusic[16] = {
+		MusicId::xana2dl_xana217, MusicId::xana2dl_xana218, MusicId::xana2dl_xana219,
+		MusicId::xana2dl_xana220, MusicId::xana2dl_xana221, MusicId::xana2dl_xana222,
+		MusicId::xana2dl_xana223, MusicId::xana2dl_xana224, MusicId::xana2dl_xana225,
+		MusicId::xana2dl_xana226, MusicId::xana2dl_xana227, MusicId::xana2dl_xana228,
+		MusicId::none, MusicId::none, MusicId::none, MusicId::none,
+	};
+	if (bossId < 0 || 16 <= bossId) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveBossMusic: boss_id out of range %d\n", bossId);
+		return MusicId::none;
+	}
+	return kXa2BossMusic[bossId];
+}
+
+// ボスイメージ。boss_data[boss_id].image_filenameの末尾の1文字("boss_<c>.bmp")で判別する
+ImageId resolveBossImageId(bool scenario2, char suffix)
+{
+	static const std::unordered_map<char, ImageId> kScenario1 = {
+		{'0', ImageId::xa1_boss_0}, {'1', ImageId::xa1_boss_1}, {'2', ImageId::xa1_boss_2},
+		{'3', ImageId::xa1_boss_3}, {'4', ImageId::xa1_boss_4},
+	};
+	static const std::unordered_map<char, ImageId> kScenario2 = {
+		{'0', ImageId::xa2_boss_0}, {'1', ImageId::xa2_boss_1}, {'2', ImageId::xa2_boss_2},
+		{'3', ImageId::xa2_boss_3}, {'4', ImageId::xa2_boss_4}, {'5', ImageId::xa2_boss_5},
+		{'6', ImageId::xa2_boss_6}, {'7', ImageId::xa2_boss_7}, {'8', ImageId::xa2_boss_8},
+		{'9', ImageId::xa2_boss_9}, {'a', ImageId::xa2_boss_a}, {'b', ImageId::xa2_boss_b},
+	};
+	const auto &table = scenario2 ? kScenario2 : kScenario1;
+	auto it = table.find(suffix);
+	if (it == table.end()) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveBossImageId: unknown boss image suffix: %c\n", suffix);
+		return scenario2 ? ImageId::xa2_boss_0 : ImageId::xa1_boss_0;
+	}
+	return it->second;
+}
+}
 
 // ** これらの定数は field.c/battle.c で定義されている **
 extern const point_t move_table[10];
@@ -189,7 +252,7 @@ int init_boss(int boss_id)
   }
 
   // 背景を読み込む
-  load_background(IMAGE_DIR "/user/boss_st.bmp");
+  load_background(ImageId::user_boss_st);
   
   // ボスの位置を画面の右端にセット
   boss.x = rect_shrine.width  - SQUARE_BOSS - 40 * 2;
@@ -217,49 +280,53 @@ int init_boss(int boss_id)
   draw_text(clip_user_guage, 0, 0, user.status.name, SDL_::Color::RED);
   draw_text(clip_boss_guage, 0, 0, boss.status.name, SDL_::Color::RED);
 
-  // 効果音の読み込み
-  se_load(SE_BOSS_HIT, se_data.boss_hit);
-  se_load(SE_BOSS_BREATH, se_data.boss_breath);
-
-  update(rect_overall);
+  update_region(rect_overall.x, rect_overall.y, rect_overall.width, rect_overall.height);
   return CONTEXT_BOSS;
 }
 
 int init_boss_data(int boss_id)
 {
-  static std::shared_ptr<SDL_::Image> boss_base;
+  static bool hasCurrentBoss = false;
+  static ImageId currentBossId;
   const boss_data_t *boss_data;
   int n_bosses, i;
-  const char *subdir;
-  char path[BUFSIZ];
-  
-  if (!in_scenario2()) {
+  bool scenario2 = in_scenario2();
+
+  if (!scenario2) {
     boss_data = boss_data1;
     n_bosses = sizeof(boss_data1)/sizeof(boss_data1[0]);
-    subdir = "xa1";
   } else {
     boss_data = boss_data2;
     n_bosses = sizeof(boss_data2)/sizeof(boss_data2[0]);
-    subdir = "xa2";
   }
 
   if (boss_id < 0 || n_bosses <= boss_id) {
     return 1;
   }
   // BGM の設定
-  boss_bgm = bgm_data.dungeon[user.environment.scenario].boss[boss_id];
-    
+  boss_bgm = resolveBossMusic(user.environment.scenario, boss_id);
+
   // データベースの最後のエントリ？
   boss_final_battle = boss_id == n_bosses - 1;
 
   // ボスデータをセット
   boss.status = boss_data[boss_id].status;
-  
-  // ボスイメージ
-  sprintf(path, IMAGE_DIR "/%s/%s", subdir, boss_data[boss_id].image_filename);
-  boss_base = load_image(path);
-  for (i = 0; i < FRAME_BOSS; i++) {
-    frame_boss[i] = SDL_::SubImage{boss_base, Rect(i * 120, 0, 120, 120)};
+
+  // ボスイメージ: image_filenameは常に"boss_<c>.bmp"の形をしている
+  {
+    const char *fname = boss_data[boss_id].image_filename;
+    char suffix = fname[strlen(fname) - 5]; // "boss_X.bmp" -> X
+    ImageId newBossId = resolveBossImageId(scenario2, suffix);
+    if (hasCurrentBoss && currentBossId != newBossId) {
+      Resources::instance().unloadImage(currentBossId);
+    }
+    Resources::instance().loadImage(newBossId);
+    currentBossId = newBossId;
+    hasCurrentBoss = true;
+    auto boss_base = Resources::instance().getImage(newBossId);
+    for (i = 0; i < FRAME_BOSS; i++) {
+      frame_boss[i] = SDL_::SubImage{boss_base, Rect(i * 120, 0, 120, 120)};
+    }
   }
 
   // ブレス状態
@@ -267,11 +334,8 @@ int init_boss_data(int boss_id)
 
   // ブレスを吐く？
   if (boss_data[boss_id].can_breathe) {
-    static std::shared_ptr<SDL_::Image> breath_base;
-    int i;
-    if (!breath_base) {
-      breath_base = load_image(IMAGE_DIR "/user/breath.bmp");
-    }
+    Resources::instance().loadImage(ImageId::user_breath);
+    auto breath_base = Resources::instance().getImage(ImageId::user_breath);
     if (breath_base) {
       breath_state = BREATH_FILLING_UP;
       breath_timer = breath_fill_up_interval();
@@ -280,11 +344,14 @@ int init_boss_data(int boss_id)
       frame_breath[i] = SDL_::SubImage{breath_base, Rect(i * 80, 0, 80, 80)};
     }
   }
-  
+
   // 神殿イメージの読み込み
-  sprintf(path, IMAGE_DIR "/%s/shrine.bmp", subdir);
-  visual_image = load_image(path);
-  
+  {
+    ImageId shrineId = scenario2 ? ImageId::xa2_shrine : ImageId::xa1_shrine;
+    Resources::instance().loadImage(shrineId);
+    visual_image = Resources::instance().getImage(shrineId);
+  }
+
   return 0;
 }
 
@@ -293,8 +360,8 @@ void restore_context(int won)
   // 最終ボスに勝ったとき以外は表示しない
   if (!boss_final_battle || !won) {
     // バックグラウンドイメージを復元
-    load_background(IMAGE_DIR "/user/frame.bmp");
-    update(rect_shrine);
+    load_background(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
+    update_region(rect_shrine.x, rect_shrine.y, rect_shrine.width, rect_shrine.height);
   }
   
   if (won) {
@@ -323,17 +390,46 @@ void restore_context(int won)
   }
 }
 
+namespace
+{
+constexpr SoundId kBossSoundIds[] = {
+	SoundId::boss_hit, SoundId::dead, SoundId::invoke,
+	SoundId::c_needle, SoundId::c_mittar, SoundId::c_deluge, SoundId::c_fire,
+	SoundId::c_thunder, SoundId::c_poison, SoundId::c_corros, SoundId::c_tilte,
+	SoundId::c_death,
+};
+}
+
+void boss_create(void)
+{
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kBossSoundIds) {
+    res.loadSound(mixer, id);
+  }
+}
+
+void boss_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kBossSoundIds) {
+    res.unloadSound(id);
+  }
+}
+
 void boss_enter(void)
 {
   // 背景を描画
   update_background();
-    
+
   // ヒットポイント
   update_user_HP(SDL_::Color::WHITE);
   update_boss_HP(SDL_::Color::WHITE);
-  
-  // BGM
-  bgm_play(boss_bgm);
+
+  // BGM: シナリオ1では専用曲が無くフィールド/タワーの曲を継続する
+  if (boss_bgm != MusicId::none) {
+    playBgm(boss_bgm);
+  }
 
   set_timer(BOSS_INTERVAL, boss_loop);
 }
@@ -401,7 +497,7 @@ void update_background(void)
     magic_damage_effect();
   }
   
-  update(rect_shrine);
+  update_region(rect_shrine.x, rect_shrine.y, rect_shrine.width, rect_shrine.height);
 }
 
 // メインループ
@@ -422,36 +518,36 @@ void boss_loop(void)
   }
   else {
     int user_update = 0;
-    int key2 = get_keystate(VK_DOWN);
-    int key4 = get_keystate(VK_LEFT);
-    int key6 = get_keystate(VK_RIGHT);
-    int key8 = get_keystate(VK_UP);
-    int key7 = (key8 && key4) || get_keystate(VK_HOME);
-    int key9 = (key8 && key6) || get_keystate(VK_PRIOR);
-    
-    if (get_keystate(VK_SPACE)) {
+    int key2 = isKeyDown(SDL_SCANCODE_DOWN);
+    int key4 = isKeyDown(SDL_SCANCODE_LEFT);
+    int key6 = isKeyDown(SDL_SCANCODE_RIGHT);
+    int key8 = isKeyDown(SDL_SCANCODE_UP);
+    int key7 = (key8 && key4) || isKeyDown(SDL_SCANCODE_HOME);
+    int key9 = (key8 && key6) || isKeyDown(SDL_SCANCODE_PAGEUP);
+
+    if (isKeyDown(SDL_SCANCODE_SPACE)) {
       // 跳躍力を無効に
       user_jump = -1;
-      
+
       if (user_magic.lifetime < 0) {
         boss_cast_spell(user.equipment[GOODS_SCROLL],
                         user_INT(), user.x, user.y, user.dir);
         update = 1;
       }
     }
-    else if (get_keystate(VK_RETURN)) {
+    else if (isReturnDown()) {
       user_jump = -1;
       boss_healing();
     }
-    else if (get_keystate(VK_CONTROL)) {
-      if (get_keystate('Q')) {
+    else if (isCtrlDown()) {
+      if (isKeyDown(SDL_SCANCODE_Q)) {
         user.status.HP = -1;
         set_timer_proc(boss_loose_loop);
         return;
       }
       else if (key4) user_magic.dir = 4;
       else if (key6) user_magic.dir = 6;
-      else if (key2) user_magic.dir = 2;      
+      else if (key2) user_magic.dir = 2;
       else if (key8) user_magic.dir = 8;
     }
     else if (key9) user_update = boss_move_user(9);
@@ -460,8 +556,8 @@ void boss_loop(void)
     else if (key4) user_update = boss_move_user(4);
     else if (key6) user_update = boss_move_user(6);
     else if (key8) user_update = boss_move_user(8);
-    else if (get_keystate(VK_END)) user_update = boss_move_user(1);
-    else if (get_keystate(VK_NEXT)) user_update = boss_move_user(3);
+    else if (isKeyDown(SDL_SCANCODE_END)) user_update = boss_move_user(1);
+    else if (isKeyDown(SDL_SCANCODE_PAGEDOWN)) user_update = boss_move_user(3);
     else {
       user_jump = -1;
     }
@@ -545,7 +641,7 @@ int boss_move_user(int dir)
   int dx, dy;
   int x, y;
 
-  if (!get_keystate(VK_SHIFT)) {
+  if (!isShiftDown()) {
     user.dir = dir; // 方向を変える
   }
   dx = move_table[dir].x;
@@ -688,7 +784,7 @@ void boss_attack_boss(void)
       damaged_boss = &damaged;
     }
     update_boss_HP(SDL_::Color::RED);
-    se_play(SE_BOSS_HIT); // SE
+    playSound(SoundId::boss_hit); // SE
   }
 }
 
@@ -711,19 +807,16 @@ void boss_attack_user(void)
     damaged_user = &damaged;
   }
   update_user_HP(SDL_::Color::RED);
-  se_play(SE_BOSS_HIT); // SE
+  playSound(SoundId::boss_hit); // SE
 }
 
 static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_::Color pixel)
 {
   char buf[16];
-  int i;
 
-  // 背景を消す
-  for (i = 0; i < 128; i += 16) {
-    draw_image(img, i, 16, pattern_guage);
-  }
-  
+  // 背景を消す(pattern_guageは旧実装のタイル地紋で未移植のため、単色で塗りつぶす)
+  fill_image(img, 0, 16, 128, 16, SDL_::Color::BLACK);
+
   if (pts < 0) {
     pts = 0;
     pixel = SDL_::Color::RED;
@@ -735,13 +828,13 @@ static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_:
 void update_user_HP(SDL_::Color pixel)
 {
   boss_update_integer(clip_user_guage, user.status.HP, pixel);
-  update(rect_user_guage);
+  update_region(rect_user_guage.x, rect_user_guage.y, rect_user_guage.width, rect_user_guage.height);
 }
 
 void update_boss_HP(SDL_::Color pixel)
 {
   boss_update_integer(clip_boss_guage, boss.status.HP, pixel);
-  update(rect_boss_guage);
+  update_region(rect_boss_guage.x, rect_boss_guage.y, rect_boss_guage.width, rect_boss_guage.height);
 }
 
 void boss_cast_spell(int scroll_id, int INT, int x, int y, int dir)
@@ -753,7 +846,7 @@ void boss_cast_spell(int scroll_id, int INT, int x, int y, int dir)
   scroll_type = scroll_data()[scroll_id].type;
   scroll_attribute = scroll_data()[scroll_id].attribute;
 
-  se_play(SE_CAST_NEEDLE + scroll_type);
+  playSound(resolveCastSound(scroll_type));
 
   // 全体魔法？
   if (scroll_attribute) {
@@ -825,7 +918,7 @@ void magic_attack_boss(void)
       magic_attacked = 1;
     }
     update_boss_HP(SDL_::Color::RED);
-    se_play(SE_BOSS_HIT); // se
+    playSound(SoundId::boss_hit); // se
   }
 }
 
@@ -864,7 +957,7 @@ void boss_healing(void)
     user.status.HP = min(user.status.HP + point, user.status.max_HP);
     
     update_user_HP(SDL_::Color::WHITE);
-    se_play(SE_USE_ITEM);
+    playSound(SoundId::invoke);
   }
 }
 
@@ -890,12 +983,12 @@ void boss_win_loop(void)
         boss_loop_counter = BOSS_LOOP_WAIT;
         boss.frame = FRAME_BOSS_DEAD;
 
-        se_play(SE_MONSTER_DEAD); // se
+        playSound(SoundId::dead); // se
         update_background();
       } else {
         update_background();
         magic_damage_effect();
-        se_play(SE_BOSS_HIT); // se
+        playSound(SoundId::boss_hit); // se
       }
     } else if (boss_loop_counter < 0) {
       // 踏み潰した？
@@ -958,7 +1051,7 @@ int boss_breathe(void)
     if (--breath_timer < 0) {
       breath_timer = breath_breathe_interval();
       breath_state = BREATH_BREATHING;
-      se_play(SE_BOSS_BREATH); // SE
+      // ボスのブレス音(breath.wav)は現状アセットが存在せず無音のまま(既知の欠落)
     }
     break;
     
@@ -973,7 +1066,7 @@ int boss_breathe(void)
       // ユーザーに命中？
       if (boss_hit_test(user.x, user.y, x, y)) {
         set_timer_proc(boss_loose_loop);
-        se_play(SE_BOSS_HIT); // SE
+        playSound(SoundId::boss_hit); // SE
         return 0;
       }
     }

@@ -34,6 +34,8 @@ typedef struct {
 extern const int battle_frame_user[10];
 
 // コンテキスト保護関数
+extern void battle_create(void);
+extern void battle_destroy(void);
 extern void battle_enter(void);
 extern void battle_leave(void);
 

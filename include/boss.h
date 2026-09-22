@@ -2,6 +2,8 @@
 #define boss_H
 
 // コンテキスト保護関数
+extern void boss_create(void);
+extern void boss_destroy(void);
 extern void boss_enter(void);
 extern void boss_leave(void);
 

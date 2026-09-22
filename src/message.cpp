@@ -29,7 +29,7 @@ void display_message(const char *s, SDL_::Color pixel)
     s += draw_text(clip_message, 0, current_line * 16, s, pixel);
     current_line++;
   }
-  update(rect_message);
+  update_region(rect_message.x, rect_message.y, rect_message.width, rect_message.height);
 }
 
 void format_message(const char *fmt, ...)
@@ -49,7 +49,7 @@ void flush_message(void)
   fill_image(clip_message, 0, 0, clip_message->getWidth(), clip_message->getHeight(),
              SDL_::Color::BLACK);
   current_line = 0;
-  update(rect_message);
+  update_region(rect_message.x, rect_message.y, rect_message.width, rect_message.height);
 }
 
 // メッセージビューを介したキー入力
@@ -93,7 +93,7 @@ static void call_consumer(int last_key)
 #ifdef NO_PAUSE
   resume_context();
 #else
-  switch_context(init_pause(50, toupper(last_key)));
+  switch_context(init_pause(50, scancodeFromChar(toupper(last_key))));
 #endif
 }
 
@@ -102,7 +102,7 @@ static void update_enter_buffer(void)
   int row = current_line * 16;
   fill_image(clip_message, 0, row, 16, 16, SDL_::Color::BLACK);
   draw_text(clip_message, 0, row, enter_buffer, SDL_::Color::WHITE);
-  update(rect_message);
+  update_region(rect_message.x, rect_message.y, rect_message.width, rect_message.height);
 }
 
 void message_enter_enter(void)

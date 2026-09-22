@@ -1,8 +1,9 @@
 #include "sdl/LegacyPlatform.h"
 #include "xanadu.h"
-#include "audio.h"
 #include "resources/Resources.h"
 #include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
 #include "sdl/SDLBitmapFont.h"
 #include "sdl/SDLTexture.h"
 #include "sdl/SDLRenderer.h"
@@ -13,7 +14,6 @@
 #include "app/Application.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
-#include <array>
 #include <memory>
 #include <string>
 
@@ -32,7 +32,6 @@ std::shared_ptr<SDL_::Image> clip_status;
 std::shared_ptr<SDL_::Image> clip_shrine;
 std::shared_ptr<SDL_::Image> clip_user_guage;
 std::shared_ptr<SDL_::Image> clip_boss_guage;
-std::shared_ptr<SDL_::Image> clip_endingroll;
 
 const rectangle_t rect_overall    = {   0,   0, 640, 400 };
 const rectangle_t rect_main       = {  16,  16, 360, 360 };
@@ -41,7 +40,6 @@ const rectangle_t rect_status     = { 392,  16, 240, 272 };
 const rectangle_t rect_shrine     = {  16,  96, 608, 240 };
 const rectangle_t rect_user_guage = {  56,  32, 240,  40 };
 const rectangle_t rect_boss_guage = { 384,  32, 240,  40 };
-const rectangle_t rect_endingroll = {  80,  96, 560, 240 };
 
 // ---- スプライト/フォント等のリソース ----
 // フレームテーブルは各ロード関数(load_user_image, load_tile_image等)が
@@ -64,75 +62,6 @@ std::shared_ptr<SDL_::Image> visual_image;
 
 namespace {
 std::unique_ptr<SDL_::BitmapFont> legacyFont;
-
-// setLegacyPanelCompositingEnabled()参照
-bool legacyPanelCompositingEnabled = true;
-
-// setLegacyEndingRollCompositingEnabled()参照
-bool legacyEndingRollCompositingEnabled = false;
-
-// se_play/se_loadで使う効果音サウンドのキャッシュ。SE_*の定義値をそのまま
-// インデックスとして使う(se_load()で明示的に差し替えられるスロットもある)。
-constexpr int SE_CHUNK_COUNT = SE_SOMEWHAT4 + 1;
-std::array<std::shared_ptr<SDL_::Mix_::Audio>, SE_CHUNK_COUNT> seChunks;
-
-std::shared_ptr<SDL_::Mix_::Audio> load_se_chunk(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		return nullptr;
-	}
-	auto chunk = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/wave/") + filename).c_str());
-	return chunk->get() ? chunk : nullptr;
-}
-
-// se_load()で明示的にロードされないSE番号は、wave.txtから読み込まれた
-// se_dataのファイル名をそのまま使う
-const char *default_se_filename(int id)
-{
-	switch (id) {
-	case SE_MAGIC_HIT:    return se_data.magic_hit;
-	case SE_MAGIC_FAILED: return se_data.magic_failed;
-	case SE_DAMAGED:      return se_data.damaged;
-	case SE_TRAPPED:      return se_data.trapped;
-	case SE_MONSTER_DEAD: return se_data.monster_dead;
-	case SE_OPEN_BOX:     return se_data.open_box;
-	case SE_TREASURE:     return se_data.treasure;
-	case SE_GET:          return se_data.get;
-	case SE_GET_POISON:   return se_data.get_poison;
-	case SE_LOST_KEY:     return se_data.lost_key;
-	default:
-		if (SE_CAST_NEEDLE <= id && id <= SE_CAST_DEATH) {
-			return se_data.cast[id - SE_CAST_NEEDLE];
-		}
-		return nullptr;
-	}
-}
-
-std::shared_ptr<SDL_::Mix_::Audio> resolve_se_chunk(int id)
-{
-	if (id < 0 || id >= SE_CHUNK_COUNT) {
-		return nullptr;
-	}
-	if (!seChunks[id]) {
-		seChunks[id] = load_se_chunk(default_se_filename(id));
-	}
-	return seChunks[id];
-}
-
-// 現在再生中(またはロード済み)のBGM。SDL_::Mix_::MixerはBGM用の
-// MIX_Trackを1つしか持たないため、チャンクと違いスロット配列ではなく単一の
-// キャッシュで管理する
-std::shared_ptr<SDL_::Mix_::Audio> currentMusic;
-std::string currentBgmFilename;
-
-std::shared_ptr<SDL_::Mix_::Audio> load_bgm_music(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		return nullptr;
-	}
-	auto music = std::make_shared<SDL_::Mix_::Audio>(Application::instance().getMixer(), (std::string(AUDIO_DIR "/midi/") + filename).c_str());
-	return music->get() ? music : nullptr;
-}
 
 // ---- 旧C実装のset_timer/kill_timer(WM_TIMER相当)のSDL3版 ----
 // SDL_AddTimer()のコールバックは専用スレッドで呼ばれるため、そこから直接
@@ -173,19 +102,11 @@ void initLegacyGraphics(Resources &res)
 	clip_shrine      = create_image(rect_shrine.width, rect_shrine.height);
 	clip_user_guage  = create_image(rect_user_guage.width, rect_user_guage.height);
 	clip_boss_guage  = create_image(rect_boss_guage.width, rect_boss_guage.height);
-	clip_endingroll  = create_image(rect_endingroll.width, rect_endingroll.height);
 
 	auto fontAtlas = res.getImage(ImageId::user_font);
 	if (fontAtlas) {
 		legacyFont = std::make_unique<SDL_::BitmapFont>(*fontAtlas);
 	}
-}
-
-void initLegacySound(Resources &res)
-{
-	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
-	init_se();
-	init_bgm();
 }
 
 void presentLegacyFrame()
@@ -194,38 +115,18 @@ void presentLegacyFrame()
 		return;
 	}
 
-	if (legacyPanelCompositingEnabled) {
-		draw_image(clip_overall, rect_main.x,       rect_main.y,       clip_main);
-		draw_image(clip_overall, rect_message.x,    rect_message.y,    clip_message);
-		draw_image(clip_overall, rect_status.x,     rect_status.y,     clip_status);
-		draw_image(clip_overall, rect_shrine.x,     rect_shrine.y,     clip_shrine);
-		draw_image(clip_overall, rect_user_guage.x, rect_user_guage.y, clip_user_guage);
-		draw_image(clip_overall, rect_boss_guage.x, rect_boss_guage.y, clip_boss_guage);
-	}
-	// clip_endingrollはlegacyPanelCompositingEnabled(Opening/Ending/Fade中は
-	// 他パネルの古い内容が上書きされるのを防ぐためfalseにする)とは別の専用
-	// フラグで管理する。ここがlegacyPanelCompositingEnabledの対象に含まれて
-	// いると、EndingSceneが自ら無効化した瞬間にスクロールロール自体も画面に
-	// 出せなくなってしまう一方、常時trueにするとEnding終了後もクリップに
-	// 残った最後の描画内容がMenu画面等にずっと被り続けてしまう。
-	if (legacyEndingRollCompositingEnabled) {
-		draw_image(clip_overall, rect_endingroll.x, rect_endingroll.y, clip_endingroll);
-	}
+    draw_image(clip_overall, rect_main.x,       rect_main.y,       clip_main);
+    draw_image(clip_overall, rect_message.x,    rect_message.y,    clip_message);
+    draw_image(clip_overall, rect_status.x,     rect_status.y,     clip_status);
+    draw_image(clip_overall, rect_shrine.x,     rect_shrine.y,     clip_shrine);
+    draw_image(clip_overall, rect_user_guage.x, rect_user_guage.y, clip_user_guage);
+    draw_image(clip_overall, rect_boss_guage.x, rect_boss_guage.y, clip_boss_guage);
 
 	auto &renderer = Application::instance().getMainWindow()->getRenderer();
 	auto texture = std::make_shared<SDL_::Texture>(renderer, *clip_overall);
 	renderer.clear();
 	renderer.copy(texture, nullptr, nullptr);
-}
-
-void setLegacyPanelCompositingEnabled(bool enabled)
-{
-	legacyPanelCompositingEnabled = enabled;
-}
-
-void setLegacyEndingRollCompositingEnabled(bool enabled)
-{
-	legacyEndingRollCompositingEnabled = enabled;
+	renderer.present();
 }
 
 // ---- 描画・タイマー・音声のプラットフォームフック ----
@@ -248,14 +149,15 @@ void update_immediately(void)
     presentLegacyFrame();
 }
 
-int load_background(const char *filename)
+int load_background(ImageId id)
 {
-	auto img = load_image(filename);
+	Resources::instance().loadImage(id);
+	auto img = Resources::instance().getImage(id);
 	if (!img) {
 		return 1;
 	}
 	draw_image(clip_overall, 0, 0, img);
-	update(rect_overall);
+	update_region(rect_overall.x, rect_overall.y, rect_overall.width, rect_overall.height);
 	return 0;
 }
 
@@ -309,50 +211,6 @@ int se_enabled(void)
 	return !user.config.mute;
 }
 
-void bgm_play(const char *filename)
-{
-	if (!filename || filename[0] == '\0') {
-		bgm_stop();
-		return;
-	}
-	// 同じ曲を鳴らし直さない(フィールド再訪等で毎回呼ばれても再生が
-	// 途切れないように)
-	if (currentMusic && currentBgmFilename == filename) {
-		return;
-	}
-	auto music = load_bgm_music(filename);
-	if (!music) {
-		return;
-	}
-	currentMusic = music;
-	currentBgmFilename = filename;
-	Application::instance().getMixer().playMusic(*currentMusic, -1);
-	if (user.config.mute) {
-		// ミュート中でも曲自体はロード・開始しておき、一時停止扱いにする
-		// (bgm_mute()で解除した際にresumeMusic()で復帰できるようにするため)
-		Application::instance().getMixer().pauseMusic();
-	}
-}
-
-void bgm_stop(void)
-{
-	Application::instance().getMixer().stopMusic();
-	currentMusic.reset();
-	currentBgmFilename.clear();
-}
-
-void bgm_pause(void)
-{
-	Application::instance().getMixer().pauseMusic();
-}
-
-void bgm_restart(void)
-{
-	if (currentMusic) {
-		Application::instance().getMixer().playMusic(*currentMusic, -1);
-	}
-}
-
 void bgm_tempo(int)
 {
 	// SDL3_mixerのMIX_Track APIにはMIDIテンポを変更する機能が見当たらないため未対応
@@ -366,33 +224,27 @@ void bgm_random(int)
 int bgm_mute(void)
 {
 	user.config.mute = !user.config.mute;
-	if (currentMusic) {
-		if (user.config.mute) {
-			Application::instance().getMixer().pauseMusic();
-		}
-		else {
-			Application::instance().getMixer().resumeMusic();
-		}
+	auto &mixer = Application::instance().getMixer();
+	if (user.config.mute) {
+		mixer.pauseMusic();
+	}
+	else {
+		mixer.resumeMusic();
 	}
 	return user.config.mute;
 }
 
-void se_play(int id)
+void playSound(SoundId id)
 {
 	if (user.config.mute) {
 		return;
 	}
-	auto chunk = resolve_se_chunk(id);
-	if (!chunk) {
-		return;
+	if (auto chunk = Resources::instance().getSound(id)) {
+		Application::instance().getMixer().playSound(*chunk, -1, 0);
 	}
-	Application::instance().getMixer().playSound(*chunk, -1, 0);
 }
 
-void se_load(int id, const char *filename)
+void playBgm(MusicId id)
 {
-	if (id < 0 || id >= SE_CHUNK_COUNT) {
-		return;
-	}
-	seChunks[id] = load_se_chunk(filename);
+	Resources::instance().playBgm(Application::instance().getMixer(), id);
 }

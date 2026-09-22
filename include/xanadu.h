@@ -11,8 +11,10 @@
 #endif
 
 #include "graphics.h"
-#include "audio.h"
-#include "keystate.h"
+#include "sdl/LegacyPlatform.h"
+#include "keyboard.h"
+
+enum class ImageId;
 
 #include "context.h"
 #include "dungeon.h"
@@ -25,7 +27,6 @@
 // ディレクトリ
 #define IMAGE_DIR		"../bmp"
 #define LEVEL_DIR		"../map"
-#define AUDIO_DIR		"../audio"
 #define USERS_DIR		"../users"
 
 // 擬似乱数
@@ -88,7 +89,6 @@ extern std::shared_ptr<SDL_::Image> clip_status;		// ステータス
 extern std::shared_ptr<SDL_::Image> clip_shrine;		// ワイドスクリーン(神殿)
 extern std::shared_ptr<SDL_::Image> clip_user_guage;	// 生命力ゲージ(ユーザ)
 extern std::shared_ptr<SDL_::Image> clip_boss_guage;	// 生命力ゲージ(ボス)
-extern std::shared_ptr<SDL_::Image> clip_endingroll;
 
 extern const rectangle_t rect_overall;
 extern const rectangle_t rect_main;
@@ -101,9 +101,7 @@ extern const rectangle_t rect_endingroll;
 
 extern void update_region(int x, int y, int width, int height);
 extern void update_immediately(void);
-extern int load_background(const char *filename);
-
-#define update(r) (update_region((r).x, (r).y, (r).width, (r).height))
+extern int load_background(ImageId id);
 
 // アプリケーションの再スタート
 extern void restart_application(void);

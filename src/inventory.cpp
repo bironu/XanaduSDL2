@@ -1,5 +1,7 @@
 #include "xanadu.h"
 #include "inventory.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
 
 static void inventory_hit_any_key(char *s);
 static void inventory_list_goods(void);
@@ -14,7 +16,8 @@ int init_inventory(void)
   inventory_state = GOODS_WEAPON;
   
   // scenario 2
-  visual_image = load_image(IMAGE_DIR "/picture/shop.bmp");
+  Resources::instance().loadImage(ImageId::picture_shop);
+  visual_image = Resources::instance().getImage(ImageId::picture_shop);
   
   emit_message("Hit any key");
   return CONTEXT_INVENTORY;
@@ -41,6 +44,11 @@ void inventory_enter(void)
 
 void inventory_leave(void)
 {
+}
+
+void inventory_destroy(void)
+{
+  Resources::instance().unloadImage(ImageId::picture_shop);
 }
 
 void inventory_hit_any_key(char *s)
@@ -85,5 +93,5 @@ void inventory_list_goods(void)
   draw_text(&offscreen, &clip_mapview, 5 * 16, 20 * 16,
             "Hit any key", SDL_::Color::WHITE);
 #endif
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }

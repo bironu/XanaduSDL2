@@ -2,8 +2,15 @@
 #include "shop.h"
 #include "status.h"
 #include "field.h" // for field_cave_open()
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
+#include "app/Application.h"
 
 #include <ctype.h>
+#include <unordered_map>
+#include <string>
 
 #define STATE_EXIT		-1
 #define STATE_TRADE		0
@@ -48,8 +55,35 @@ static struct {
   { "mgr.bmp",		"5 MGR"		 }	// A Witch
 };
 
+namespace
+{
+// shop_data1[].picture_file(ファイル名)からImageIdを引く
+const std::unordered_map<std::string, ImageId> kShopPictureIds = {
+	{"weapon.bmp", ImageId::picture_weapon}, {"scroll.bmp", ImageId::picture_scroll},
+	{"armory.bmp", ImageId::picture_armory}, {"shield.bmp", ImageId::picture_shield},
+	{"item.bmp", ImageId::picture_item},     {"guilds.bmp", ImageId::picture_guilds},
+	{"foods.bmp", ImageId::picture_foods},   {"inn.bmp", ImageId::picture_inn},
+	{"healers.bmp", ImageId::picture_healers}, {"temple.bmp", ImageId::picture_temple},
+	{"castle.bmp", ImageId::picture_castle}, {"str.bmp", ImageId::picture_str},
+	{"int.bmp", ImageId::picture_int},       {"wis.bmp", ImageId::picture_wis},
+	{"dex.bmp", ImageId::picture_dex},       {"agl.bmp", ImageId::picture_agl},
+	{"chr.bmp", ImageId::picture_chr},       {"mgr.bmp", ImageId::picture_mgr},
+};
+
+// ショップBGM。現状の設定では病院/寺院(シナリオ2)以外は全て共通の曲になる
+MusicId resolveShopMusic(int scenario, int shopId)
+{
+	if (scenario != 0) {
+		if (shopId == SHOP_HEALERS) return MusicId::xana2_XANA2_HE;
+		if (shopId == SHOP_TEMPLE)  return MusicId::xana2_XANA2_TE;
+	}
+	return MusicId::xana2_XANA2_SH;
+}
+}
+
 static int shop_id;			// ショップ番号
 static int shop_state;			// 状態
+static ImageId currentShopImageId = ImageId::picture_shop; // 現在表示中の絵(shop_destroyでunloadする)
 static int shop_price;			// 価格
 static int shop_goods;			// 品物番号
 
@@ -96,7 +130,7 @@ static void status_shop_goods(void);
 static int training_initiated_all(void);
 
 // ビジュアル表示関連
-static void shop_show_visual(const char *filename);
+static void shop_show_visual(ImageId id);
 
 // scenario 2
 static int load_shop(void);
@@ -107,23 +141,8 @@ int init_shop(int id)
   shop_id = id;
 
   // BGM
-  if (in_scenario2()) {
-    if (shop_id == SHOP_HEALERS && bgm_data.extra[BGM_EXTRA_XA2_HEALERS]) {
-      bgm_play(bgm_data.extra[BGM_EXTRA_XA2_HEALERS]);
-      goto done_bgm;
-    }
-    if (shop_id == SHOP_TEMPLE && bgm_data.extra[BGM_EXTRA_XA2_TEMPLE]) {
-      bgm_play(bgm_data.extra[BGM_EXTRA_XA2_TEMPLE]);
-      goto done_bgm;
-    }
-  }
-  if (SHOP_WEAPON <= shop_id && shop_id <= SHOP_TEMPLE) {
-    bgm_play(bgm_data.shop[shop_id]);
-  } else {
-    bgm_play(bgm_data.default_shop);
-  }
-done_bgm:
-  
+  playBgm(resolveShopMusic(user.environment.scenario, shop_id));
+
   // 初期状態を決める
   switch (id) {
   case SHOP_WEAPON:
@@ -230,18 +249,19 @@ done_bgm:
     if (in_scenario2() && shop_id == SHOP_TEMPLE) {
       // レベルアップ処理後に移動
     } else {
-      char path[BUFSIZ];
+      ImageId imageId;
 
       if (shop_id == SHOP_TEMPLE &&
           user.status.fighter.rank > 12 && user.status.wizard.rank > 12) {
         // ヒント
-        strcpy(path, IMAGE_DIR "/picture/slayer.bmp");
+        imageId = ImageId::picture_slayer;
       } else {
-        sprintf(path, IMAGE_DIR "/picture/%s", shop_data1[shop_id].picture_file);
+        auto it = kShopPictureIds.find(shop_data1[shop_id].picture_file);
+        imageId = it != kShopPictureIds.end() ? it->second : ImageId::picture_shop;
       }
-      
+
       // ビジュアル表示
-      shop_show_visual(path);
+      shop_show_visual(imageId);
     }
   }
   // scenario 2
@@ -250,6 +270,29 @@ done_bgm:
     shop_show_menu(shop_data2[shop_id].text);
   }
   return CONTEXT_SHOP;
+}
+
+namespace
+{
+constexpr SoundId kShopSoundIds[] = { SoundId::get, SoundId::invoke };
+}
+
+void shop_create(void)
+{
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kShopSoundIds) {
+    res.loadSound(mixer, id);
+  }
+}
+
+void shop_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kShopSoundIds) {
+    res.unloadSound(id);
+  }
+  res.unloadImage(currentShopImageId);
 }
 
 void shop_enter(void)
@@ -537,8 +580,7 @@ void shop_healers(char *s)
       user.status.HP = user.status.max_HP;
 
       // 効果音
-      se_load(SE_SOMEWHAT1, se_data.item[1]);
-      se_play(SE_SOMEWHAT1);
+      playSound(SoundId::invoke);
     } else
       emit_message("Not enough!");
   }
@@ -680,7 +722,7 @@ void shop_temple(void)
       user.status.AGL += 5;
       user.status.fighter.rank += 1; // max_HP の増加後にやること
 
-      se_play(SE_GET);
+      playSound(SoundId::get);
       status_update_rank();
 
       // 封印されていた洞窟が開く(ことがある)
@@ -706,7 +748,7 @@ void shop_temple(void)
       user.status.MGR += 5;
       user.status.wizard.rank += 1; // max_HP の増加後にやること
 
-      se_play(SE_GET);
+      playSound(SoundId::get);
       status_update_rank();
 
       // 封印されていた洞窟が開く(ことがある)
@@ -974,12 +1016,14 @@ done:
   shop_state = STATE_MENU_SELL;
 }
 
-void shop_show_visual(const char *filename)
+void shop_show_visual(ImageId id)
 {
-  visual_image = load_image(filename);
+  Resources::instance().loadImage(id);
+  visual_image = Resources::instance().getImage(id);
+  currentShopImageId = id;
   if (visual_image) {
     draw_image(clip_main, 0, 0, visual_image);
-    update(rect_main);
+    update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
   }
 }
 
@@ -990,7 +1034,9 @@ void shop_show_menu(const char *text)
   int row;
   const char *p = text;
 
-  visual_image = load_image(IMAGE_DIR "/picture/shop.bmp");
+  Resources::instance().loadImage(ImageId::picture_shop);
+  visual_image = Resources::instance().getImage(ImageId::picture_shop);
+  currentShopImageId = ImageId::picture_shop;
   if (visual_image) {
     draw_image(clip_main, 0, 0, visual_image);
   } else {
@@ -1009,5 +1055,5 @@ void shop_show_menu(const char *text)
     if (*p++ == '\0')
       break;
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }

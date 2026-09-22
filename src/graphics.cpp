@@ -9,12 +9,6 @@ std::shared_ptr<SDL_::Image> create_image(int width, int height)
   return std::make_shared<SDL_::Image>(width, height);
 }
 
-std::shared_ptr<SDL_::Image> load_image(const char *filename)
-{
-  auto img = std::make_shared<SDL_::Image>(filename);
-  return img->isEnabled() ? img : nullptr;
-}
-
 void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
   if (!dst || !src) {
@@ -42,6 +36,11 @@ void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, co
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
+  // frame_specials等、まだローダが未移植で常にnullptrのシートが存在するため、
+  // draw_image()と同様にnullを許容する(未ロードのスプライトは単に描かれない)
+  if (!dst || !src) {
+    return;
+  }
   dst->blit(src, x, y);
 }
 
@@ -64,6 +63,9 @@ void draw_image(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubI
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, const SDL_::SubImage &src)
 {
+  if (!dst || !src.sheet) {
+    return;
+  }
   dst->blit(src.sheet, src.rect, x, y);
 }
 

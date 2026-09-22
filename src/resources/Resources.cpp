@@ -15,6 +15,7 @@
 #define AUDIO_ROOT "../audio/"
 #define FONT_ROOT "../font/"
 
+// このID-pathのmapはいずれLuaスクリプトの方へ移動したい
 namespace
 {
 	const std::unordered_map<ImageId, std::string> mapImagePath_ = {
@@ -24,6 +25,11 @@ namespace
         {ImageId::picture_cave , IMAGE_ROOT "picture/cave.bmp"},
         {ImageId::picture_chr , IMAGE_ROOT "picture/chr.bmp"},
         {ImageId::picture_dex , IMAGE_ROOT "picture/dex.bmp"},
+        {ImageId::picture_foods , IMAGE_ROOT "picture/foods.bmp"},
+        {ImageId::picture_guilds , IMAGE_ROOT "picture/guilds.bmp"},
+        {ImageId::picture_healers , IMAGE_ROOT "picture/healers.bmp"},
+        {ImageId::picture_inn , IMAGE_ROOT "picture/inn.bmp"},
+        {ImageId::picture_int , IMAGE_ROOT "picture/int.bmp"},
         {ImageId::picture_item , IMAGE_ROOT "picture/item.bmp"},
         {ImageId::picture_kanji , IMAGE_ROOT "picture/kanji.bmp"},
         {ImageId::picture_logo , IMAGE_ROOT "picture/logo.bmp"},
@@ -247,6 +253,8 @@ namespace
     };
 }
 
+Resources *Resources::instance_ = nullptr;
+
 Resources::Resources()
 	: windowWidth_(640)
 	, windowHeight_(480)
@@ -257,11 +265,14 @@ Resources::Resources()
 	// , luaImage_()
 	, mapImage_()
 	, mapJoystick_()
+	, currentMusicId_(MusicId::none)
 {
+	instance_ = this;
 }
 
 Resources::~Resources()
 {
+	instance_ = nullptr;
 }
 
 const char *Resources::getFontFileName() const
@@ -431,6 +442,28 @@ std::shared_ptr<SDL_::Mix_::Audio> Resources::getMusic(const MusicId &id) const
     }
 }
 
+bool Resources::playBgm(SDL_::Mix_::Mixer &mixer, MusicId id)
+{
+    if (id == currentMusicId_ && mixer.isMusicPlaying()) {
+        return true;
+    }
+    if (id == MusicId::none) {
+        mixer.stopMusic();
+        unloadMusic(currentMusicId_);
+        currentMusicId_ = MusicId::none;
+        return true;
+    }
+    if (!loadMusic(mixer, id)) {
+        return false;
+    }
+    mixer.playMusic(*getMusic(id), -1);
+    if (currentMusicId_ != id) {
+        // トラックは既に新しいAudioへ再配線済みなので、ここで旧トラックを解放してよい
+        unloadMusic(currentMusicId_);
+    }
+    currentMusicId_ = id;
+    return true;
+}
 
 void Resources::reload()
 {

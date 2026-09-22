@@ -1,8 +1,10 @@
 #include "app/Application.h"
 #include "sdl/SDLWindow.h"
 #include "resources/Resources.h"
+#include "resources/SoundFontId.h"
 #include "task/TaskManager.h"
 #include "scene/menu/MenuScene.h"
+#include "sdl/SDLMixMixer.h"
 #include "sdl/LegacyPlatform.h"
 
 #include <SDL3/SDL.h>
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
 	app.registerMainWindow(mainWindow);
 
 	initLegacyGraphics(res);
-	initLegacySound(res);
+	app.getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
 
 	app.registerNextScene(std::make_shared<MenuScene>());
 

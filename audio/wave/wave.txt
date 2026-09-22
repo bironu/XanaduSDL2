@@ -55,7 +55,8 @@ USER_HIT_AXE:		attack.wav
 # ユーザーダメージ
 USER_DAMAGED:		attack.wav
 USER_TRAPPED:		trapped.wav
-USER_DEAD:		
+USER_DEAD:
+ENCOUNT:		encount.wav
 
 # 魔法(ユーザーによる)
 MAGIC_HIT:		magic.wav

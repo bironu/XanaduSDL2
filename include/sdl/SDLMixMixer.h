@@ -29,6 +29,7 @@ public:
 	int allocateChannels(int);
 	int playSound(Audio &, int = -1, int = 0);
 	bool playMusic(Audio &, int = -1);
+	bool isMusicPlaying() const;
 	bool stopMusic();
 	void pauseMusic();
 	void resumeMusic();

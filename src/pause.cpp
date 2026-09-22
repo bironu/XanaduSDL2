@@ -28,7 +28,7 @@ void pause_leave(void)
 
 void pause_loop(void)
 {
-  if (!get_keystate(pause_clearkey) ||
+  if (!isKeyDown(static_cast<SDL_Scancode>(pause_clearkey)) ||
       (pause_time += pause_interval) >= WAIT_INTERVAL)
     resume_context();
 }

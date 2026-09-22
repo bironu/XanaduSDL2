@@ -2,6 +2,7 @@
 #define cave_H
 
 // コンテキスト保護関数
+extern void cave_destroy(void);
 extern void cave_enter(void);
 extern void cave_leave(void);
 

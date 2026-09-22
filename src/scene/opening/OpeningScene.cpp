@@ -152,7 +152,8 @@ void OpeningScene::onKeyDown(const SDL_KeyboardEvent &key)
 		return;
 	}
 	if (key.repeat == 0) {
-		restoreContext();
+        waitingForKey_ = false;
+        finish();
 	}
 }
 
@@ -163,7 +164,6 @@ void OpeningScene::onWindowExpose(const SDL_WindowEvent &window)
 
 void OpeningScene::onTimer()
 {
-    SDL_Log("OpeningScene::onTimer: call ");
     uint32_t interval = onEnter();
     onDraw();
     if (interval == 0) {
@@ -187,7 +187,7 @@ uint32_t OpeningScene::onEnter()
     const int numVisuals = user.environment.scenario == 0 ? kVisuals1.size() : kVisuals2.size();
 
     if (step_ >= numVisuals) {
-		waitForever();
+    	waitingForKey_ = true;
 		return 0;
 	}
 
@@ -238,18 +238,4 @@ void OpeningScene::advanceFade()
 		fadeMask_ = 0x000000;
 		break;
 	}
-}
-
-void OpeningScene::waitForever()
-{
-	waitingForKey_ = true;
-	// bgm_play(bgm_data.theme[user.environment.scenario].opening);
-}
-
-void OpeningScene::restoreContext()
-{
-	// load_background(IMAGE_DIR "/user/frame.bmp");
-	// update(rect_overall);
-    waitingForKey_ = false;
-	resume_context();
 }

@@ -7,6 +7,11 @@ CaveScene::CaveScene()
 {
 }
 
+void CaveScene::onDestroy(uint32_t /*tick*/)
+{
+	cave_destroy();
+}
+
 void CaveScene::onEnter()
 {
 	cave_enter();

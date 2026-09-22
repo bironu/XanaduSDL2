@@ -10,6 +10,40 @@
 #include "user_dead.h"
 #include "animation.h"
 #include "pause.h"
+#include "resources/Resources.h"
+#include "resources/ImageId.h"
+#include "resources/SoundId.h"
+#include "resources/MusicId.h"
+#include "app/Application.h"
+
+namespace
+{
+constexpr SoundId kFieldSoundIds[] = { SoundId::lost_key, SoundId::trapped, SoundId::encount };
+}
+
+MusicId resolveFieldMusic(int scenario, int dungeonLevel)
+{
+	if (scenario == 0) {
+		return MusicId::xanadu; // XA1_DEFAULT_FIELDが全レベルに適用される(個別上書きなし)
+	}
+	static constexpr MusicId kXa2Field[MAX_DUNGEON_LEVEL] = {
+		MusicId::xana2_XANA2_01, MusicId::xana2_XANA2_02, MusicId::xana2_XANA2_03,
+		MusicId::xana2_XANA2_04, MusicId::xana2_XANA2_05, MusicId::xana2_XANA2_06,
+		MusicId::xana2_XANA2_07, MusicId::xana2_XANA2_08, MusicId::xana2_XANA2_09,
+		MusicId::xana2_XANA2_10, MusicId::xana2_XANA2_11,
+	};
+	if (dungeonLevel < 0 || MAX_DUNGEON_LEVEL <= dungeonLevel) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "resolveFieldMusic: dungeon_level out of range %d\n", dungeonLevel);
+		return MusicId::none;
+	}
+	return kXa2Field[dungeonLevel];
+}
+
+// タワーは現状の設定ではフィールドと同じ曲になる(未設定時にフィールドへフォールバックするため)
+MusicId resolveTowerMusic(int scenario, int dungeonLevel)
+{
+	return resolveFieldMusic(scenario, dungeonLevel);
+}
 
 #define GRAVITY_RATE		0	// 重力発生タイミング
 #define GRAVITY_WAIT		1	// 入力用重力ウエイト
@@ -104,7 +138,10 @@ int init_training_ground(int scenario)
 
   // ワープカウンタの初期化
   field_warp_count = 0;
-  
+
+  // BGM
+  playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
+
   return CONTEXT_FIELD;
 }
 
@@ -143,13 +180,12 @@ int init_field(void)
 {
   // BGM
   if (in_training_ground()) {
-    bgm_play(bgm_data.dungeon[0].field[10]);
+    playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
   } else {
-    bgm_play(bgm_data.dungeon[user.environment.scenario]
-             .field[user.environment.dungeon_level]);
+    playBgm(resolveFieldMusic(user.environment.scenario, user.environment.dungeon_level));
     bgm_tempo(0); // テンポ
   }
-  
+
   // 戦闘中だった？
   if (in_battle())
     return init_battle(&user.environment.field_room,
@@ -157,6 +193,25 @@ int init_field(void)
                        field_battle_escape);
   else
     return CONTEXT_FIELD;
+}
+
+void field_create(void)
+{
+  auto &res = Resources::instance();
+  auto &mixer = Application::instance().getMixer();
+  for (SoundId id : kFieldSoundIds) {
+    res.loadSound(mixer, id);
+  }
+  res.loadImage(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
+}
+
+void field_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kFieldSoundIds) {
+    res.unloadSound(id);
+  }
+  res.unloadImage(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
 }
 
 void field_enter(void)
@@ -179,12 +234,15 @@ void field_enter(void)
     user.y = 160;
   }
 
+  // 背景フレーム(枠)。ボス撃破後はboss.cppのrestore_context()が再描画するが、
+  // フィールドへの最初の入場時にも描いておく必要がある
+  load_background(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
+
   // BGM
   if (in_training_ground()) {
-    bgm_play(bgm_data.dungeon[0].field[10]);
+    playBgm(resolveFieldMusic(0, TRAINING_GROUND_LEVEL));
   } else {
-    bgm_play(bgm_data.dungeon[user.environment.scenario]
-             .field[user.environment.dungeon_level]);
+    playBgm(resolveFieldMusic(user.environment.scenario, user.environment.dungeon_level));
     bgm_tempo(0); // テンポ
   }
 
@@ -224,79 +282,79 @@ void field_loop(void)
     return;
   }
 
-  if (get_keystate(VK_CONTROL)) {
+  if (isCtrlDown()) {
     // Ctrl+Q: 保存
-    if (get_keystate('Q')) {
+    if (isKeyDown(SDL_SCANCODE_Q)) {
       save_user();
       switch_context(CONTEXT_START_MENU);
       return;
     }
     // Ctrl+S: サウンド
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       if (bgm_mute()) {
         emit_message("Sound Off");
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, 'S'));
+      extend_context(init_pause(100, SDL_SCANCODE_S));
       return;
     }
   } else {
     // SPACE: 建物・洞窟に入る
-    if (get_keystate(VK_SPACE)) {
+    if (isKeyDown(SDL_SCANCODE_SPACE)) {
       field_enter_where();
       return;
     }
-    // ENTER: アイテム使用  
-    if (get_keystate(VK_RETURN) && !in_training_ground() &&
+    // ENTER: アイテム使用
+    if (isReturnDown() && !in_training_ground() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
       extend_context(init_use_item(update_background, NULL));
       return;
     }
     // S: ステータス表示
-    if (get_keystate('S')) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
       status_user_status();
       emit_message("Hit any key");
       extend_context(init_enter_buffer(CONTEXT_ENTER_CHARACTER, NULL));
       return;
     }
     // I: 在庫表示
-    if (get_keystate('I')) {
+    if (isKeyDown(SDL_SCANCODE_I)) {
       extend_context(init_inventory());
       return;
     }
     // E: 装備
-    if (get_keystate('E') && !in_training_ground()) {
+    if (isKeyDown(SDL_SCANCODE_E) && !in_training_ground()) {
       extend_context(init_equip());
       return;
     }
   }
 
   // 移動
-  key2 = get_keystate(VK_DOWN);
-  key4 = get_keystate(VK_LEFT);
-  key6 = get_keystate(VK_RIGHT);
-  key8 = get_keystate(VK_UP);
+  key2 = isKeyDown(SDL_SCANCODE_DOWN);
+  key4 = isKeyDown(SDL_SCANCODE_LEFT);
+  key6 = isKeyDown(SDL_SCANCODE_RIGHT);
+  key8 = isKeyDown(SDL_SCANCODE_UP);
 
   if (key2 && key4) {
     key2 = key4 = 0; key1 = 1;
   } else {
-    key1 = get_keystate(VK_END);
+    key1 = isKeyDown(SDL_SCANCODE_END);
   }
   if (key2 && key6) {
     key2 = key6 = 0; key3 = 1;
   } else {
-    key3 = get_keystate(VK_NEXT);
+    key3 = isKeyDown(SDL_SCANCODE_PAGEDOWN);
   }
   if (key8 && key4) {
     key8 = key4 = 0; key7 = 1;
   } else {
-    key7 = get_keystate(VK_HOME);
+    key7 = isKeyDown(SDL_SCANCODE_HOME);
   }
   if (key8 && key6) {
     key8 = key6 = 0; key9 = 1;
   } else {
-    key9 = get_keystate(VK_PRIOR);
+    key9 = isKeyDown(SDL_SCANCODE_PAGEUP);
   }
 
        if (key1) update = field_move_user(1);
@@ -405,7 +463,7 @@ void update_background(void)
     }
     mo_top += FIELD_WIDTH - 9;
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }
 
 // ユーザーの移動
@@ -501,7 +559,7 @@ retry:
           ? tile_data.pattern0
           : tile_data.pattern1;
       
-        se_play(SE_LOST_KEY); // SE
+        playSound(SoundId::lost_key); // SE
         emit_message("Lost key");
       
         // 扉を開ける
@@ -654,7 +712,7 @@ void user_fall_hazard(void)
   status_update_HP(SDL_::Color::RED);
   
   field_user_trapped = 1;
-  se_play(SE_TRAPPED);
+  playSound(SoundId::trapped);
 }
 
 int open_tombs(void)
@@ -869,6 +927,9 @@ void field_begin_battle()
   };
   int i, diff;
   room_t *room = &user.environment.field_room;
+
+  // 遭遇音
+  playSound(SoundId::encount);
   tomb_t *ma = monster_encountered;
 
   // 遭遇したモンスターの出現位置番号を控えておく
@@ -1172,7 +1233,7 @@ void field_enter_where(void)
       user.frame = battle_frame_user[8];
 
       switch_context(CONTEXT_TOWER);
-      extend_context(init_pause(50, VK_SPACE));
+      extend_context(init_pause(50, SDL_SCANCODE_SPACE));
       return;
     }
   }

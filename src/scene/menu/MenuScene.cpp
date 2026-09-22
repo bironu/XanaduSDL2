@@ -53,18 +53,10 @@ void MenuScene::onCreate(uint32_t /*tick*/)
 void MenuScene::onResume(uint32_t /*tick*/)
 {
 	onEnter();
-    auto &app = getApplication();
-    auto &mixer = app.getMixer();
-    auto &res = getResources();
-    mixer.playMusic(*res.getMusic(MusicId::GMINIT));
 }
 
 void MenuScene::onSuspend()
 {
-    auto &app = getApplication();
-    auto &mixer = app.getMixer();
-    auto &res = getResources();
-    mixer.stopMusic();
 	onLeave();
 }
 

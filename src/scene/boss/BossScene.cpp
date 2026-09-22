@@ -7,6 +7,16 @@ BossScene::BossScene()
 {
 }
 
+void BossScene::onCreate(uint32_t /*tick*/)
+{
+	boss_create();
+}
+
+void BossScene::onDestroy(uint32_t /*tick*/)
+{
+	boss_destroy();
+}
+
 void BossScene::onEnter()
 {
 	boss_enter();

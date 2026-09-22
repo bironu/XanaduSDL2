@@ -7,6 +7,16 @@ FieldScene::FieldScene()
 {
 }
 
+void FieldScene::onCreate(uint32_t /*tick*/)
+{
+	field_create();
+}
+
+void FieldScene::onDestroy(uint32_t /*tick*/)
+{
+	field_destroy();
+}
+
 void FieldScene::onEnter()
 {
 	field_enter();

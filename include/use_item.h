@@ -4,6 +4,8 @@
 #include "dungeon.h"
 
 // コンテキスト保護関数
+extern void use_item_create(void);
+extern void use_item_destroy(void);
 extern void use_item_enter(void);
 extern void use_item_leave(void);
 

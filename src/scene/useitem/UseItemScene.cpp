@@ -7,6 +7,16 @@ UseItemScene::UseItemScene()
 {
 }
 
+void UseItemScene::onCreate(uint32_t /*tick*/)
+{
+	use_item_create();
+}
+
+void UseItemScene::onDestroy(uint32_t /*tick*/)
+{
+	use_item_destroy();
+}
+
 void UseItemScene::onEnter()
 {
 	use_item_enter();
