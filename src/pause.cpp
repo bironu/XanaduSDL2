@@ -1,34 +1,26 @@
-#include "xanadu.h"
 #include "pause.h"
+#include "app/Application.h"
+#include "scene/GameScene.h"
 
-#define WAIT_INTERVAL		500	// 待ち時間
+namespace {
 
-static int pause_interval;
-static int pause_clearkey;
-static int pause_time;
-static void pause_loop(void);
-
-int init_pause(int interval, int clearkey)
+GameScene *currentGameScene()
 {
-  pause_interval = interval;
-  pause_clearkey = clearkey;
-  pause_time = 0;
-  return CONTEXT_PAUSE;
+	return dynamic_cast<GameScene *>(Application::instance().getCurrentScene().get());
 }
 
-void pause_enter(void)
+} // namespace
+
+void begin_wait(std::function<bool()> isDone, std::function<void()> onComplete, uint32_t maxWaitMs)
 {
-  set_timer(pause_interval, pause_loop);
+	if (auto *scene = currentGameScene()) {
+		scene->wait(std::move(isDone), std::move(onComplete), maxWaitMs);
+	}
 }
 
-void pause_leave(void)
+void begin_pause(int clearkey, std::function<void()> onComplete)
 {
-  kill_timer();
-}
-
-void pause_loop(void)
-{
-  if (!isKeyDown(static_cast<SDL_Scancode>(pause_clearkey)) ||
-      (pause_time += pause_interval) >= WAIT_INTERVAL)
-    resume_context();
+	if (auto *scene = currentGameScene()) {
+		scene->pauseFor(clearkey, std::move(onComplete));
+	}
 }

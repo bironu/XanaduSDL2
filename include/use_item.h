@@ -2,14 +2,12 @@
 #define use_item_H
 
 #include "dungeon.h"
+#include <functional>
 
-// コンテキスト保護関数
-extern void use_item_create(void);
-extern void use_item_destroy(void);
-extern void use_item_enter(void);
-extern void use_item_leave(void);
-
-// 初期化関数
-extern int init_use_item(void (*update_background)(void), room_t *room);
+// 現在装備している魔法アイテムを即座に使用する。画面遷移を伴わないため
+// 専用Sceneには依存しない。処理完了後、呼び出し元のゲームループを
+// 再開するためonResume(battle_enter/field_enter等)を呼ぶ
+void play_use_item(std::function<void()> update_background, room_t *room,
+                   std::function<void()> onResume);
 
 #endif // use_item_H

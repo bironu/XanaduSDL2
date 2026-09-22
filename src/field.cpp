@@ -1,6 +1,7 @@
 #include "field.h"
 #include "battle.h"
 #include "boss.h"
+#include "tower.h"
 #include "shop.h"
 #include "cave.h"
 #include "equip.h"
@@ -15,6 +16,7 @@
 #include "resources/SoundId.h"
 #include "resources/MusicId.h"
 #include "app/Application.h"
+#include "sdl/SDLMixMixer.h"
 
 namespace
 {
@@ -278,7 +280,7 @@ void field_loop(void)
 
   // 死んだ？
   if (user.status.HP < 0) {
-    extend_context(init_user_dead(user.x, user.y, update_background));
+    play_user_dead(user.x, user.y, update_background, field_enter);
     return;
   }
 
@@ -296,7 +298,7 @@ void field_loop(void)
       } else {
         emit_message("Sound On");
       }
-      extend_context(init_pause(100, SDL_SCANCODE_S));
+      begin_pause(SDL_SCANCODE_S, field_enter);
       return;
     }
   } else {
@@ -308,7 +310,7 @@ void field_loop(void)
     // ENTER: アイテム使用
     if (isReturnDown() && !in_training_ground() &&
         user.equipment[GOODS_MAGIC_ITEM] < MAX_GOODS) {
-      extend_context(init_use_item(update_background, NULL));
+      play_use_item(update_background, NULL, field_enter);
       return;
     }
     // S: ステータス表示
@@ -563,10 +565,10 @@ retry:
         emit_message("Lost key");
       
         // 扉を開ける
-        extend_context(init_animation_tile(tile_data.field_open, 3,
-                                           user.x + dx * 40,
-                                           user.y + dy * 40,
-                                           update_background));
+        play_animation_tile(tile_data.field_open, 3,
+                            user.x + dx * 40,
+                            user.y + dy * 40,
+                            update_background, field_enter);
         return -1;
       }
 
@@ -916,7 +918,9 @@ int field_gravitate_monsters(void)
   return n;
 }
 
-// 戦闘を開始する
+// 戦闘を開始する。
+// 遭遇音・ポーズ(進行/操作停止)はここではなくBattleScene側
+// (battle_enter、画面がbattleに切り替わった後)で行う
 void field_begin_battle()
 {
   // モンスターの戦闘時フォーメーション
@@ -927,9 +931,6 @@ void field_begin_battle()
   };
   int i, diff;
   room_t *room = &user.environment.field_room;
-
-  // 遭遇音
-  playSound(SoundId::encount);
   tomb_t *ma = monster_encountered;
 
   // 遭遇したモンスターの出現位置番号を控えておく
@@ -1134,7 +1135,7 @@ void field_enter_where(void)
           user.equipment[GOODS_MAGIC_ITEM] == MAX_GOODS - 1 &&
           user.status.CRN == 4 &&
           user.status.KRM == 0) {
-        extend_context(init_cave(10));
+        play_cave(10, field_enter);
         return;
       }
     }
@@ -1148,7 +1149,7 @@ void field_enter_where(void)
     
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
       // このときユーザーデータの保存
-      extend_context(init_cave(to_level));
+      play_cave(to_level, field_enter);
       return;
     }
     // 訓練場から抜ける？
@@ -1166,8 +1167,8 @@ void field_enter_where(void)
           user.status.ELX = 0;
         }
 
-        extend_context(init_cave(0));
-        
+        play_cave(0, field_enter);
+
         make_user_dir(); // ユーザーディレクトリを作成する
         init_level(0, user_path.empty() ? nullptr : user_path.c_str()); // 読み直し
       }
@@ -1178,7 +1179,7 @@ void field_enter_where(void)
   if (map == tile_data.cave_back) {
     int to_level = user.environment.dungeon_level - 1;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
-      extend_context(init_cave(to_level));
+      play_cave(to_level, field_enter);
       return;
     }
   }
@@ -1186,7 +1187,7 @@ void field_enter_where(void)
   if (map == tile_data.cave_next3) {
     int to_level = user.environment.dungeon_level + 3;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
-      extend_context(init_cave(to_level));
+      play_cave(to_level, field_enter);
       return;
     }
   }
@@ -1194,7 +1195,7 @@ void field_enter_where(void)
   if (map == tile_data.cave_back3) {
     int to_level = user.environment.dungeon_level - 3;
     if (0 <= to_level && to_level < MAX_DUNGEON_LEVEL) {
-      extend_context(init_cave(to_level));
+      play_cave(to_level, field_enter);
       return;
     }
   }
@@ -1233,7 +1234,7 @@ void field_enter_where(void)
       user.frame = battle_frame_user[8];
 
       switch_context(CONTEXT_TOWER);
-      extend_context(init_pause(50, SDL_SCANCODE_SPACE));
+      begin_pause(SDL_SCANCODE_SPACE, tower_enter);
       return;
     }
   }

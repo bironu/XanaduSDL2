@@ -1,76 +1,81 @@
 #include "animation.h"
 #include "user.h"
 
-static animation_frame_t *anime_frames;
-static int anime_n_frames;
-static int anime_current;
-static std::shared_ptr<SDL_::Image> anime_clip;
-static int anime_as_tile;
+namespace {
 
-static void (*thunk_update_background)(void);
+struct PlayAnimationState {
+  animation_frame_t *frames = nullptr;
+  int n_frames = 0;
+  int current = 0;
+  std::shared_ptr<SDL_::Image> clip;
+  bool as_tile = false;
+  std::function<void()> update_background;
+  std::function<void()> onComplete;
+};
 
-static void animation_loop(void);
+PlayAnimationState g_playAnim; // 同時に1つしか再生しない
 
-int init_animation(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames, int n_frames,
-                   void (*update_background)(void))
+void playAnimationStep()
 {
-  anime_frames = frames;
-  anime_n_frames = n_frames;
-  anime_current = 0;
-  anime_clip = clip;
-  thunk_update_background = update_background;
-  return CONTEXT_ANIMATION;
+  if (g_playAnim.current >= g_playAnim.n_frames) {
+    kill_timer();
+    auto onComplete = std::move(g_playAnim.onComplete);
+    g_playAnim.onComplete = nullptr;
+    if (onComplete) {
+      onComplete();
+    }
+    return;
+  }
+
+  const SDL_::SubImage &img = g_playAnim.frames[g_playAnim.current].image;
+  const int x = g_playAnim.frames[g_playAnim.current].x;
+  const int y = g_playAnim.frames[g_playAnim.current].y;
+
+  g_playAnim.update_background();
+
+  if (g_playAnim.as_tile) {
+    draw_image(g_playAnim.clip, x, y, img);
+  } else {
+    draw_sprite(g_playAnim.clip, x, y, img);
+  }
+  g_playAnim.current++;
 }
 
-// 地形タイルアニメーションの初期化
-int init_animation_tile(map_t *tiles, int n_frames, int x, int y,
-                        void (*update_background)(void))
+void playAnimationImpl(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames, int n_frames,
+                       std::function<void()> update_background, std::function<void()> onComplete, bool as_tile)
+{
+  g_playAnim.frames = frames;
+  g_playAnim.n_frames = n_frames;
+  g_playAnim.current = 0;
+  g_playAnim.clip = clip;
+  g_playAnim.as_tile = as_tile;
+  g_playAnim.update_background = std::move(update_background);
+  g_playAnim.onComplete = std::move(onComplete);
+
+  set_timer(85, playAnimationStep);
+}
+
+} // namespace
+
+void play_animation(std::shared_ptr<SDL_::Image> clip, animation_frame_t *frames, int n_frames,
+                    std::function<void()> update_background, std::function<void()> onComplete)
+{
+  playAnimationImpl(clip, frames, n_frames, std::move(update_background), std::move(onComplete), false);
+}
+
+void play_animation_tile(map_t *tiles, int n_frames, int x, int y,
+                         std::function<void()> update_background, std::function<void()> onComplete)
 {
   static animation_frame_t *frames;
-  int i;
 
   delete[] frames;
   frames = new animation_frame_t[n_frames];
 
-  for (i = 0; i < n_frames; i++) {
+  for (int i = 0; i < n_frames; i++) {
     frames[i].image = frame_tiles[tiles[i]];
     frames[i].x = x;
     frames[i].y = y;
   }
-  anime_as_tile = 1;
-  return init_animation(clip_main, frames, n_frames, update_background);
-}
 
-void animation_enter(void)
-{
-  set_timer(85, animation_loop);
-}
-
-void animation_leave(void)
-{
-  kill_timer();
-  anime_as_tile = 0;
-}
-
-void animation_loop(void)
-{
-  if (anime_current < anime_n_frames) {
-    SDL_::SubImage img = anime_frames[anime_current].image;
-    int x = anime_frames[anime_current].x;
-    int y = anime_frames[anime_current].y;
-    
-    // 背景を更新
-    (*thunk_update_background)();
-    
-    // フレームの描画
-    if (anime_as_tile) {
-      draw_image(anime_clip, x, y, img);
-    } else {
-      draw_sprite(anime_clip, x, y, img);
-    }
-    anime_current++;
-  } else {
-    // コンテキストを復帰
-    resume_context();
-  }
+  playAnimationImpl(clip_main, frames, n_frames, std::move(update_background), std::move(onComplete), true);
 }

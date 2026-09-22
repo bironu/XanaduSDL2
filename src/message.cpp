@@ -93,14 +93,16 @@ static void call_consumer(int last_key)
 #ifdef NO_PAUSE
   resume_context();
 #else
-  switch_context(init_pause(50, scancodeFromChar(toupper(last_key))));
+  begin_pause(scancodeFromChar(toupper(last_key)), finish_current_context);
 #endif
 }
 
 static void update_enter_buffer(void)
 {
   int row = current_line * 16;
-  fill_image(clip_message, 0, row, 16, 16, SDL_::Color::BLACK);
+  // 行全体を消してから描き直す。1文字分(16px)しか消さないと、
+  // BackSpaceで文字数が減った際に手前の文字の残像が消えずに残る
+  fill_image(clip_message, 0, row, clip_message->getWidth(), 16, SDL_::Color::BLACK);
   draw_text(clip_message, 0, row, enter_buffer, SDL_::Color::WHITE);
   update_region(rect_message.x, rect_message.y, rect_message.width, rect_message.height);
 }

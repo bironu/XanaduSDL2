@@ -2,6 +2,7 @@
 #define GAME_SCENE_H_
 
 #include "scene/Scene.h"
+#include <functional>
 
 // 旧C実装(src/context.cpp)の「コンテキスト」に対応するSceneの共通基底クラス。
 //
@@ -24,15 +25,33 @@ public:
 	void onDestroy(uint32_t tick) override;
     bool onIdle(uint32_t tick) override;
 
-	// キー入力等のOSイベント処理。挙動は全コンテキスト共通のため、この基底クラスで実装する。
 	void dispatch(const SDL_Event &event) override;
 
+	void setGameTimer(int intervalMs, std::function<void()> onTimer);
+	void killGameTimer();
+
+	// isDone()がtrueになるまで、dispatch()の通常イベント処理とゲーム進行を
+	// 止める(旧pause.h XanaduPause)。killGameTimer()を内部で呼ぶので、
+	// 呼び出し元の周期処理タイマーは止まる。再開が必要ならonCompleteで
+	// 行うこと。maxWaitMs>0ならisDone()が満たされなくてもタイムアウトする
+	// (0=無制限)
+	void wait(std::function<bool()> isDone, std::function<void()> onComplete = nullptr, uint32_t maxWaitMs = 0);
+	// waitの特化版: clearkeyが離されるか最大500ms経過するまで待つ。
+	// キーボードの論理状態(押しっぱなし判定)が更新されるまでのdebounce用途
+	void pauseFor(int clearkey, std::function<void()> onComplete = nullptr);
+	bool isWaiting() const { return waiting_; }
+
 protected:
-	// 旧*_enter関数、旧*_leave関数に対応
 	virtual void onEnter() = 0;
 	virtual void onLeave() = 0;
 
 private:
+	void updateWait(uint32_t tick);
+
+	std::function<void()> onTimer_;
+	std::function<bool()> waitIsDone_;
+	std::function<void()> waitOnComplete_;
+	bool waiting_ = false;
 	const int contextId_;
 };
 

@@ -36,7 +36,7 @@ void fill_image(std::shared_ptr<SDL_::Image> dst, int x, int y, int w, int h, co
 
 void draw_sprite(std::shared_ptr<SDL_::Image> dst, int x, int y, std::shared_ptr<SDL_::Image> src)
 {
-  // frame_specials等、まだローダが未移植で常にnullptrのシートが存在するため、
+  // pattern_guage等、対応するローダが未移植で常にnullptrのシートが存在するため、
   // draw_image()と同様にnullを許容する(未ロードのスプライトは単に描かれない)
   if (!dst || !src) {
     return;
