@@ -463,7 +463,7 @@ void update_background(void)
     }
     mo_top += FIELD_WIDTH - 9;
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }
 
 // ユーザーの移動

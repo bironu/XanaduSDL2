@@ -814,7 +814,7 @@ void update_background(void)
   if (user_damage != NULL) {
     inverse_image(clip_main, user.x, user.y, mask_damaged);
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }
 
 int battle_move_user(int dir)

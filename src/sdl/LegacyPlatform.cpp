@@ -157,7 +157,7 @@ int load_background(ImageId id)
 		return 1;
 	}
 	draw_image(clip_overall, 0, 0, img);
-	update(rect_overall);
+	update_region(rect_overall.x, rect_overall.y, rect_overall.width, rect_overall.height);
 	return 0;
 }
 

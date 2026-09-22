@@ -27,8 +27,6 @@ private:
 	uint32_t onEnter();
 	// フェードが1段階(黒→着色→フル発色)終わるたびに次の段階へ進める
 	void advanceFade();
-	void waitForever();
-	void restoreContext();
 
 	int step_;
 	unsigned fadeMask_;

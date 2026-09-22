@@ -103,8 +103,6 @@ extern void update_region(int x, int y, int width, int height);
 extern void update_immediately(void);
 extern int load_background(ImageId id);
 
-#define update(r) (update_region((r).x, (r).y, (r).width, (r).height))
-
 // アプリケーションの再スタート
 extern void restart_application(void);
 

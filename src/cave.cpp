@@ -49,5 +49,5 @@ void update_background(void)
   } else {
     draw_image(clip_main, 0, 0, visual_image);
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }

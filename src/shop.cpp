@@ -1023,7 +1023,7 @@ void shop_show_visual(ImageId id)
   currentShopImageId = id;
   if (visual_image) {
     draw_image(clip_main, 0, 0, visual_image);
-    update(rect_main);
+    update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
   }
 }
 
@@ -1055,5 +1055,5 @@ void shop_show_menu(const char *text)
     if (*p++ == '\0')
       break;
   }
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }

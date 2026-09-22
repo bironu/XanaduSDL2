@@ -280,7 +280,7 @@ int init_boss(int boss_id)
   draw_text(clip_user_guage, 0, 0, user.status.name, SDL_::Color::RED);
   draw_text(clip_boss_guage, 0, 0, boss.status.name, SDL_::Color::RED);
 
-  update(rect_overall);
+  update_region(rect_overall.x, rect_overall.y, rect_overall.width, rect_overall.height);
   return CONTEXT_BOSS;
 }
 
@@ -361,7 +361,7 @@ void restore_context(int won)
   if (!boss_final_battle || !won) {
     // バックグラウンドイメージを復元
     load_background(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
-    update(rect_shrine);
+    update_region(rect_shrine.x, rect_shrine.y, rect_shrine.width, rect_shrine.height);
   }
   
   if (won) {
@@ -497,7 +497,7 @@ void update_background(void)
     magic_damage_effect();
   }
   
-  update(rect_shrine);
+  update_region(rect_shrine.x, rect_shrine.y, rect_shrine.width, rect_shrine.height);
 }
 
 // メインループ
@@ -828,13 +828,13 @@ static void boss_update_integer(std::shared_ptr<SDL_::Image> img, int pts, SDL_:
 void update_user_HP(SDL_::Color pixel)
 {
   boss_update_integer(clip_user_guage, user.status.HP, pixel);
-  update(rect_user_guage);
+  update_region(rect_user_guage.x, rect_user_guage.y, rect_user_guage.width, rect_user_guage.height);
 }
 
 void update_boss_HP(SDL_::Color pixel)
 {
   boss_update_integer(clip_boss_guage, boss.status.HP, pixel);
-  update(rect_boss_guage);
+  update_region(rect_boss_guage.x, rect_boss_guage.y, rect_boss_guage.width, rect_boss_guage.height);
 }
 
 void boss_cast_spell(int scroll_id, int INT, int x, int y, int dir)

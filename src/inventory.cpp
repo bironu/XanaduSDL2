@@ -93,5 +93,5 @@ void inventory_list_goods(void)
   draw_text(&offscreen, &clip_mapview, 5 * 16, 20 * 16,
             "Hit any key", SDL_::Color::WHITE);
 #endif
-  update(rect_main);
+  update_region(rect_main.x, rect_main.y, rect_main.width, rect_main.height);
 }
