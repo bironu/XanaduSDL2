@@ -7,6 +7,16 @@ UserDeadScene::UserDeadScene()
 {
 }
 
+void UserDeadScene::onCreate(uint32_t /*tick*/)
+{
+	user_dead_create();
+}
+
+void UserDeadScene::onDestroy(uint32_t /*tick*/)
+{
+	user_dead_destroy();
+}
+
 void UserDeadScene::onEnter()
 {
 	user_dead_enter();

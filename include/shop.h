@@ -40,6 +40,8 @@ typedef struct {
 } shop_data_t;
 
 // コンテキスト保護関数
+extern void shop_create(void);
+extern void shop_destroy(void);
 extern void shop_enter(void);
 extern void shop_leave(void);
 

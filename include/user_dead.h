@@ -2,6 +2,8 @@
 #define user_dead_H
 
 // コンテキスト保護関数
+extern void user_dead_create(void);
+extern void user_dead_destroy(void);
 extern void user_dead_enter(void);
 extern void user_dead_leave(void);
 

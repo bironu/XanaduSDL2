@@ -32,10 +32,18 @@ int init_user_dead(int x, int y, void (*update_background)(void))
   return CONTEXT_USER_DEAD;
 }
 
-void user_dead_enter(void)
+void user_dead_create(void)
 {
   Resources::instance().loadSound(Application::instance().getMixer(), SoundId::elixer);
+}
 
+void user_dead_destroy(void)
+{
+  Resources::instance().unloadSound(SoundId::elixer);
+}
+
+void user_dead_enter(void)
+{
   switch (user_dead_state) {
   case STATE_SWOON:
     {
@@ -103,7 +111,6 @@ void user_dead_enter(void)
 
 void user_dead_leave(void)
 {
-  Resources::instance().unloadSound(SoundId::elixer);
 }
 
 void restore_context(void)

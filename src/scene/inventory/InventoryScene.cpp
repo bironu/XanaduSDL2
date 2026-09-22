@@ -7,6 +7,11 @@ InventoryScene::InventoryScene()
 {
 }
 
+void InventoryScene::onDestroy(uint32_t /*tick*/)
+{
+	inventory_destroy();
+}
+
 void InventoryScene::onEnter()
 {
 	inventory_enter();

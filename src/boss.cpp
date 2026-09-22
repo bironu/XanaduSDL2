@@ -360,7 +360,7 @@ void restore_context(int won)
   // 最終ボスに勝ったとき以外は表示しない
   if (!boss_final_battle || !won) {
     // バックグラウンドイメージを復元
-    load_background(ImageId::user_frame);
+    load_background(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
     update(rect_shrine);
   }
   
@@ -400,14 +400,25 @@ constexpr SoundId kBossSoundIds[] = {
 };
 }
 
-void boss_enter(void)
+void boss_create(void)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kBossSoundIds) {
     res.loadSound(mixer, id);
   }
+}
 
+void boss_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kBossSoundIds) {
+    res.unloadSound(id);
+  }
+}
+
+void boss_enter(void)
+{
   // 背景を描画
   update_background();
 
@@ -425,10 +436,6 @@ void boss_enter(void)
 
 void boss_leave(void)
 {
-  auto &res = Resources::instance();
-  for (SoundId id : kBossSoundIds) {
-    res.unloadSound(id);
-  }
   kill_timer();
 }
 

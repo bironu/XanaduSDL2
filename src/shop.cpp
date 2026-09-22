@@ -83,7 +83,7 @@ MusicId resolveShopMusic(int scenario, int shopId)
 
 static int shop_id;			// ショップ番号
 static int shop_state;			// 状態
-static ImageId currentShopImageId = ImageId::picture_shop; // 現在表示中の絵(shop_leaveでunloadする)
+static ImageId currentShopImageId = ImageId::picture_shop; // 現在表示中の絵(shop_destroyでunloadする)
 static int shop_price;			// 価格
 static int shop_goods;			// 品物番号
 
@@ -277,14 +277,26 @@ namespace
 constexpr SoundId kShopSoundIds[] = { SoundId::get, SoundId::invoke };
 }
 
-void shop_enter(void)
+void shop_create(void)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kShopSoundIds) {
     res.loadSound(mixer, id);
   }
+}
 
+void shop_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kShopSoundIds) {
+    res.unloadSound(id);
+  }
+  res.unloadImage(currentShopImageId);
+}
+
+void shop_enter(void)
+{
   switch (shop_state) {
   case STATE_TRADE: // ユーザーが売るのか買うのか尋ねる
     emit_message("Sell or Buy ?");
@@ -414,11 +426,6 @@ void shop_enter(void)
 
 void shop_leave(void)
 {
-  auto &res = Resources::instance();
-  for (SoundId id : kShopSoundIds) {
-    res.unloadSound(id);
-  }
-  res.unloadImage(currentShopImageId);
 }
 
 // ユーザーの所持金を表示

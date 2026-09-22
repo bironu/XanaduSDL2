@@ -35,6 +35,10 @@ void cave_enter(void)
 
 void cave_leave(void)
 {
+}
+
+void cave_destroy(void)
+{
   Resources::instance().unloadImage(ImageId::picture_cave);
 }
 

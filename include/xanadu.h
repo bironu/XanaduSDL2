@@ -27,7 +27,6 @@ enum class ImageId;
 // ディレクトリ
 #define IMAGE_DIR		"../bmp"
 #define LEVEL_DIR		"../map"
-#define AUDIO_DIR		"../audio"
 #define USERS_DIR		"../users"
 
 // 擬似乱数

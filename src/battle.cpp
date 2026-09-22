@@ -394,14 +394,25 @@ constexpr SoundId kBattleSoundIds[] = {
 };
 }
 
-void battle_enter(void)
+void battle_create(void)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kBattleSoundIds) {
     res.loadSound(mixer, id);
   }
+}
 
+void battle_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kBattleSoundIds) {
+    res.unloadSound(id);
+  }
+}
+
+void battle_enter(void)
+{
   // 画面の描画
   update_background();
   status_refresh(in_battle());
@@ -431,10 +442,6 @@ void battle_enter(void)
 
 void battle_leave(void)
 {
-  auto &res = Resources::instance();
-  for (SoundId id : kBattleSoundIds) {
-    res.unloadSound(id);
-  }
   kill_timer();
 }
 

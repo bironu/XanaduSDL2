@@ -18,6 +18,8 @@ MusicId resolveTowerMusic(int scenario, int dungeonLevel);
                          : field_offset_XY(-4, -4))
 
 // コンテキスト保護関数
+extern void field_create(void);
+extern void field_destroy(void);
 extern void field_enter(void);
 extern void field_leave(void);
 

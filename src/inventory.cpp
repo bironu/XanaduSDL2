@@ -44,6 +44,10 @@ void inventory_enter(void)
 
 void inventory_leave(void)
 {
+}
+
+void inventory_destroy(void)
+{
   Resources::instance().unloadImage(ImageId::picture_shop);
 }
 

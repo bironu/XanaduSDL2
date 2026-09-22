@@ -195,14 +195,27 @@ int init_field(void)
     return CONTEXT_FIELD;
 }
 
-void field_enter(void)
+void field_create(void)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kFieldSoundIds) {
     res.loadSound(mixer, id);
   }
+  res.loadImage(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
+}
 
+void field_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kFieldSoundIds) {
+    res.unloadSound(id);
+  }
+  res.unloadImage(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
+}
+
+void field_enter(void)
+{
   // 変数の初期化
   gravity_clock = GRAVITY_RATE;
   monster_encountered = NULL;
@@ -223,7 +236,7 @@ void field_enter(void)
 
   // 背景フレーム(枠)。ボス撃破後はboss.cppのrestore_context()が再描画するが、
   // フィールドへの最初の入場時にも描いておく必要がある
-  load_background(ImageId::user_frame);
+  load_background(in_scenario2() ? ImageId::user_frame : ImageId::xa1_frame);
 
   // BGM
   if (in_training_ground()) {
@@ -249,11 +262,6 @@ void field_enter(void)
 
 void field_leave(void)
 {
-  auto &res = Resources::instance();
-  for (SoundId id : kFieldSoundIds) {
-    res.unloadSound(id);
-  }
-  Resources::instance().unloadImage(ImageId::user_frame);
   kill_timer();
 }
 

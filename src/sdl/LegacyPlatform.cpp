@@ -109,11 +109,6 @@ void initLegacyGraphics(Resources &res)
 	}
 }
 
-void initLegacySound(Resources &res)
-{
-	Application::instance().getMixer().setSoundFonts(res.getSoundFontFileName(SoundFontId::small_soundfont));
-}
-
 void presentLegacyFrame()
 {
 	if (!clip_overall) {

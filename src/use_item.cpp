@@ -89,14 +89,25 @@ namespace
 constexpr SoundId kUseItemSoundIds[] = { SoundId::invoke, SoundId::treasure, SoundId::lost_key, SoundId::get };
 }
 
-void use_item_enter(void)
+void use_item_create(void)
 {
   auto &res = Resources::instance();
   auto &mixer = Application::instance().getMixer();
   for (SoundId id : kUseItemSoundIds) {
     res.loadSound(mixer, id);
   }
+}
 
+void use_item_destroy(void)
+{
+  auto &res = Resources::instance();
+  for (SoundId id : kUseItemSoundIds) {
+    res.unloadSound(id);
+  }
+}
+
+void use_item_enter(void)
+{
   if (use_item_state == STATE_USE || use_item_state == STATE_CONTINUE) {
     
     int item_type = goods_data[GOODS_MAGIC_ITEM]
@@ -167,10 +178,6 @@ void use_item_enter(void)
 
 void use_item_leave(void)
 {
-  auto &res = Resources::instance();
-  for (SoundId id : kUseItemSoundIds) {
-    res.unloadSound(id);
-  }
   kill_timer();
 }
 

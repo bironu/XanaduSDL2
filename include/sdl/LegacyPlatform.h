@@ -28,10 +28,6 @@ int bgm_mute(void);
 void bgm_tempo(int tempo);
 void bgm_random(int random_pitch_bend);
 
-// 音声サブシステムの初期化(サウンドフォントの設定、wave.txt/midi.txtの読み込み)。
-// initLegacyGraphicsとは別に、Application(Mix_::Mixer)の生成後に呼び出すこと。
-void initLegacySound(Resources &res);
-
 // clip_overall/clip_main等を合成し、実際にウィンドウへ描画する。
 // Scene::swap()から毎フレーム呼び出される。
 void presentLegacyFrame();

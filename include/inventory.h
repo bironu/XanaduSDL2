@@ -2,6 +2,7 @@
 #define inventory_H
 
 // コンテキスト保護関数
+extern void inventory_destroy(void);
 extern void inventory_enter(void);
 extern void inventory_leave(void);
 
